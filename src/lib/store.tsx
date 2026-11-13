@@ -57,8 +57,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ]);
       const map: Entries = {};
       (e.data ?? []).forEach((r: { key: string; value: unknown }) => (map[r.key] = r.value));
+      let stack = p.data?.stack || "dotnet";
+      // One-time import: progress saved in this browser before the database was connected (or as a guest) moves into the account.
+      const flag = "fde:imported:" + u.id;
+      if (!e.error && Object.keys(map).length === 0 && !localStorage.getItem(flag)) {
+        try {
+          const read = (k: string) => JSON.parse(localStorage.getItem(LOCAL + k) || "{}");
+          const own = read(u.email); const guest = u.email.toLowerCase() === ADMIN_EMAIL ? read(GUEST) : {};
+          const merged: Entries = { ...(guest.entries ?? {}), ...(own.entries ?? {}) };
+          const keys = Object.keys(merged).filter((k) => /^[a-zA-Z0-9:_-]{1,40}$/.test(k));
+          if (keys.length) {
+            const now = new Date().toISOString();
+            const { error } = await supabase.from("entries").upsert(keys.map((key) => ({ user_id: u.id, key, value: merged[key], updated_at: now })));
+            if (!error) { keys.forEach((k) => (map[k] = merged[k])); stack = own.profile?.stack || guest.profile?.stack || stack; localStorage.setItem(flag, "1"); }
+          } else localStorage.setItem(flag, "1");
+        } catch { /* nothing to import */ }
+      }
       setEntries(map);
-      setProf({ display_name: p.data?.display_name || nameFrom(u.email), stack: p.data?.stack || "dotnet" });
+      setProf({ display_name: p.data?.display_name || nameFrom(u.email), stack });
       if (e.error) setSaveError(e.error.message);
     } else {
       try {
