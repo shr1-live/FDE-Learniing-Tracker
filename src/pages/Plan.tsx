@@ -39,10 +39,13 @@ export function DayPage() {
   const st = stackById(profile.stack); const net = st.id === "dotnet";
   const show = (r: { any: boolean }) => net || allStacks || r.any;
   const prog = dayProgress(entries, d.n); const complete = prog.total > 0 && prog.done === prog.total;
-  const setAll = (v: boolean) => checkKeys(d).forEach((k) => setEntry("chk:" + k, v));
+  const resKeys = [...d.watch.map((_, i) => `res:d${d.n}-v${i}`), ...d.read.map((_, i) => `res:d${d.n}-r${i}`)];
+  const resDone = resKeys.filter((k) => entries[k]).length;
+  const withKeys = (list: typeof d.watch, p: string) => list.map((r, i) => ({ r, k: `res:d${d.n}-${p}${i}` })).filter(({ r }) => show(r));
+  const setAll = (v: boolean) => { checkKeys(d).forEach((k) => setEntry("chk:" + k, v)); resKeys.forEach((k) => setEntry(k, v)); };
   const hours = entries["hours:" + d.n]; const note = (entries["note:" + d.n] as string) ?? "";
   const pct = Math.round(prog.pct * 100);
-  const TABS: [Tab, string, string][] = [["learn", "Learn", "1.5 h"], ["build", "Build", "3 h"], ["practice", "Practice", `${prog.done}/${prog.total}`], ["notes", "Notes", note ? "saved" : ""]];
+  const TABS: [Tab, string, string][] = [["learn", "Learn", `${resDone}/${resKeys.length}`], ["build", "Build", "3 h"], ["practice", "Practice", `${prog.done}/${prog.total}`], ["notes", "Notes", note ? "saved" : ""]];
   return (
     <div className="daypage">
       {party > 0 && <Celebrate id={party} text={`Day ${d.n} complete. Nicely done!`} onDone={() => setParty(0)} />}
@@ -75,8 +78,8 @@ export function DayPage() {
         {tab === "learn" && (<>
           <section className="card"><h2>What to learn</h2><p>{d.learn}</p></section>
           <div className="two">
-            <section className="card"><h2>Watch</h2><ResourceList kind="Video" items={d.watch.filter(show)} /></section>
-            <section className="card"><h2>Read</h2><ResourceList kind="Read" items={d.read.filter(show)} /></section>
+            <section className="card"><h2>Watch</h2><ResourceList kind="Video" items={withKeys(d.watch, "v")} /></section>
+            <section className="card"><h2>Read</h2><ResourceList kind="Read" items={withKeys(d.read, "r")} /></section>
           </div>
         </>)}
 

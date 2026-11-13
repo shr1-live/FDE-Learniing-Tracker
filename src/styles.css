@@ -310,3 +310,10 @@ label{margin:18px 0 6px}
 .links li{border-bottom:1px solid var(--line)}.links li:last-child{border:0}
 .urlrow code{display:none}.urlrow{flex:none;margin-left:auto}
 @media (max-width:860px){.dayhero{grid-template-columns:1fr;padding:22px}.dh-side{flex-direction:row;flex-wrap:wrap;justify-content:flex-start;min-width:0;text-align:left}.dh-side .btn{width:auto}.pn{grid-template-columns:1fr}.pncard.next{grid-column:auto;text-align:left}.tabs button{padding:10px 14px}}
+
+/* resource completion */
+.markbtn{font:inherit;font-size:13px;font-weight:600;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s}
+.markbtn:hover{border-color:var(--moss)}
+.markbtn.on{background:var(--moss);border-color:var(--moss);color:#fff}
+.rdone>a{text-decoration:line-through;color:var(--muted)}
+.urlrow{gap:8px;flex-wrap:wrap;justify-content:flex-end}

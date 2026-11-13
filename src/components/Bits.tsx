@@ -42,18 +42,19 @@ export function CopyBtn({ text }: { text: string }) {
   );
 }
 
-export function ResourceList({ items, kind }: { items: Resource[]; kind: "Video" | "Read" }) {
+export function ResourceList({ items, kind }: { items: { r: Resource; k: string }[]; kind: "Video" | "Read" }) {
+  const { entries, setEntry } = useStore();
   if (!items.length) return <p className="muted">Nothing for this stack today. See the Stack guide.</p>;
   return (
     <ul className="links">
-      {items.map((r) => (
-        <li key={r.url}>
+      {items.map(({ r, k }) => { const done = !!entries[k]; return (
+        <li key={r.url} className={done ? "rdone" : ""}>
           <span className={"tag " + (kind === "Video" ? "v" : "r")}>{kind}</span>
           <a href={r.url} target="_blank" rel="noopener noreferrer">{r.title}</a>
           {(r.channel || r.note) && <span className="meta">{[r.channel, r.note].filter(Boolean).join(" · ")}</span>}
-          <span className="urlrow"><code>{r.url}</code><CopyBtn text={r.url} /></span>
-        </li>
-      ))}
+          <span className="urlrow"><code>{r.url}</code><CopyBtn text={r.url} />
+            <button type="button" className={"markbtn" + (done ? " on" : "")} aria-pressed={done} onClick={() => setEntry(k, !done)}>{done ? "✓ Completed" : kind === "Video" ? "Mark watched" : "Mark read"}</button></span>
+        </li>); })}
     </ul>
   );
 }
