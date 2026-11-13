@@ -39,7 +39,7 @@ The anon key is meant to be public. Never put the service role key in this proje
 | `src/data/outline.ts` | Six-week outline text from the company PDF |
 | `src/data/stacks.ts` | Stack guide for each language (only links that loaded when checked) |
 | `src/lib/store.tsx` | Sign-in, saving, team board |
-| `public/docs/` | The six-week outline PDF, ten-day plan PDF, playbook and repo scaffold |
+| `public/docs/` | The six-week outline PDF and repo scaffold (public). The ten-day plan and playbook PDFs are admin-only in a private Supabase bucket, see `supabase/private-docs.sql` |
 | `supabase/schema.sql` | Tables and row-level security |
 
 ## Notes

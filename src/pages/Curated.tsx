@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import { DAYS } from "../data/types";
+import { useStore } from "../lib/store";
+import PrivateDoc from "../components/PrivateDoc";
 
 export default function Curated() {
+  const { isAdmin } = useStore();
   return (
     <>
       <header className="ph"><h1>Curated path: .NET with Azure</h1>
@@ -15,7 +18,7 @@ export default function Curated() {
             <li>Ask for Azure OpenAI access (one chat model, one embedding model, a Key Vault). Do not wait for it.</li>
             <li>No Azure access by 9 am on Day 1: you are on Track B. Write it in your tracker and go.</li>
           </ol>
-          <p><a className="btn" href="/docs/FDE-Start-Tomorrow-Playbook.pdf" target="_blank" rel="noopener noreferrer">Start-tomorrow playbook (PDF)</a></p>
+          {isAdmin && <p><PrivateDoc name="FDE-Start-Tomorrow-Playbook.pdf" label="Start-tomorrow playbook (PDF)" /></p>}
           <p><a href="/docs/ops-copilot-scaffold.zip">Repo scaffold (zip)</a></p>
         </section>
         <section className="card">
