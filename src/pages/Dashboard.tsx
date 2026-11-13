@@ -13,8 +13,13 @@ export default function Dashboard() {
     <>
       <header className="ph">
         <h1>{profile.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Dashboard"}</h1>
-        <p className="muted">{done} of {TOTAL_CHECKS} checks done. {hours.toFixed(1)} hours logged.</p>
+        <p className="muted">Keep stacking layers. One a day.</p>
       </header>
+      <div className="stats">
+        <div className="stat"><b>{pct}%</b><span>Plan complete</span></div>
+        <div className="stat"><b>{done}/{TOTAL_CHECKS}</b><span>Checks done</span></div>
+        <div className="stat"><b>{hours.toFixed(1)}</b><span>Hours logged</span></div>
+      </div>
       <div className="dash">
         <section>
           <h2>Your ten layers</h2><p className="muted small">Start at Day 1 and work down. Each bar fills as you tick its checks.</p>

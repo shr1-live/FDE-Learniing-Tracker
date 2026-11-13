@@ -12,7 +12,7 @@ h2 small{font-family:var(--text);font-weight:400;font-size:14px;color:var(--mute
 p{margin:0 0 10px}
 a{color:var(--blue)}
 :focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-.muted{color:var(--muted)}.small{font-size:14px}.sr{position:absolute;left:-9999px}
+.muted{color:var(--muted)}.small{font-size:14px}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 
 .shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
@@ -96,3 +96,44 @@ td select{width:auto}
   .who{margin-top:0}.dash,.two,.landing{grid-template-columns:minmax(0,1fr)}.ltheme{justify-self:stretch;width:auto}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---- UI polish ---- */
+:root{--shadow:0 1px 2px rgba(16,24,40,.06),0 4px 14px rgba(16,24,40,.06);--shadow-lg:0 2px 4px rgba(16,24,40,.08),0 12px 28px rgba(16,24,40,.12);--r:12px}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(1100px 420px at 85% -120px,var(--bluesoft),transparent 70%),var(--bg);background-attachment:fixed}
+.card{border-radius:var(--r);box-shadow:var(--shadow);padding:20px}
+.btn{border-radius:10px;padding:11px 18px;box-shadow:var(--shadow);transition:transform .15s ease,box-shadow .15s ease,filter .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-lg);filter:brightness(1.08)}
+.btn:active{transform:none}
+input:not([type=checkbox]),select,textarea{border-radius:10px;transition:border-color .15s,box-shadow .15s}
+input:not([type=checkbox]):focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--bluesoft)}
+.side{background:linear-gradient(180deg,var(--side-bg),color-mix(in srgb,var(--side-bg) 82%,#2B5BA9))}
+.side nav a{border-radius:10px;transition:background .15s,transform .15s;position:relative}
+.side nav a:hover{transform:translateX(2px)}
+.side nav a.active{box-shadow:var(--shadow);font-weight:600}
+.side nav a.active::before{content:"";position:absolute;left:-14px;top:25%;bottom:25%;width:4px;border-radius:0 4px 4px 0;background:var(--hl)}
+.mark i{border-radius:2px}
+.main{animation:rise .35s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h1{background:linear-gradient(90deg,var(--ink),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+.layer,.daylist a,.chips a,.back,.seg button{border-radius:10px;transition:transform .15s ease,box-shadow .15s ease,border-color .15s}
+.layer:hover,.daylist a:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.layer{box-shadow:var(--shadow)}
+.daylist a{box-shadow:var(--shadow)}
+.chips a:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.meter{border-radius:999px}.meter i{border-radius:999px;background:linear-gradient(90deg,var(--hl),var(--moss));transition:width .5s ease}
+.tablewrap{border-radius:var(--r);box-shadow:var(--shadow)}
+tbody tr:hover td{background:var(--bluesoft)}
+.track{border-radius:var(--r);padding:14px 18px}
+.tag{border-radius:999px;padding:2px 10px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 24px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow)}
+.stat b{display:block;font-family:var(--head);font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted)}
+.lhero h1{font-size:clamp(34px,5.4vw,56px)}
+.landing{min-height:100vh;align-content:center}
+.lform{box-shadow:var(--shadow-lg);position:sticky;top:24px}
+.weeks li{border-radius:0 8px 8px 0;transition:background .15s}.weeks li:hover{background:var(--bluesoft)}
+@media (max-width:860px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.side nav a.active::before{display:none}.lform{position:static}.stat b{font-size:22px}}
+@media (max-width:520px){.stats{grid-template-columns:1fr}.chips a{width:34px;height:34px}}
+@media (prefers-reduced-motion:reduce){.main{animation:none}html{scroll-behavior:auto}.btn:hover,.layer:hover,.daylist a:hover,.chips a:hover{transform:none}}
