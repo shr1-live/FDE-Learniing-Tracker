@@ -54,7 +54,7 @@ export function ResourceList({ items, kind }: { items: { r: Resource; k: string 
           <a href={r.url} target="_blank" rel="noopener noreferrer">{r.title}</a>
           {(r.channel || r.note) && <span className="meta">{[r.channel, r.note].filter(Boolean).join(" · ")}</span>}
           <span className="urlrow"><code>{r.url}</code><CopyBtn text={r.url} />
-            <button type="button" className={"markbtn" + (done ? " on" : "")} aria-pressed={done} onClick={() => setEntry(k, !done)}>{done ? "✓ Completed" : kind === "Video" ? "Mark watched" : "Mark read"}</button></span>
+            <button type="button" className={"markbtn" + (done ? " on" : "")} aria-pressed={done} onClick={() => setEntry(k, !done)}>{done ? "\u2713 Completed" : kind === "Video" ? "Mark watched" : "Mark read"}</button></span>
           {GUIDES[r.url] && <StudyNotes url={r.url} />}
         </li>); })}
     </ul>

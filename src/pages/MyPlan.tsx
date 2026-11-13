@@ -1,6 +1,5 @@
 import { FormEvent, useState } from "react";
 import { useStore } from "../lib/store";
-import Ring from "../components/Ring";
 
 type Item = { id: string; t: string; n: string; d: boolean };
 const KEY = "myplan"; // stored per user; the database only lets each person read their own
@@ -63,7 +62,7 @@ export default function MyPlan() {
             <div className="row"><button className="btn" disabled={!title.trim() || items.length >= MAX_ITEMS}>Add to my plan</button></div>
             {items.length >= MAX_ITEMS && <p className="err small">You have reached {MAX_ITEMS} steps. Delete one to add another.</p>}
           </form>
-          <div className="card"><h3>Progress</h3><div className="ringrow"><Ring pct={pct} /><p className="muted small">{done} of {items.length} steps complete</p></div></div>
+          <div className="card"><h3>Progress</h3><div className="meter" aria-label={`${pct} percent`}><i style={{ width: pct + "%" }} /></div><p className="muted small">{done} of {items.length} steps complete</p></div>
         </aside>
       </div>
     </>

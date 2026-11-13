@@ -1,14 +1,11 @@
 import { useStore } from "../lib/store";
-import { Aurora } from "./Landing";
 
 export default function Gate() {
   const { access, user, signOut, recheck } = useStore();
   const pending = access === "pending";
   return (
     <main className="gate">
-      <Aurora />
       <section className="card gatecard">
-        <div className={"pulse" + (pending ? "" : " off")} aria-hidden="true"><i /><i /><i /></div>
         <h1>{pending ? "Waiting for approval" : access === "rejected" ? "Access not granted" : "Something went wrong"}</h1>
         <p className="muted">
           {pending && <>The free seats are taken, so your request was sent to the admin. This page opens by itself as soon as you are approved.</>}

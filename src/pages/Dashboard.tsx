@@ -3,10 +3,7 @@ import { useStore } from "../lib/store";
 import { STACKS } from "../data/stacks";
 import { DAYS, TOTAL_CHECKS } from "../data/types";
 import { LayerStack, dayProgress } from "../components/Bits";
-import Ring from "../components/Ring";
 import { WEEKS } from "../data/outline";
-
-const greet = () => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"; };
 
 function AdminDashboard() {
   const { profile, setProfile, pct, entries } = useStore();
@@ -16,21 +13,16 @@ function AdminDashboard() {
   return (
     <>
       <header className="ph">
-        <h1>{greet()}{profile.display_name ? `, ${profile.display_name.split(" ")[0]}` : ""}</h1>
-        <p className="muted">Keep stacking layers. One a day.</p>
+        <h1>{profile.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Dashboard"}</h1>
+        <p className="muted">{done} of {TOTAL_CHECKS} checks done. {hours.toFixed(1)} hours logged.</p>
       </header>
-      <div className="stats">
-        <div className="stat"><b>{pct}%</b><span>Plan complete</span></div>
-        <div className="stat"><b>{done}/{TOTAL_CHECKS}</b><span>Checks done</span></div>
-        <div className="stat"><b>{hours.toFixed(1)}</b><span>Hours logged</span></div>
-      </div>
       <div className="dash">
         <section>
           <h2>Your ten layers</h2><p className="muted small">Start at Day 1 and work down. Each bar fills as you tick its checks.</p>
           <LayerStack />
         </section>
         <aside>
-          <div className="card nextup">
+          <div className="card">
             <h3>Next up</h3>
             <p><b>Day {next.n}: {next.name}</b></p>
             <p className="muted">{next.goal}</p>
@@ -48,7 +40,8 @@ function AdminDashboard() {
           </div>
           <div className="card">
             <h3>Overall</h3>
-            <div className="ringrow"><Ring pct={pct} /><p className="muted small">{pct === 100 ? "All ten layers done. Brilliant." : `${DAYS.filter((d) => dayProgress(entries, d.n).pct === 1).length} of ${DAYS.length} days complete`}</p></div>
+            <div className="meter" aria-label={`${pct} percent`}><i style={{ width: pct + "%" }} /></div>
+            <p className="muted small">{pct}% of the ten-day plan</p>
           </div>
         </aside>
       </div>
@@ -59,18 +52,12 @@ function AdminDashboard() {
 function MemberDashboard() {
   const { profile, setProfile, pct, entries, setEntry } = useStore();
   const doneWeeks = WEEKS.filter((w) => entries["wk:" + w.n]).length;
-  const next = WEEKS.find((w) => !entries["wk:" + w.n]);
   return (
     <>
       <header className="ph">
-        <h1>{greet()}{profile.display_name ? `, ${profile.display_name.split(" ")[0]}` : ""}</h1>
-        <p className="muted">Work through the six-week programme and tick each week's output as you reach it.</p>
+        <h1>{profile.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Dashboard"}</h1>
+        <p className="muted">{doneWeeks} of {WEEKS.length} weeks done. Work through the six-week programme and tick each week's output as you reach it.</p>
       </header>
-      <div className="stats">
-        <div className="stat"><b>{pct}%</b><span>Programme complete</span></div>
-        <div className="stat"><b>{doneWeeks}/{WEEKS.length}</b><span>Weeks done</span></div>
-        <div className="stat"><b>{Math.max(0, WEEKS.length - doneWeeks) * 15}</b><span>Learning hours left</span></div>
-      </div>
       <div className="dash">
         <section>
           <h2>Your six weeks</h2><p className="muted small">Tick a week when you have produced its expected output.</p>
@@ -84,9 +71,10 @@ function MemberDashboard() {
           </ul>
         </section>
         <aside>
-          <div className="card nextup">
-            <h3>Next up</h3>
-            {next ? (<><p><b>Week {next.n}: {next.focus}</b></p><p className="muted">{next.output}</p><Link className="btn" to="/outline">Open the programme</Link> <Link className="btn ghost" to="/myplan">Build my own plan</Link></>) : <p>All six weeks done. Brilliant.</p>}
+          <div className="card">
+            <h3>Your own plan</h3>
+            <p className="muted">Add the steps you want to work through, in your own order.</p>
+            <Link className="btn" to="/myplan">Open My plan</Link>
           </div>
           <div className="card">
             <h3>Your stack</h3>
@@ -98,7 +86,11 @@ function MemberDashboard() {
             <label htmlFor="dn">Display name</label>
             <input id="dn" value={profile.display_name} onChange={(e) => setProfile({ display_name: e.target.value })} />
           </div>
-          <div className="card"><h3>Overall</h3><div className="ringrow"><Ring pct={pct} /><p className="muted small">{doneWeeks} of {WEEKS.length} weeks complete</p></div></div>
+          <div className="card">
+            <h3>Overall</h3>
+            <div className="meter" aria-label={`${pct} percent`}><i style={{ width: pct + "%" }} /></div>
+            <p className="muted small">{pct}% of the six-week programme</p>
+          </div>
         </aside>
       </div>
     </>
