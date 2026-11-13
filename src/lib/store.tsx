@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, ReactNode } from "react";
 import { supabase, isOfficeEmail, ALLOWED_DOMAIN, ADMIN_EMAIL } from "./supabase";
 import { DAYS, TOTAL_CHECKS, checkKeys } from "../data/types";
+import { WEEKS } from "../data/outline";
 
 export type TeamRow = { display_name: string | null; stack: string; pct: number; updated_at: string };
 type User = { id: string; email: string };
@@ -32,10 +33,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const timer = useRef<number | undefined>(undefined);
 
   const pct = useMemo(() => {
+    if (!isAdmin) return Math.round((WEEKS.filter((w) => entries["wk:" + w.n]).length / WEEKS.length) * 100); // members: six-week outputs
     let done = 0;
     for (const d of DAYS) for (const k of checkKeys(d)) if (entries["chk:" + k]) done++;
     return TOTAL_CHECKS ? Math.round((done / TOTAL_CHECKS) * 100) : 0;
-  }, [entries]);
+  }, [entries, isAdmin]);
 
   const loadFor = useCallback(async (u: User) => {
     setUser(u);

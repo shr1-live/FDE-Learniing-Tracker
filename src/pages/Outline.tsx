@@ -4,7 +4,7 @@ import { useStore } from "../lib/store";
 import { Link } from "react-router-dom";
 
 export default function Outline() {
-  const { entries, setEntry } = useStore();
+  const { entries, setEntry, isAdmin } = useStore();
   return (
     <>
       <header className="ph"><h1>Six-week programme</h1>
@@ -17,7 +17,7 @@ export default function Outline() {
             <li key={w.n} className="card">
               <label className="check"><input type="checkbox" checked={!!entries["wk:" + w.n]} onChange={(e) => setEntry("wk:" + w.n, e.target.checked)} />
                 <span><b>Week {w.n}: {w.focus}</b><br />{w.output}</span></label>
-              {mapped.length > 0 && <p className="muted small">Fast-track days: {mapped.map((d, i) => (<span key={d.n}>{i > 0 && ", "}<Link to={`/plan/${d.n}`}>Day {d.n}</Link></span>))}</p>}
+              {isAdmin && mapped.length > 0 && <p className="muted small">Fast-track days: {mapped.map((d, i) => (<span key={d.n}>{i > 0 && ", "}<Link to={`/plan/${d.n}`}>Day {d.n}</Link></span>))}</p>}
             </li>
           );
         })}

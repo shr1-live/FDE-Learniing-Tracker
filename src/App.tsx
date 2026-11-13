@@ -10,11 +10,13 @@ import Readiness from "./pages/Readiness";
 import StackGuide from "./pages/StackGuide";
 import Curated from "./pages/Curated";
 import Admin from "./pages/Admin";
+import MyPlan from "./pages/MyPlan";
 import Gate from "./pages/Gate";
 import Docs from "./pages/Docs";
 import BackButton from "./components/BackButton";
 import ThemeSwitch from "./components/ThemeSwitch";
 
+const ADMIN_ONLY = new Set(["/plan", "/curated"]); // my personal ten-day plan: visible to the admin only
 const NAV: [string, string][] = [["/", "Dashboard"], ["/plan", "Ten-day plan"], ["/outline", "Six-week programme"], ["/stack", "Stack guide"], ["/curated", "Curated: .NET"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
 
 export default function App() {
@@ -38,7 +40,8 @@ export default function App() {
   if (!ready) return <main className="center" aria-busy="true"><div className="skel"><i /><i /><i /></div></main>;
   if (!user) return <Landing />;
   if (access !== "approved") return <Gate />;
-  const nav = isAdmin ? [...NAV, ["/admin", "Admin"] as [string, string]] : NAV;
+  const nav = isAdmin ? [...NAV, ["/admin", "Admin"] as [string, string]] : [["/", "Dashboard"], ["/myplan", "My plan"], ...NAV.filter(([to]) => to !== "/" && !ADMIN_ONLY.has(to))] as [string, string][];
+  const mine = (el: JSX.Element) => (isAdmin ? el : <Navigate to="/" replace />);
   return (
     <div className={"shell" + (collapsed ? " collapsed" : "") + (open ? " open" : "")}>
       <aside className="side" id="sidenav">
@@ -57,12 +60,13 @@ export default function App() {
         {saveError && <p className="banner err" role="alert">Could not save to the database: {saveError}</p>}
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/plan" element={<PlanList />} />
-          <Route path="/plan/:n" element={<DayPage />} />
+          <Route path="/plan" element={mine(<PlanList />)} />
+          <Route path="/plan/:n" element={mine(<DayPage />)} />
           <Route path="/outline" element={<Outline />} />
           <Route path="/stack" element={<StackGuide />} />
-          <Route path="/curated" element={<Curated />} />
+          <Route path="/curated" element={mine(<Curated />)} />
           <Route path="/readiness" element={<Readiness />} />
+          <Route path="/myplan" element={isAdmin ? <Navigate to="/plan" replace /> : <MyPlan />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="*" element={<Navigate to="/" replace />} />

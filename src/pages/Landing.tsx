@@ -2,7 +2,6 @@ import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
 import { useStore } from "../lib/store";
 import { ALLOWED_DOMAIN } from "../lib/supabase";
 import { WEEKS } from "../data/outline";
-import { DAYS } from "../data/types";
 import ThemeSwitch from "../components/ThemeSwitch";
 
 export function Aurora() {
@@ -26,8 +25,8 @@ function Reveal({ children, delay = 0, className = "" }: { children: ReactNode; 
 }
 
 const FEATURES: [string, string, string][] = [
-  ["01", "One layer a day", "Ten focused days. Each builds on the last, so you finish with a working capstone, not a pile of notes."],
-  ["02", "Tick it, it saves", "Check off practice and done-when items, mark a whole day complete, and log your hours. Everything is saved."],
+  ["01", "Six clear weeks", "Each week has an expected output, so you finish with a working capstone, not a pile of notes."],
+  ["02", "Tick it, it saves", "Tick off each week as you reach its output and keep your own progress. Everything is saved."],
   ["03", "Private by design", "Your progress is yours alone. Nobody else on the programme can see it."],
   ["04", "Your stack, your path", ".NET, Node, Java or Python. Resources follow the stack you pick."],
 ];
@@ -56,14 +55,14 @@ export default function Landing() {
           <div className="hcopy">
             <p className="eyebrow"><span className="dot" />Forward Deployed Engineer programme</p>
             <h1>Build the AI skills your role needs, <em>one layer a day.</em></h1>
-            <p className="lead">The company FDE programme as a working tracker: a ten-day fast track, the six-week outline, and your own stack. Tick it off, keep your notes, watch your layers stack up.</p>
+            <p className="lead">The company FDE programme as a working tracker: the six-week outline, a guide for your stack, and your own progress. Tick it off, keep your notes, watch your layers stack up.</p>
             <a className="btn big" href="#signin">Get started</a>
             <ul className="trust"><li>Office email only</li><li>Private progress</li><li>Free for the first 3 people</li></ul>
           </div>
           <div className="tower" aria-hidden="true">
-            {DAYS.slice(0, 7).map((d, i) => (
+            {WEEKS.map((d, i) => (
               <div key={d.n} className="tlayer" style={{ animationDelay: `${0.25 + i * 0.18}s`, ["--w" as string]: `${100 - i * 7}%` }}>
-                <span>Day {d.n}</span><b>{d.name}</b>
+                <span>Week {d.n}</span><b>{d.focus}</b>
               </div>
             ))}
             <div className="glow" />
@@ -72,8 +71,8 @@ export default function Landing() {
 
         <section className="band">
           <Reveal className="stats3">
-            <div><b>10</b><span>days, one layer each</span></div>
-            <div><b>6</b><span>week programme outline</span></div>
+            <div><b>6</b><span>weeks, one clear output each</span></div>
+            <div><b>15</b><span>learning hours a week</span></div>
             <div><b>4</b><span>stacks supported</span></div>
           </Reveal>
         </section>

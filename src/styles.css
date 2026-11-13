@@ -338,3 +338,7 @@ label{margin:18px 0 6px}
 .linkbtn.alt{display:block;margin-top:14px;color:var(--blue);font-size:14px}
 
 .btn.wide{width:100%;margin-top:10px}
+
+.mylist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px}
+.mylist li{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;padding:18px 20px}
+.mylist li.isdone{opacity:.7}.mytools{display:flex;gap:6px}.copy:disabled{opacity:.4;cursor:default}
