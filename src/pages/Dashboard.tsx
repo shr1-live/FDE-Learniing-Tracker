@@ -17,7 +17,7 @@ export default function Dashboard() {
       </header>
       <div className="dash">
         <section>
-          <h2>Layers built</h2>
+          <h2>Your ten layers</h2><p className="muted small">Start at Day 1 and work down. Each bar fills as you tick its checks.</p>
           <LayerStack />
         </section>
         <aside>

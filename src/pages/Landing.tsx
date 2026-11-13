@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { useStore } from "../lib/store";
 import { ALLOWED_DOMAIN } from "../lib/supabase";
 import { WEEKS } from "../data/outline";
+import ThemeSwitch from "../components/ThemeSwitch";
 
 export default function Landing() {
   const { mode, signIn, localSignIn } = useStore();
@@ -14,6 +15,7 @@ export default function Landing() {
   }
   return (
     <main className="landing">
+      <div className="ltheme"><ThemeSwitch /></div>
       <section className="lhero">
         <h1>Build the AI skills your role needs, one layer a day</h1>
         <p className="lead">The company FDE programme as a working tracker: the six-week outline, a ten-day fast track, and your own stack. Tick what you finish, keep your notes, and see your layers stack up.</p>

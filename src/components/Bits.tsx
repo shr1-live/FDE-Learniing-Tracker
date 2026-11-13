@@ -11,9 +11,9 @@ export function dayProgress(entries: Record<string, unknown>, n: number) {
 
 export function LayerStack() {
   const { entries } = useStore();
-  const rows = [...DAYS].reverse();
+  const rows = DAYS;
   return (
-    <ol className="stack" aria-label="Layers built, top is newest">
+    <ol className="stack" aria-label="Layers, Day 1 first">
       {rows.map((d) => {
         const p = dayProgress(entries, d.n);
         return (
@@ -68,5 +68,17 @@ export function CheckItem({ k, text }: { k: string; text: string }) {
         <span>{text}</span>
       </label>
     </li>
+  );
+}
+
+export function DayChips({ current }: { current: number }) {
+  const { entries } = useStore();
+  return (
+    <nav className="chips" aria-label="Jump to day">
+      {DAYS.map((x) => { const p = dayProgress(entries, x.n); return (
+        <Link key={x.n} to={`/plan/${x.n}`} className={x.n === current ? "on" : ""} aria-current={x.n === current ? "page" : undefined} title={x.name}>
+          <i style={{ height: `${Math.round(p.pct * 100)}%` }} /><span>{x.n}</span>
+        </Link>); })}
+    </nav>
   );
 }

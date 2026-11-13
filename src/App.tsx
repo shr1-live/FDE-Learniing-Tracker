@@ -9,6 +9,8 @@ import StackGuide from "./pages/StackGuide";
 import Curated from "./pages/Curated";
 import Team from "./pages/Team";
 import Docs from "./pages/Docs";
+import BackButton from "./components/BackButton";
+import ThemeSwitch from "./components/ThemeSwitch";
 
 const NAV: [string, string][] = [["/", "Dashboard"], ["/plan", "Ten-day plan"], ["/outline", "Six-week programme"], ["/stack", "Stack guide"], ["/curated", "Curated: .NET"], ["/readiness", "Readiness"], ["/team", "Team"], ["/docs", "Downloads"]];
 
@@ -21,9 +23,10 @@ export default function App() {
       <aside className="side">
         <div className="brand"><span className="mark" aria-hidden="true"><i /><i /><i /></span>FDE Tracker</div>
         <nav aria-label="Main">{NAV.map(([to, label]) => (<NavLink key={to} to={to} end={to === "/"}>{label}</NavLink>))}</nav>
-        <div className="who"><div className="meter small"><i style={{ width: pct + "%" }} /></div><small>{user.email}</small><button className="linkbtn" onClick={signOut}>Sign out</button></div>
+        <div className="who"><ThemeSwitch /><div className="meter small"><i style={{ width: pct + "%" }} /></div><small>{user.email}</small><button className="linkbtn" onClick={signOut}>Sign out</button></div>
       </aside>
       <main className="main">
+        <div className="topbar"><BackButton /></div>
         {saveError && <p className="banner err" role="alert">Could not save to the database: {saveError}</p>}
         <Routes>
           <Route path="/" element={<Dashboard />} />

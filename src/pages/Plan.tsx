@@ -3,7 +3,7 @@ import { useState } from "react";
 import { DAYS, checkKeys } from "../data/types";
 import { useStore } from "../lib/store";
 import { stackById } from "../data/stacks";
-import { CheckItem, ResourceList, dayProgress } from "../components/Bits";
+import { CheckItem, DayChips, ResourceList, dayProgress } from "../components/Bits";
 
 export function PlanList() {
   const { entries } = useStore();
@@ -34,8 +34,9 @@ export function DayPage() {
   const hours = entries["hours:" + d.n]; const note = (entries["note:" + d.n] as string) ?? "";
   return (
     <>
+      <DayChips current={d.n} />
       <header className="ph">
-        <p className="crumb"><Link to="/plan">Plan</Link> / Day {d.n}</p>
+        <p className="crumb"><Link to="/plan">Plan</Link> / Day {d.n} of {DAYS.length}</p>
         <h1>{d.name}</h1>
         <p className="muted">{d.layer} · {d.outline}</p>
         <p className="goal">{d.goal}</p>
