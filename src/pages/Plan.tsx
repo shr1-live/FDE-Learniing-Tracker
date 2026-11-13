@@ -1,4 +1,5 @@
 import { Link, useParams, Navigate } from "react-router-dom";
+import Celebrate from "../components/Celebrate";
 import { useState } from "react";
 import { DAYS, checkKeys } from "../data/types";
 import { useStore } from "../lib/store";
@@ -28,6 +29,7 @@ export function DayPage() {
   const d = DAYS.find((x) => x.n === num);
   const { profile, entries, setEntry } = useStore();
   const [allStacks, setAllStacks] = useState(false);
+  const [party, setParty] = useState(0);
   if (!d) return <Navigate to="/plan" replace />;
   const st = stackById(profile.stack); const net = st.id === "dotnet";
   const show = (r: { any: boolean }) => net || allStacks || r.any;
@@ -36,6 +38,8 @@ export function DayPage() {
   const hours = entries["hours:" + d.n]; const note = (entries["note:" + d.n] as string) ?? "";
   return (
     <>
+      {party > 0 && <Celebrate id={party} text={`Day ${d.n} complete. Nicely done!`} onDone={() => setParty(0)} />}
+      <div className="sticky"><div className="meter"><i style={{ width: prog.pct * 100 + "%" }} /></div></div>
       <DayChips current={d.n} />
       <header className="ph">
         <p className="crumb"><Link to="/plan">Plan</Link> / Day {d.n} of {DAYS.length}</p>
@@ -44,7 +48,7 @@ export function DayPage() {
         <p className="goal">{d.goal}</p>
         <div className="row">
           {complete && <span className="tag done">Completed</span>}
-          <button type="button" className={"btn" + (complete ? " ghost" : "")} onClick={() => setAll(!complete)}>{complete ? "Reopen this day" : "Mark day as completed"}</button>
+          <button type="button" className={"btn" + (complete ? " ghost" : "")} onClick={() => { setAll(!complete); if (!complete) setParty(Date.now()); }}>{complete ? "Reopen this day" : "Mark day as completed"}</button>
           <span className="muted small">{prog.done}/{prog.total} checks</span>
         </div>
       </header>

@@ -3,6 +3,9 @@ import { useStore } from "../lib/store";
 import { STACKS } from "../data/stacks";
 import { DAYS, TOTAL_CHECKS } from "../data/types";
 import { LayerStack, dayProgress } from "../components/Bits";
+import Ring from "../components/Ring";
+
+const greet = () => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"; };
 
 export default function Dashboard() {
   const { profile, setProfile, pct, entries } = useStore();
@@ -12,7 +15,7 @@ export default function Dashboard() {
   return (
     <>
       <header className="ph">
-        <h1>{profile.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Dashboard"}</h1>
+        <h1>{greet()}{profile.display_name ? `, ${profile.display_name.split(" ")[0]}` : ""}</h1>
         <p className="muted">Keep stacking layers. One a day.</p>
       </header>
       <div className="stats">
@@ -26,7 +29,7 @@ export default function Dashboard() {
           <LayerStack />
         </section>
         <aside>
-          <div className="card">
+          <div className="card nextup">
             <h3>Next up</h3>
             <p><b>Day {next.n}: {next.name}</b></p>
             <p className="muted">{next.goal}</p>
@@ -44,8 +47,7 @@ export default function Dashboard() {
           </div>
           <div className="card">
             <h3>Overall</h3>
-            <div className="meter" aria-label={`${pct} percent`}><i style={{ width: pct + "%" }} /></div>
-            <p className="muted small">{pct}% of the ten-day plan</p>
+            <div className="ringrow"><Ring pct={pct} /><p className="muted small">{pct === 100 ? "All ten layers done. Brilliant." : `${DAYS.filter((d) => dayProgress(entries, d.n).pct === 1).length} of ${DAYS.length} days complete`}</p></div>
           </div>
         </aside>
       </div>
