@@ -10,12 +10,13 @@ export type Access = "approved" | "pending" | "rejected" | "error";
 type Ctx = {
   mode: "supabase" | "local"; access: Access; isAdmin: boolean; recheck: () => void; ready: boolean; user: User | null; entries: Entries; profile: Profile; pct: number; saveError: string;
   setEntry: (k: string, v: unknown) => void; setProfile: (p: Partial<Profile>) => void;
-  signIn: (email: string) => Promise<string>; signInPassword: (email: string, password: string) => Promise<string>; localSignIn: (email: string) => string; signOut: () => Promise<void>;
+  guestSignIn: () => void; signIn: (email: string) => Promise<string>; signInPassword: (email: string, password: string) => Promise<string>; localSignIn: (email: string) => string; signOut: () => Promise<void>;
   team: () => Promise<TeamRow[]>;
 };
 const C = createContext<Ctx>(null as unknown as Ctx);
 export const useStore = () => useContext(C);
 const LOCAL = "fde:local:";
+const GUEST = "guest"; // local-only visitor: nothing is sent to the database
 const nameFrom = (email: string) => email.split("@")[0].split(/[._-]/).map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
 
 export function StoreProvider({ children }: { children: ReactNode }) {
@@ -38,7 +39,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const loadFor = useCallback(async (u: User) => {
     setUser(u);
-    if (supabase) {
+    if (supabase && u.id !== GUEST) {
       const { data: st, error: aerr } = await supabase.rpc("request_access");
       if (aerr) { setAccess("error"); setSaveError(""); setReady(true); return; }
       if (st === "new_pending") {
@@ -71,6 +72,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       supabase.auth.getSession().then(({ data }) => {
         const s = data.session;
         if (s?.user?.email && isOfficeEmail(s.user.email)) loadFor({ id: s.user.id, email: s.user.email });
+        else if (sessionStorage.getItem("fde:guest")) loadFor({ id: GUEST, email: GUEST });
         else setReady(true);
       });
       const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
@@ -96,7 +98,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const batch = pending.current; pending.current = {};
     const keys = Object.keys(batch);
     if (!keys.length) return;
-    if (supabase) {
+    if (supabase && user.id !== GUEST) {
       const rows = keys.map((key) => ({ user_id: user.id, key, value: batch[key], updated_at: new Date().toISOString() }));
       const { error } = await supabase.from("entries").upsert(rows);
       setSaveError(error ? error.message : "");
@@ -104,7 +106,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const persistLocal = useCallback((e: Entries, p: Profile) => {
-    if (!user || supabase) return;
+    if (!user || (supabase && user.id !== GUEST)) return;
     try { localStorage.setItem(LOCAL + user.email, JSON.stringify({ entries: e, profile: p })); } catch { /* storage unavailable */ }
   }, [user]);
 
@@ -121,7 +123,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // keep the team board row current
   useEffect(() => {
-    if (!supabase || !user || !ready || access !== "approved") return;
+    if (!supabase || !user || user.id === GUEST || !ready || access !== "approved") return;
     const t = window.setTimeout(async () => {
       const { error } = await supabase!.from("profiles").upsert({ user_id: user.id, email: user.email, display_name: profile.display_name, stack: profile.stack, pct, updated_at: new Date().toISOString() });
       if (error) setSaveError(error.message);
@@ -141,6 +143,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
     return error ? "Wrong email or password, or no password has been set for this account." : "";
   }, []);
+  const guestSignIn = useCallback(() => {
+    try { sessionStorage.setItem("fde:guest", "1"); } catch { /* ignore */ }
+    setAccess("approved"); void loadFor({ id: GUEST, email: GUEST });
+  }, [loadFor]);
   const localSignIn = useCallback((email: string) => {
     if (!isOfficeEmail(email)) return `Use your @${ALLOWED_DOMAIN} email address.`;
     const e = email.trim().toLowerCase();
@@ -148,15 +154,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     loadFor({ id: e, email: e }); return "";
   }, [loadFor]);
   const signOut = useCallback(async () => {
-    if (supabase) await supabase.auth.signOut(); else { try { localStorage.removeItem(LOCAL + "last"); } catch { /* ignore */ } }
+    try { sessionStorage.removeItem("fde:guest"); } catch { /* ignore */ }
+    if (supabase && user?.id !== GUEST) await supabase.auth.signOut(); else { try { localStorage.removeItem(LOCAL + "last"); } catch { /* ignore */ } }
     setUser(null); setEntries({});
-  }, []);
+  }, [user]);
   const team = useCallback(async (): Promise<TeamRow[]> => {
     if (!supabase) return user ? [{ display_name: profile.display_name, stack: profile.stack, pct, updated_at: new Date().toISOString() }] : [];
     const { data } = await supabase.from("profiles").select("display_name,stack,pct,updated_at").order("pct", { ascending: false });
     return (data as TeamRow[]) ?? [];
   }, [user, profile, pct]);
 
-  const value: Ctx = { mode, access, isAdmin, recheck, ready, user, entries, profile, pct, saveError, setEntry, setProfile, signIn, signInPassword, localSignIn, signOut, team };
+  const value: Ctx = { mode, access, isAdmin, recheck, ready, user, entries, profile, pct, saveError, setEntry, setProfile, signIn, signInPassword, guestSignIn, localSignIn, signOut, team };
   return <C.Provider value={value}>{children}</C.Provider>;
 }

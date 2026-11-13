@@ -336,3 +336,5 @@ label{margin:18px 0 6px}
 .terms dt{font-family:var(--head);font-weight:700;margin-bottom:4px;color:var(--blue)}.terms dd{margin:0;color:var(--ink);font-size:15px;line-height:1.6}
 
 .linkbtn.alt{display:block;margin-top:14px;color:var(--blue);font-size:14px}
+
+.btn.wide{width:100%;margin-top:10px}

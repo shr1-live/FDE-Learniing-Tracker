@@ -33,7 +33,7 @@ const FEATURES: [string, string, string][] = [
 ];
 
 export default function Landing() {
-  const { mode, signIn, signInPassword, localSignIn } = useStore();
+  const { mode, signIn, signInPassword, guestSignIn, localSignIn } = useStore();
   const [pw, setPw] = useState(""); const [usePw, setUsePw] = useState(false);
   const [email, setEmail] = useState(""); const [msg, setMsg] = useState(""); const [sent, setSent] = useState(false); const [busy, setBusy] = useState(false);
   async function submit(e: FormEvent) {
@@ -108,6 +108,7 @@ export default function Landing() {
                   <input id="email" type="email" required autoComplete="email" placeholder={`you@${ALLOWED_DOMAIN}`} value={email} onChange={(e) => setEmail(e.target.value)} />
                   {usePw && (<><label htmlFor="pw">Password</label><input id="pw" type="password" required autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} /></>)}
                   <button className="btn big" disabled={busy}>{mode !== "supabase" ? "Continue" : usePw ? "Sign in" : "Email me a sign-in link"}</button>
+                  {mode === "supabase" && import.meta.env.VITE_ENABLE_GUEST !== "0" && <button type="button" className="btn ghost wide" onClick={guestSignIn}>Continue as guest (this browser only)</button>}
                   {mode === "supabase" && <button type="button" className="linkbtn alt" onClick={() => { setUsePw(!usePw); setMsg(""); }}>{usePw ? "Use an email link instead" : "Email not arriving? Sign in with a password"}</button>}
                   {msg && <p className="err" role="alert">{msg}</p>}
                 </form>
