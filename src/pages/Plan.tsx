@@ -16,7 +16,7 @@ export function PlanList() {
             <span className="dn">Day {d.n}</span>
             <span className="dt"><b>{d.name}</b><small>{d.layer} · {d.outline}</small></span>
             <span className="meter small"><i style={{ width: p.pct * 100 + "%" }} /></span>
-            <span className="lc">{p.done}/{p.total}</span>
+            <span className="lc">{p.pct === 1 ? "Done" : `${p.done}/${p.total}`}</span>
           </Link></li>); })}
       </ul>
     </>
@@ -31,6 +31,8 @@ export function DayPage() {
   if (!d) return <Navigate to="/plan" replace />;
   const st = stackById(profile.stack); const net = st.id === "dotnet";
   const show = (r: { any: boolean }) => net || allStacks || r.any;
+  const prog = dayProgress(entries, d.n); const complete = prog.total > 0 && prog.done === prog.total;
+  const setAll = (v: boolean) => checkKeys(d).forEach((k) => setEntry("chk:" + k, v));
   const hours = entries["hours:" + d.n]; const note = (entries["note:" + d.n] as string) ?? "";
   return (
     <>
@@ -40,6 +42,11 @@ export function DayPage() {
         <h1>{d.name}</h1>
         <p className="muted">{d.layer} · {d.outline}</p>
         <p className="goal">{d.goal}</p>
+        <div className="row">
+          {complete && <span className="tag done">Completed</span>}
+          <button type="button" className={"btn" + (complete ? " ghost" : "")} onClick={() => setAll(!complete)}>{complete ? "Reopen this day" : "Mark day as completed"}</button>
+          <span className="muted small">{prog.done}/{prog.total} checks</span>
+        </div>
       </header>
       {!net && <p className="banner">Steps below are written for .NET. Use the <Link to="/stack">Stack guide</Link> for {st.label} equivalents. <label className="inl"><input type="checkbox" checked={allStacks} onChange={(e) => setAllStacks(e.target.checked)} /> Show .NET-specific videos and reading</label></p>}
       <div className="two">
