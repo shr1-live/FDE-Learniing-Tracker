@@ -334,3 +334,5 @@ label{margin:18px 0 6px}
 .terms{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:0 0 6px}
 .terms div{padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
 .terms dt{font-family:var(--head);font-weight:700;margin-bottom:4px;color:var(--blue)}.terms dd{margin:0;color:var(--ink);font-size:15px;line-height:1.6}
+
+.linkbtn.alt{display:block;margin-top:14px;color:var(--blue);font-size:14px}

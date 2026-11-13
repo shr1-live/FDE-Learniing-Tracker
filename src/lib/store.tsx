@@ -10,7 +10,7 @@ export type Access = "approved" | "pending" | "rejected" | "error";
 type Ctx = {
   mode: "supabase" | "local"; access: Access; isAdmin: boolean; recheck: () => void; ready: boolean; user: User | null; entries: Entries; profile: Profile; pct: number; saveError: string;
   setEntry: (k: string, v: unknown) => void; setProfile: (p: Partial<Profile>) => void;
-  signIn: (email: string) => Promise<string>; localSignIn: (email: string) => string; signOut: () => Promise<void>;
+  signIn: (email: string) => Promise<string>; signInPassword: (email: string, password: string) => Promise<string>; localSignIn: (email: string) => string; signOut: () => Promise<void>;
   team: () => Promise<TeamRow[]>;
 };
 const C = createContext<Ctx>(null as unknown as Ctx);
@@ -135,6 +135,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: { emailRedirectTo: window.location.origin } });
     return error ? error.message : "";
   }, []);
+  const signInPassword = useCallback(async (email: string, password: string) => {
+    if (!supabase) return "Password sign-in needs the database connected.";
+    if (!isOfficeEmail(email)) return `Use your @${ALLOWED_DOMAIN} email address.`;
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+    return error ? "Wrong email or password, or no password has been set for this account." : "";
+  }, []);
   const localSignIn = useCallback((email: string) => {
     if (!isOfficeEmail(email)) return `Use your @${ALLOWED_DOMAIN} email address.`;
     const e = email.trim().toLowerCase();
@@ -151,6 +157,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return (data as TeamRow[]) ?? [];
   }, [user, profile, pct]);
 
-  const value: Ctx = { mode, access, isAdmin, recheck, ready, user, entries, profile, pct, saveError, setEntry, setProfile, signIn, localSignIn, signOut, team };
+  const value: Ctx = { mode, access, isAdmin, recheck, ready, user, entries, profile, pct, saveError, setEntry, setProfile, signIn, signInPassword, localSignIn, signOut, team };
   return <C.Provider value={value}>{children}</C.Provider>;
 }

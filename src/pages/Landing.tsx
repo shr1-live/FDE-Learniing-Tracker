@@ -33,11 +33,13 @@ const FEATURES: [string, string, string][] = [
 ];
 
 export default function Landing() {
-  const { mode, signIn, localSignIn } = useStore();
+  const { mode, signIn, signInPassword, localSignIn } = useStore();
+  const [pw, setPw] = useState(""); const [usePw, setUsePw] = useState(false);
   const [email, setEmail] = useState(""); const [msg, setMsg] = useState(""); const [sent, setSent] = useState(false); const [busy, setBusy] = useState(false);
   async function submit(e: FormEvent) {
     e.preventDefault(); setBusy(true); setMsg("");
-    if (mode === "supabase") { const err = await signIn(email); if (err) setMsg(err); else setSent(true); }
+    if (mode === "supabase" && usePw) { const err = await signInPassword(email, pw); if (err) setMsg(err); }
+    else if (mode === "supabase") { const err = await signIn(email); if (err) setMsg(err); else setSent(true); }
     else { const err = localSignIn(email); if (err) setMsg(err); }
     setBusy(false);
   }
@@ -104,7 +106,9 @@ export default function Landing() {
                 <form onSubmit={submit}>
                   <label htmlFor="email">Office email</label>
                   <input id="email" type="email" required autoComplete="email" placeholder={`you@${ALLOWED_DOMAIN}`} value={email} onChange={(e) => setEmail(e.target.value)} />
-                  <button className="btn big" disabled={busy}>{mode === "supabase" ? "Email me a sign-in link" : "Continue"}</button>
+                  {usePw && (<><label htmlFor="pw">Password</label><input id="pw" type="password" required autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} /></>)}
+                  <button className="btn big" disabled={busy}>{mode !== "supabase" ? "Continue" : usePw ? "Sign in" : "Email me a sign-in link"}</button>
+                  {mode === "supabase" && <button type="button" className="linkbtn alt" onClick={() => { setUsePw(!usePw); setMsg(""); }}>{usePw ? "Use an email link instead" : "Email not arriving? Sign in with a password"}</button>}
                   {msg && <p className="err" role="alert">{msg}</p>}
                 </form>
               )}
