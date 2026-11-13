@@ -317,3 +317,20 @@ label{margin:18px 0 6px}
 .markbtn.on{background:var(--moss);border-color:var(--moss);color:#fff}
 .rdone>a{text-decoration:line-through;color:var(--muted)}
 .urlrow{gap:8px;flex-wrap:wrap;justify-content:flex-end}
+
+/* study notes + primer */
+.notes{flex:1 1 100%;margin-top:6px;border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:2px 16px}
+.notes summary{cursor:pointer;font-weight:600;padding:10px 0;color:var(--blue)}
+.notes[open] summary{border-bottom:1px solid var(--line);margin-bottom:12px}
+.readorder{list-style:none;counter-reset:o;padding:0;margin:12px 0;display:flex;flex-direction:column;gap:10px}
+.readorder li{counter-increment:o;position:relative;padding:4px 0 4px 40px;display:flex;flex-direction:column;border:0}
+.readorder li::before{content:counter(o);position:absolute;left:0;top:4px;width:26px;height:26px;border-radius:50%;background:var(--btn-bg);color:var(--btn-fg);display:grid;place-items:center;font-size:13px;font-weight:700}
+.readorder a{font-weight:600}.readorder span{color:var(--muted);font-size:14.5px}
+.skipnote{font-size:14.5px;padding:10px 12px;border-radius:10px;background:var(--ambersoft);color:var(--amber)}
+.primer summary{cursor:pointer;list-style:none}.primer summary::-webkit-details-marker{display:none}
+.primer summary h2{margin:0;display:flex;justify-content:space-between;gap:12px}
+.primer summary h2::after{content:"+";font-weight:400;color:var(--muted)}.primer[open] summary h2::after{content:"2"}
+.primer .big{font-size:17px;line-height:1.75;margin:14px 0 20px}
+.terms{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:0 0 6px}
+.terms div{padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.terms dt{font-family:var(--head);font-weight:700;margin-bottom:4px;color:var(--blue)}.terms dd{margin:0;color:var(--ink);font-size:15px;line-height:1.6}

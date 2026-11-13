@@ -2,6 +2,7 @@ import { Link, useParams, Navigate } from "react-router-dom";
 import Celebrate from "../components/Celebrate";
 import { useEffect, useState } from "react";
 import Ring from "../components/Ring";
+import { PRIMERS } from "../data/primers";
 import { DAYS, checkKeys } from "../data/types";
 import { useStore } from "../lib/store";
 import { stackById } from "../data/stacks";
@@ -77,6 +78,15 @@ export function DayPage() {
       <div className="panel" role="tabpanel" id={"panel-" + tab} aria-labelledby={"tab-" + tab} key={tab}>
         {tab === "learn" && (<>
           <section className="card"><h2>What to learn</h2><p>{d.learn}</p></section>
+          {PRIMERS[d.n] && (
+            <details className="card primer" open>
+              <summary><h2>Read this first: the ideas in plain English</h2></summary>
+              <p className="big">{PRIMERS[d.n].big}</p>
+              <dl className="terms">{PRIMERS[d.n].terms.map(([t, x]) => (<div key={t}><dt>{t}</dt><dd>{x}</dd></div>))}</dl>
+              <h3>Common mistakes</h3>
+              <ul className="plain">{PRIMERS[d.n].mistakes.map((m) => <li key={m}>{m}</li>)}</ul>
+            </details>
+          )}
           <div className="two">
             <section className="card"><h2>Watch</h2><ResourceList kind="Video" items={withKeys(d.watch, "v")} /></section>
             <section className="card"><h2>Read</h2><ResourceList kind="Read" items={withKeys(d.read, "r")} /></section>

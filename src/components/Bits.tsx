@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DAYS, checkKeys, Resource } from "../data/types";
 import { useStore } from "../lib/store";
+import { GUIDES } from "../data/guides";
 
 export function dayProgress(entries: Record<string, unknown>, n: number) {
   const d = DAYS.find((x) => x.n === n)!; const ks = checkKeys(d);
@@ -54,6 +55,7 @@ export function ResourceList({ items, kind }: { items: { r: Resource; k: string 
           {(r.channel || r.note) && <span className="meta">{[r.channel, r.note].filter(Boolean).join(" · ")}</span>}
           <span className="urlrow"><code>{r.url}</code><CopyBtn text={r.url} />
             <button type="button" className={"markbtn" + (done ? " on" : "")} aria-pressed={done} onClick={() => setEntry(k, !done)}>{done ? "✓ Completed" : kind === "Video" ? "Mark watched" : "Mark read"}</button></span>
+          {GUIDES[r.url] && <StudyNotes url={r.url} />}
         </li>); })}
     </ul>
   );
@@ -81,5 +83,23 @@ export function DayChips({ current }: { current: number }) {
           <i style={{ height: `${Math.round(p.pct * 100)}%` }} /><span>{x.n}</span>
         </Link>); })}
     </nav>
+  );
+}
+
+export function StudyNotes({ url }: { url: string }) {
+  const g = GUIDES[url];
+  if (!g) return null;
+  return (
+    <details className="notes">
+      <summary>Study notes: what this is and what to read</summary>
+      <p>{g.what}</p>
+      <ol className="readorder">
+        {g.order.map((o) => (
+          <li key={o.url}><a href={o.url} target="_blank" rel="noopener noreferrer">{o.title}</a><span>{o.why}</span></li>
+        ))}
+      </ol>
+      {g.skip && <p className="skipnote"><b>You can skip:</b> {g.skip}</p>}
+      <p className="meta">Time: {g.time}</p>
+    </details>
   );
 }
