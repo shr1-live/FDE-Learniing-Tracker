@@ -8,7 +8,7 @@ type Row = { Model: string; CaseId: string; Kind: string; Passed: boolean; Answe
 // Every file in src/data/runs is one evaluation run (written by the Evals tool). Drop a new file in and it appears here.
 const RUNS = Object.entries(import.meta.glob("../data/runs/*.json", { eager: true, import: "default" }) as Record<string, Row[]>)
   .map(([path, rows]) => ({ id: path.split("/").pop()!.replace(".json", ""), rows }))
-  .sort((a, b) => a.id.localeCompare(b.id));
+  .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true })); // day2 before day10
 const runLabel = (id: string) => { const m = /^day(\d+)-(.*)$/.exec(id); return m ? `Day ${m[1]} · ${m[2]}` : id; };
 
 function median(xs: number[]) {
