@@ -3,6 +3,7 @@ import { API_URL, ApiError } from "../lib/api";
 import * as api from "../lib/submissionsApi";
 import { ProofList } from "./ProofList";
 import { NOT_SUBMITTED, StatusTag } from "./StatusTag";
+import { EXPECT, RATING_GUIDE, dayOf } from "../data/weekExpect";
 
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "");
 
@@ -15,12 +16,14 @@ export function SubmitPanel({ taskKey, exists, listLoaded }: { taskKey: string; 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
+  const [learned, setLearned] = useState("");
+  const [rating, setRating] = useState<number | "">("");
   const [label, setLabel] = useState("");
   const [url, setUrl] = useState("");
   const [fileLabel, setFileLabel] = useState("");
   const file = useRef<HTMLInputElement>(null);
 
-  const apply = useCallback((s: api.Submission | null) => { setSub(s); setNote(s?.note ?? ""); }, []);
+  const apply = useCallback((s: api.Submission | null) => { setSub(s); setNote(s?.note ?? ""); setLearned(s?.learned ?? ""); setRating(s?.rating ?? ""); }, []);
 
   useEffect(() => {
     if (!API_URL) { setLoaded(true); return; }
@@ -48,6 +51,15 @@ export function SubmitPanel({ taskKey, exists, listLoaded }: { taskKey: string; 
 
   const editable = !sub || sub.editable;
   const latest = sub?.reviews[0];
+  const hint = EXPECT[dayOf(taskKey) ?? 0]?.learnHint ?? "What you understood and could now explain to someone else.";
+  const dirty = note !== (sub?.note ?? "") || learned !== (sub?.learned ?? "") || rating !== (sub?.rating ?? "");
+  // What is still missing before this can be sent to a reviewer
+  const missing = [
+    ...(!sub || sub.items.length === 0 ? ["add at least one link or file"] : []),
+    ...(!sub?.learned?.trim() ? ["write what you learned"] : []),
+    ...(sub?.rating == null ? ["rate yourself from 1 to 5"] : []),
+    ...(dirty ? ["save your details"] : []),
+  ];
 
   function onAddLink(e: FormEvent) {
     e.preventDefault();
@@ -81,7 +93,14 @@ export function SubmitPanel({ taskKey, exists, listLoaded }: { taskKey: string; 
         <>
           <label htmlFor={`note-${taskKey}`}>What you did (optional)</label>
           <textarea id={`note-${taskKey}`} rows={3} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
-          <div className="row"><button type="button" className="copy" disabled={busy || note === (sub?.note ?? "")} onClick={() => run(() => api.saveNote(taskKey, note), "Note saved.")}>Save note</button></div>
+          <label htmlFor={`learned-${taskKey}`}>What you learned (needed)</label>
+          <textarea id={`learned-${taskKey}`} rows={3} maxLength={2000} value={learned} onChange={(e) => setLearned(e.target.value)} placeholder={hint} />
+          <label htmlFor={`rate-${taskKey}`}>Rate yourself (needed)</label>
+          <select id={`rate-${taskKey}`} value={rating} onChange={(e) => setRating(e.target.value === "" ? "" : Number(e.target.value))}>
+            <option value="">Choose 1 to 5</option>
+            {RATING_GUIDE.map(([n, t]) => <option key={n} value={n}>{n}: {t}</option>)}
+          </select>
+          <div className="row"><button type="button" className="copy" disabled={busy || !dirty} onClick={() => run(() => api.saveDetails(taskKey, { note, learned, rating: rating === "" ? null : rating }), "Details saved.")}>Save details</button></div>
 
           <details className="addproof" open={!sub || sub.items.length === 0}>
             <summary>Add a link or a file</summary>
@@ -108,10 +127,10 @@ export function SubmitPanel({ taskKey, exists, listLoaded }: { taskKey: string; 
           </details>
 
           <div className="row">
-            <button type="button" className="btn" disabled={busy || !sub || sub.items.length === 0} onClick={() => run(() => api.submit(taskKey), "Submitted for review.")}>
+            <button type="button" className="btn" disabled={busy || missing.length > 0} onClick={() => run(() => api.submit(taskKey), "Submitted for review.")}>
               {sub?.status === "changes_requested" ? "Submit again for review" : "Submit for review"}
             </button>
-            {(!sub || sub.items.length === 0) && <span className="muted small"> Add at least one link or file first.</span>}
+            {missing.length > 0 && <span className="muted small"> To submit: {missing.join(", ")}.</span>}
           </div>
         </>
       )}

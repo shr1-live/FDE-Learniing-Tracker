@@ -4,7 +4,7 @@ export type Status = "draft" | "submitted" | "changes_requested" | "approved";
 export type Item = { id: string; kind: "link" | "file"; label: string; url: string | null; file_name: string | null; content_type: string | null; size_bytes: number | null; previewable: boolean };
 export type ReviewNote = { decision: "approve" | "request_changes"; comment: string | null; reviewer: string; created_at: string };
 export type Submission = {
-  id: string; task_key: string; status: Status; note: string | null; author: string;
+  id: string; task_key: string; status: Status; note: string | null; learned: string | null; rating: number | null; author: string;
   submitted_at: string | null; reviewed_at: string | null; editable: boolean; items: Item[]; reviews: ReviewNote[];
 };
 export type Row = { id: string; task_key: string; status: Status; author: string; submitted_at: string | null; updated_at: string; item_count: number; last_comment: string | null };
@@ -23,7 +23,7 @@ export async function get(taskKey: string): Promise<Submission | null> {
   try { return await apiJson<Submission>("GET", base(taskKey)); }
   catch (e) { if (e instanceof ApiError && e.status === 404) return null; throw e; }
 }
-export const saveNote = (taskKey: string, note: string) => apiJson<Submission>("PUT", base(taskKey), { note });
+export const saveDetails = (taskKey: string, d: { note: string; learned: string; rating: number | null }) => apiJson<Submission>("PUT", base(taskKey), d);
 export const addLink = (taskKey: string, label: string, url: string) => apiJson<Submission>("POST", `${base(taskKey)}/links`, { label, url });
 export function addFile(taskKey: string, file: File, label: string) {
   const form = new FormData();

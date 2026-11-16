@@ -7,6 +7,8 @@ import { Kpi } from "../components/Kpi";
 import { ProofList } from "../components/ProofList";
 import { StatusTag } from "../components/StatusTag";
 import { useDevPersona } from "../lib/devPersona";
+import { ExpectedList } from "../components/ExpectedList";
+import { dayOf } from "../data/weekExpect";
 
 const FILTERS: [string, string][] = [["submitted", "Waiting for review"], ["changes_requested", "Changes requested"], ["approved", "Approved"], ["all", "All"]];
 
@@ -116,8 +118,11 @@ export default function Review() {
           <h2 id="detail-h">{open.author}: {taskTitle(open.task_key)} <StatusTag status={open.status} /></h2>
           <p className="muted small">Sent {when(open.submitted_at)}</p>
           {open.note && <><h3>What they did</h3><p className="wrap">{open.note}</p></>}
+          {open.learned && <><h3>What they learned</h3><p className="wrap">{open.learned}</p></>}
+          {open.rating != null && <p><b>Their own rating:</b> {open.rating} of 5</p>}
           <h3>Proof</h3>
           <ProofList items={open.items} />
+          {dayOf(open.task_key) !== null && <ExpectedList day={dayOf(open.task_key)!} open />}
 
           {open.reviews.length > 0 && (
             <>
