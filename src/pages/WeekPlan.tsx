@@ -1,11 +1,22 @@
+import { useEffect, useState } from "react";
 import { useStore } from "../lib/store";
+import { API_URL } from "../lib/api";
+import { mine } from "../lib/submissionsApi";
 import { Progress } from "../components/Progress";
+import { SubmitPanel } from "../components/SubmitPanel";
 import { WEEK_DAYS, WEEK_TITLE, dayKey } from "../data/weekPlan";
 
 const flags = (v: unknown, len: number): boolean[] => Array.from({ length: len }, (_, i) => Array.isArray(v) && v[i] === true);
 
 export default function WeekPlan() {
   const { entries, setEntry } = useStore();
+  const [keys, setKeys] = useState<Set<string>>(new Set());
+  const [listLoaded, setListLoaded] = useState(!API_URL);
+  useEffect(() => {
+    if (!API_URL) return;
+    // Which days already have a submission. A person who is not signed in to the API simply has none.
+    mine().then((rows) => setKeys(new Set(rows.map((r) => r.task_key)))).catch(() => setKeys(new Set())).finally(() => setListLoaded(true));
+  }, []);
   const total = WEEK_DAYS.reduce((a, d) => a + d.done.length, 0);
   const got = WEEK_DAYS.reduce((a, d) => a + flags(entries[dayKey(d.n)], d.done.length).filter(Boolean).length, 0);
   const pct = total ? Math.round((got / total) * 100) : 0;
@@ -18,7 +29,7 @@ export default function WeekPlan() {
   return (
     <>
       <header className="ph"><h1>{WEEK_TITLE}</h1>
-        <p className="muted">One task a day. Read what to study, build the practical task, then tick each point once it is true for your work. Build the tasks in their own project folder or repo with your own LLM key; this page only tracks your progress.</p></header>
+        <p className="muted">One task a day. Read what to study, build the practical task, then tick each point once it is true for your work. Build the tasks in their own project folder or repo with your own LLM key; ticking is your own check. When a day is done, submit your proof (a link, a screenshot or a file) under it so a reviewer can approve it.</p></header>
       <div className="card"><h3>Week progress</h3><Progress value={pct} label="Week progress" /><p className="muted small">{got} of {total} points done</p></div>
       {WEEK_DAYS.map((d) => {
         const f = flags(entries[dayKey(d.n)], d.done.length);
@@ -35,6 +46,7 @@ export default function WeekPlan() {
             {d.done.map((t, i) => (
               <label key={t} className="check"><input type="checkbox" checked={f[i]} onChange={() => toggle(d.n, d.done.length, i)} /><span>{t}</span></label>
             ))}
+            <SubmitPanel taskKey={`week1-day${d.n}`} exists={keys.has(`week1-day${d.n}`)} listLoaded={listLoaded} />
           </section>
         );
       })}

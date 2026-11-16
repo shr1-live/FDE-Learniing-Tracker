@@ -149,3 +149,24 @@ td select{width:auto}
 .card form .btn,form.card .btn{margin-top:12px}
 @media (max-width:520px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.kpi{padding:10px 12px}.kpi .kv{font-size:22px}.kpi .kh{font-size:13px}}
 .copy{min-height:36px;padding:6px 14px;font-size:14px}
+/* Submissions: proof list, panel, callouts, dev account switcher */
+.submitpanel{margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.submitpanel h3{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.proofs{list-style:none;margin:8px 0 12px;padding:0;display:grid;gap:8px}
+.proof{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface)}
+.proofbody{flex:1;min-width:160px;display:grid;gap:2px;overflow-wrap:anywhere}
+.proofhead{display:flex;align-items:center;gap:6px}
+.proofactions{display:flex;gap:6px}
+.thumb{width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:var(--bg);flex:none}
+.proofform fieldset{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:12px 0}
+.proofform legend{font-weight:600;padding:0 6px}
+.callout{border-radius:8px;padding:10px 14px;margin:8px 0;border:1px solid var(--line)}
+.callout p{margin:6px 0 0}
+.callout.ok{background:var(--bluesoft)}
+.callout.warn{background:var(--ambersoft)}
+.tag.st-draft{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.tag svg{vertical-align:-2px}
+.wrap{white-space:pre-wrap;overflow-wrap:anywhere}
+.devbar{display:grid;gap:4px;margin-bottom:10px;padding:8px;border:1px dashed rgba(255,255,255,.35);border-radius:8px}
+.devbar small{opacity:.8}
+.addproof{margin:10px 0}.addproof>summary{cursor:pointer;font-weight:600;padding:6px 0}

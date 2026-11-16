@@ -19,18 +19,24 @@ import BackButton from "./components/BackButton";
 import ThemeSwitch from "./components/ThemeSwitch";
 import { Icon, IconName } from "./components/Icon";
 import { Progress } from "./components/Progress";
+import Review from "./pages/Review";
+import { DevPersonaBar } from "./components/DevPersonaBar";
+import { useDevPersona } from "./lib/devPersona";
+import { canReview, useRole } from "./lib/useRole";
 
 const ADMIN_ONLY = new Set(["/plan", "/curated"]); // the admin's personal ten-day plan
 const NAV: [string, string][] = [["/", "Dashboard"], ["/plan", "Ten-day plan"], ["/outline", "Six-week programme"], ["/week", "Week 1 tasks"], ["/assistant", "Assistant"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/curated", "Curated: .NET"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
 
 const NAV_ICON: Record<string, IconName> = {
-  "/": "home", "/myplan": "user", "/plan": "list", "/outline": "book", "/week": "tasks", "/assistant": "spark", "/report": "chart",
+  "/": "home", "/myplan": "user", "/plan": "list", "/outline": "book", "/week": "tasks", "/assistant": "spark", "/report": "chart", "/review": "inbox",
   "/stack": "compass", "/curated": "layers", "/readiness": "target", "/docs": "download", "/admin": "shield",
 };
 
 export default function App() {
   const { ready, user, signOut, saveError, pct, access, isAdmin } = useStore();
   const [collapsed, setCollapsed] = useState(() => { try { const v = localStorage.getItem("fde:nav"); return v === null ? window.innerWidth < 900 : v === "1"; } catch { return false; } });
+  const persona = useDevPersona(); // empty on the live site
+  const { me } = useRole(persona + (user?.email ?? ""));
   const toggle = () => setCollapsed((c) => { try { localStorage.setItem("fde:nav", c ? "0" : "1"); } catch { /* ignore */ } return !c; });
   if (!ready) return <main className="center"><p className="muted">Loading</p></main>;
   if (!user) return <Landing />;
@@ -38,6 +44,8 @@ export default function App() {
   const nav: [string, string][] = isAdmin
     ? [...NAV, ["/admin", "Admin"]]
     : [["/", "Dashboard"], ["/myplan", "My plan"], ...NAV.filter(([to]) => to !== "/" && !ADMIN_ONLY.has(to))];
+  // Reviewers and admins (as the API says) get the review page. The API enforces this too; the link is only a convenience.
+  if (canReview(me)) nav.splice(nav.findIndex(([to]) => to === "/report") + 1, 0, ["/review", "Review submissions"]);
   const mine = (el: JSX.Element) => (isAdmin ? el : <Navigate to="/" replace />);
   return (
     <div className={"shell" + (collapsed ? " collapsed" : "")}>
@@ -49,7 +57,7 @@ export default function App() {
           </button>
         </div>
         <nav aria-label="Main">{nav.map(([to, label]) => (<NavLink key={to} to={to} end={to === "/"}><Icon name={NAV_ICON[to] ?? "list"} />{label}</NavLink>))}</nav>
-        <div className="who"><ThemeSwitch /><Progress value={pct} label="Overall progress" small /><small>{user.email}</small><button className="linkbtn" onClick={signOut}>Sign out</button></div>
+        <div className="who"><DevPersonaBar /><ThemeSwitch /><Progress value={pct} label="Overall progress" small /><small>{user.email}</small><button className="linkbtn" onClick={signOut}>Sign out</button></div>
       </aside>
       <main className="main">
         <div className="topbar">
@@ -59,7 +67,7 @@ export default function App() {
           <BackButton />
         </div>
         {saveError && <p className="banner err" role="alert">Could not save to the database: {saveError}</p>}
-        <Routes>
+        <Routes key={persona}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/plan" element={mine(<PlanList />)} />
           <Route path="/plan/:n" element={mine(<DayPage />)} />
@@ -68,6 +76,7 @@ export default function App() {
           <Route path="/week" element={<WeekPlan />} />
           <Route path="/assistant" element={<Assistant />} />
           <Route path="/report" element={<Week1Report />} />
+          <Route path="/review" element={<Review />} />
           <Route path="/stack" element={<StackGuide />} />
           <Route path="/curated" element={mine(<Curated />)} />
           <Route path="/readiness" element={<Readiness />} />
