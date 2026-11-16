@@ -136,3 +136,9 @@ td select{width:auto}
 .kpi .ks{color:var(--muted);font-size:13px}
 .pick{display:flex;flex-wrap:wrap;gap:8px 18px;margin:12px 0 0;padding:0;border:0}
 .gap{margin-top:16px}
+/* Menu button lives in the sidebar header; the content-area button only shows when the sidebar is hidden */
+.side-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.side .burger{margin-right:0;background:transparent;color:var(--side-fg);border-color:rgba(255,255,255,.28)}
+.side .burger:hover{border-color:#F2C94C}
+.shell:not(.collapsed) .topbar .burger{display:none}
+
