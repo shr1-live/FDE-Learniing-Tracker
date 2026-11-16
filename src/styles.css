@@ -128,3 +128,11 @@ td select{width:auto}
 .mylist li{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .mylist li.isdone{opacity:.7}.mytools{display:flex;gap:6px}.copy:disabled{opacity:.4;cursor:default}
 .land .stack{margin-top:8px}
+/* KPI cards and pickers (report page) */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:0 0 24px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.kpi .kh{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;font-weight:600}
+.kpi .kv{font-size:28px;font-weight:700;line-height:1.2;margin:6px 0 2px;color:var(--ink);overflow-wrap:anywhere}
+.kpi .ks{color:var(--muted);font-size:13px}
+.pick{display:flex;flex-wrap:wrap;gap:8px 18px;margin:12px 0 0;padding:0;border:0}
+.gap{margin-top:16px}

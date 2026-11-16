@@ -4,9 +4,9 @@ export type Criterion = { text: string; done: boolean; ticket?: string };
 export type DayStatus = { n: number; title: string; criteria: Criterion[] };
 
 export const DELIVERY = [
+  { text: "Assistant page and this report (frontend)", state: "Merged into develop; not in main or live yet" },
   { text: "Backend assistant (branch feature/llm-assistant)", state: "Built and tested, waiting for the pull request" },
-  { text: "Day 1 model comparison (branch feature/evals-day1-model-comparison)", state: "Built, waiting for the pull request" },
-  { text: "Assistant page in this app (branch feature/assistant-page)", state: "Built, waiting for the pull request" },
+  { text: "Evals tool and the Day 1 comparison (backend branches)", state: "Built, waiting for the pull requests" },
   { text: "Hosted backend on Render and a hosted LLM", state: "Not set up yet (needs the owner)" },
 ];
 
