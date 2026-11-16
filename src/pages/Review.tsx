@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { API_URL, ApiError } from "../lib/api";
 import * as api from "../lib/submissionsApi";
 import { canReview, useRole } from "../lib/useRole";
@@ -31,9 +31,13 @@ export default function Review() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
+  const listReq = useRef(0);
+  const openReq = useRef(0);
   const refresh = useCallback(async () => {
+    const mine = ++listReq.current;
     try {
       const [list, c] = await Promise.all([api.reviewList(status), api.reviewCounts()]);
+      if (mine !== listReq.current) return; // a newer request has started: ignore this late answer
       setRows(list); setCounts(c); setError("");
     } catch (e) { setError(e instanceof ApiError ? e.message : "Could not load the submissions."); }
   }, [status]);
@@ -43,7 +47,8 @@ export default function Review() {
 
   async function openRow(id: string) {
     setError(""); setMessage(""); setComment("");
-    try { setOpen(await api.reviewDetail(id)); } catch (e) { setError(e instanceof ApiError ? e.message : "Could not open it."); }
+    const mine = ++openReq.current;
+    try { const d = await api.reviewDetail(id); if (mine === openReq.current) setOpen(d); } catch (e) { setError(e instanceof ApiError ? e.message : "Could not open it."); }
   }
 
   async function choose(e: FormEvent, decision: "approve" | "request_changes") {
@@ -84,7 +89,7 @@ export default function Review() {
 
       <div className="card">
         <label htmlFor="filter">Show</label>
-        <select id="filter" value={status} onChange={(e) => { setStatus(e.target.value); setOpen(null); }}>
+        <select id="filter" value={status} onChange={(e) => { setStatus(e.target.value); setOpen(null); openReq.current++; }}>
           {FILTERS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
       </div>

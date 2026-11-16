@@ -10,12 +10,12 @@ const flags = (v: unknown, len: number): boolean[] => Array.from({ length: len }
 
 export default function WeekPlan() {
   const { entries, setEntry } = useStore();
-  const [keys, setKeys] = useState<Set<string>>(new Set());
+  const [keys, setKeys] = useState<Set<string> | null>(null); // null = unknown: each panel asks the server itself
   const [listLoaded, setListLoaded] = useState(!API_URL);
   useEffect(() => {
     if (!API_URL) return;
     // Which days already have a submission. A person who is not signed in to the API simply has none.
-    mine().then((rows) => setKeys(new Set(rows.map((r) => r.task_key)))).catch(() => setKeys(new Set())).finally(() => setListLoaded(true));
+    mine().then((rows) => setKeys(new Set(rows.map((r) => r.task_key)))).catch(() => setKeys(null)).finally(() => setListLoaded(true));
   }, []);
   const total = WEEK_DAYS.reduce((a, d) => a + d.done.length, 0);
   const got = WEEK_DAYS.reduce((a, d) => a + flags(entries[dayKey(d.n)], d.done.length).filter(Boolean).length, 0);
@@ -46,7 +46,7 @@ export default function WeekPlan() {
             {d.done.map((t, i) => (
               <label key={t} className="check"><input type="checkbox" checked={f[i]} onChange={() => toggle(d.n, d.done.length, i)} /><span>{t}</span></label>
             ))}
-            <SubmitPanel taskKey={`week1-day${d.n}`} exists={keys.has(`week1-day${d.n}`)} listLoaded={listLoaded} />
+            <SubmitPanel taskKey={`week1-day${d.n}`} exists={keys ? keys.has(`week1-day${d.n}`) : undefined} listLoaded={listLoaded} />
           </section>
         );
       })}

@@ -12,13 +12,13 @@ const SIGN_IN = "Sign in with your office account to use this.";
 
 /** The sign-in token for the API: the Supabase session, or (dev builds only) a test account's token. */
 async function bearer(): Promise<string> {
+  const dev = devToken(); // null on the live site; in dev builds an active test account is used first
+  if (dev) return dev;
   if (supabase) {
     const { data } = await supabase.auth.getSession();
     const t = data.session?.access_token;
     if (t) return t;
   }
-  const dev = devToken();
-  if (dev) return dev;
   throw new ApiError(401, SIGN_IN);
 }
 

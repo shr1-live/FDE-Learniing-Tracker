@@ -31,12 +31,14 @@ export function ProofList({ items, onRemove, busy }: { items: Item[]; onRemove?:
             <div className="proofbody">
               <div className="proofhead"><Icon name={i.kind === "link" ? "link" : "file"} size={16} /> <b>{i.label}</b></div>
               {i.kind === "link"
-                ? <a href={i.url ?? "#"} target="_blank" rel="noopener noreferrer">{host(i.url)}<span className="sr"> (opens in a new tab)</span></a>
+                ? (i.url?.startsWith("https://")
+                  ? <a href={i.url} target="_blank" rel="noopener noreferrer">{host(i.url)}<span className="sr"> (opens in a new tab)</span></a>
+                  : <span className="muted small">Link not shown: {i.url}</span>)
                 : <span className="muted small">{i.file_name} · {size(i.size_bytes)}</span>}
             </div>
             <div className="proofactions">
               {i.kind === "file" && (
-                <button type="button" className="copy" onClick={() => download(i).catch((e: ApiError) => setError(e.message))} aria-label={`Download ${i.label}`}>Download</button>
+                <button type="button" className="copy" onClick={() => { setError(""); download(i).catch((e: ApiError) => setError(e.message)); }} aria-label={`Download ${i.label}`}>Download</button>
               )}
               {onRemove && <button type="button" className="copy" disabled={busy} onClick={() => onRemove(i.id)} aria-label={`Remove ${i.label}`}>Remove</button>}
             </div>

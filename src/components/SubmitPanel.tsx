@@ -7,7 +7,7 @@ import { NOT_SUBMITTED, StatusTag } from "./StatusTag";
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "");
 
 /** "Submit your proof" for one task: a note, links and files, then send it to the reviewers. */
-export function SubmitPanel({ taskKey, exists, listLoaded }: { taskKey: string; exists: boolean; listLoaded: boolean }) {
+export function SubmitPanel({ taskKey, exists, listLoaded }: { taskKey: string; exists?: boolean; listLoaded: boolean }) {
   const [sub, setSub] = useState<api.Submission | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [signedOut, setSignedOut] = useState(false);
@@ -25,19 +25,20 @@ export function SubmitPanel({ taskKey, exists, listLoaded }: { taskKey: string; 
   useEffect(() => {
     if (!API_URL) { setLoaded(true); return; }
     if (!listLoaded) return;            // wait for the page's one list request
-    if (!exists) { setLoaded(true); return; } // nothing to load yet: the first save creates it
+    if (exists === false) { setLoaded(true); return; } // the list says nothing exists yet: the first save creates it. Unknown (undefined) means ask the server.
     let alive = true;
     api.get(taskKey)
       .then((s) => { if (alive) { apply(s); setSignedOut(false); } })
-      .catch((e: ApiError) => { if (alive && e.status === 401) setSignedOut(true); else if (alive && e.status !== 403) setError(e.message); })
+      .catch((e: ApiError) => { if (alive && e.status === 401) setSignedOut(true); else if (alive) setError(e.message); })
       .finally(() => { if (alive) setLoaded(true); });
     return () => { alive = false; };
   }, [taskKey, apply, exists, listLoaded]);
 
-  async function run(work: () => Promise<api.Submission>, done: string) {
+  /** Runs one change. Returns true when it worked, so a form is only cleared after success. */
+  async function run(work: () => Promise<api.Submission>, done: string): Promise<boolean> {
     setBusy(true); setError(""); setMessage("");
-    try { apply(await work()); setMessage(done); }
-    catch (e) { setError(e instanceof ApiError ? e.message : "Something went wrong. Try again."); }
+    try { apply(await work()); setMessage(done); return true; }
+    catch (e) { setError(e instanceof ApiError ? e.message : "Something went wrong. Try again."); return false; }
     finally { setBusy(false); }
   }
 
@@ -50,7 +51,7 @@ export function SubmitPanel({ taskKey, exists, listLoaded }: { taskKey: string; 
 
   function onAddLink(e: FormEvent) {
     e.preventDefault();
-    run(() => api.addLink(taskKey, label.trim(), url.trim()), "Link added.").then(() => { setLabel(""); setUrl(""); });
+    run(() => api.addLink(taskKey, label.trim(), url.trim()), "Link added.").then((ok) => { if (ok) { setLabel(""); setUrl(""); } });
   }
 
   function onAddFile(e: FormEvent) {
@@ -58,7 +59,7 @@ export function SubmitPanel({ taskKey, exists, listLoaded }: { taskKey: string; 
     const f = file.current?.files?.[0];
     if (!f) { setError("Choose a file first."); return; }
     if (f.size > api.MAX_FILE_BYTES) { setError("Files can be up to 2 MB."); return; }
-    run(() => api.addFile(taskKey, f, fileLabel), "File added.").then(() => { setFileLabel(""); if (file.current) file.current.value = ""; });
+    run(() => api.addFile(taskKey, f, fileLabel), "File added.").then((ok) => { if (ok) { setFileLabel(""); if (file.current) file.current.value = ""; } });
   }
 
   return (
