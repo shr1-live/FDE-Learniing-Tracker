@@ -170,3 +170,19 @@ td select{width:auto}
 .devbar{display:grid;gap:4px;margin-bottom:10px;padding:8px;border:1px dashed rgba(255,255,255,.35);border-radius:8px}
 .devbar small{opacity:.8}
 .addproof{margin:10px 0}.addproof>summary{cursor:pointer;font-weight:600;padding:6px 0}
+
+/* Print / Save as PDF: only the report content, on white, with every section open. */
+.printonly{display:none}
+@media print{
+  .side,.topbar,.noprint,.burger,.who,button,.copy{display:none!important}
+  .printonly{display:block}
+  html,body,.shell,.main,.card{background:#fff!important;color:#000!important;box-shadow:none!important}
+  .shell{display:block!important}
+  .main{max-width:none!important;padding:0!important}
+  .card,.kpis>*{box-sizing:border-box;max-width:100%}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  tr,.kpis>*,.proof{break-inside:avoid}
+  h2,h3{break-after:avoid}
+  a{color:#000;text-decoration:underline}
+  .tablewrap{overflow:visible!important}
+}
