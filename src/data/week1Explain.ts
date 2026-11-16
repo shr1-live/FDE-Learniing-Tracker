@@ -18,8 +18,8 @@ export const DAY_EXPLAIN: DayExplain[] = [
   { n: 2,
     built: "Three versions of the instructions we give the model (v1 simple, v2 structured, v3 with rules, an example and a defence against hidden orders), stored as files.",
     how: "Every answer must follow a fixed shape: matched skills each with a quote, gaps, items the profile does not state, and a fit rating. Our own code checks that each quote really appears in the profile and removes any claim that does not.",
-    proof: "Tests cover removing invented claims, text that tries to break out of its place, and a real quote that is about the wrong skill.",
-    notYet: "The three versions have not yet been run side by side on the same candidates with the results recorded (ticket A2)." },
+    proof: "A recorded comparison of all three versions on five fixed candidates, each run twice (see the Day 2 section below), plus tests for removing invented claims, text that tries to break out of its place, and a real quote about the wrong skill.",
+    notYet: "Only two small local models were tested. Result so far: version 2 was best for both models, so it is now the default; version 3 (with the example) did worse, which is why it is not." },
   { n: 3,
     built: "Nothing yet. The two helper functions we have (find skills, score a match) are plain code, not model tool calls.",
     how: "Planned: the model extracts task details into a fixed schema; only our code runs the create, list, update and delete tools; deleting asks for confirmation; every action is checked for permission and logged.",
@@ -34,5 +34,5 @@ export const DAY_EXPLAIN: DayExplain[] = [
     built: "The Assistant page in this app. It sends the job description and profiles to the backend with the signed-in user's token and shows the fit, quotes, gaps, speed and token use.",
     how: "Input and output are checked, errors show clear messages, usage is logged per person, and a daily limit protects the bill.",
     proof: "A working local flow with a real model, and 22 passing tests.",
-    notYet: "Written guide and demo (D1), streaming the answer as it is written (D2, optional), and going live on a hosted server." },
+    notYet: "Streaming the answer as it is written (optional) and going live on a hosted server. A recorded video demo is not made; there is a written demo script." },
 ];

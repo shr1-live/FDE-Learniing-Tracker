@@ -24,8 +24,8 @@ export const WEEK1_STATUS: DayStatus[] = [
   { n: 2, title: "Advanced Prompt Engineering", criteria: [
     { text: "Consistent output structure", done: true },
     { text: "Prompt versions are stored", done: true },
-    { text: "Test cases are repeatable", done: false, ticket: "A2" },
-    { text: "Three prompt versions compared on the same inputs", done: false, ticket: "A2" },
+    { text: "Test cases are repeatable (fixed cases, each version run twice)", done: true, ticket: "A2" },
+    { text: "Three prompt versions compared on the same inputs", done: true, ticket: "A2" },
     { text: "Missing information is identified rather than invented", done: true },
     { text: "Output is grounded in supplied candidate evidence", done: true },
   ] },
@@ -54,6 +54,6 @@ export const WEEK1_STATUS: DayStatus[] = [
     { text: "Failure handling", done: true },
     { text: "Basic logs and token/latency tracking", done: true },
     { text: "Tests", done: true },
-    { text: "Documentation and a demo", done: false, ticket: "D1" },
+    { text: "Documentation and a demo (README section, demo script, report)", done: true, ticket: "D1" },
   ] },
 ];

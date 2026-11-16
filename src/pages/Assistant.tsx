@@ -8,7 +8,7 @@ const blank = (): Candidate => ({ name: "", profile: "" });
 export default function Assistant() {
   const [job, setJob] = useState("");
   const [cands, setCands] = useState<Candidate[]>([blank()]);
-  const [version, setVersion] = useState("v3");
+  const [version, setVersion] = useState("v2");
   const [usage, setUsage] = useState<Usage | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -77,7 +77,7 @@ export default function Assistant() {
             </div>
             <label htmlFor="ver">Prompt version</label>
             <select id="ver" value={version} onChange={(e) => setVersion(e.target.value)}>
-              {(usage?.prompt_versions ?? ["v1", "v2", "v3"]).map((v) => <option key={v} value={v}>{v}{v === "v3" ? " (recommended)" : ""}</option>)}
+              {(usage?.prompt_versions ?? ["v1", "v2", "v3"]).map((v) => <option key={v} value={v}>{v}{v === "v2" ? " (recommended)" : ""}</option>)}
             </select>
             <div className="row"><button className="btn" disabled={!ready}>{busy ? "Analysing..." : "Analyse"}</button></div>
           </form>
