@@ -32,6 +32,7 @@ export function addFile(taskKey: string, file: File, label: string) {
   return apiForm<Submission>(`${base(taskKey)}/files`, form);
 }
 export const removeItem = (taskKey: string, itemId: string) => apiJson<Submission>("DELETE", `${base(taskKey)}/items/${itemId}`);
+export const withdraw = (taskKey: string) => apiJson<Submission>("POST", `${base(taskKey)}/withdraw`);
 export const submit = (taskKey: string) => apiJson<Submission>("POST", `${base(taskKey)}/submit`);
 export const fileBlob = (itemId: string) => apiBlob(`/api/submissions/items/${itemId}/file`);
 

@@ -84,8 +84,21 @@ export function SubmitPanel({ taskKey, exists, listLoaded }: { taskKey: string; 
           {latest.comment && <p>{latest.comment}</p>}
         </div>
       )}
-      {sub?.status === "submitted" && <p className="muted">Sent on {when(sub.submitted_at)}. A reviewer will look at it; you cannot change it while it waits.</p>}
+      {sub?.status === "submitted" && (
+        <div className="row">
+          <p className="muted">Sent on {when(sub.submitted_at)}. A reviewer will look at it; it is locked while it waits.</p>
+          <button type="button" className="copy" disabled={busy} onClick={() => run(() => api.withdraw(taskKey), "Withdrawn. You can edit it and submit again.")}>Withdraw to edit</button>
+        </div>
+      )}
       {sub?.status === "approved" && <p className="muted">This task is approved. Nothing more to do.</p>}
+
+      {editable && (
+        <ol className="plain small howto">
+          <li>Add proof: a link (for example your repository) or a file (a screenshot, a report).</li>
+          <li>Write what you learned and rate yourself 1 to 5, then press Save details.</li>
+          <li>Press Submit for review. A reviewer checks it and approves it or sends it back with a comment.</li>
+        </ol>
+      )}
 
       <ProofList items={sub?.items ?? []} onRemove={editable ? (id) => run(() => api.removeItem(taskKey, id), "Removed.") : undefined} busy={busy} />
 
