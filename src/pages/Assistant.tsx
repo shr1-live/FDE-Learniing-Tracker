@@ -12,9 +12,10 @@ export default function Assistant() {
   const [usage, setUsage] = useState<Usage | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [signedOut, setSignedOut] = useState(false);
   const [result, setResult] = useState<Analysis | null>(null);
 
-  const refreshUsage = () => getUsage().then(setUsage).catch((e: ApiError) => { if (e.status !== 403) setError(e.message); });
+  const refreshUsage = () => getUsage().then(setUsage).catch((e: ApiError) => { if (e.status === 401) setSignedOut(true); else if (e.status !== 403) setError(e.message); });
   useEffect(() => { if (API_URL) refreshUsage(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
   if (!API_URL) {
@@ -26,6 +27,15 @@ export default function Assistant() {
     );
   }
 
+  if (signedOut) {
+    return (
+      <>
+        <header className="ph"><h1>Recruitment assistant</h1></header>
+        <div className="card" role="status"><p>Sign in with your office account to use the assistant.</p><p className="muted small">Guest mode and local mode cannot use it, because the assistant needs your account to enforce the daily limit.</p></div>
+      </>
+    );
+  }
+
   const setC = (i: number, patch: Partial<Candidate>) => setCands((c) => c.map((x, j) => (j === i ? { ...x, ...patch } : x)));
   const ready = job.trim().length >= 20 && cands.every((c) => c.name.trim() && c.profile.trim().length >= 20) && !busy && usage?.configured !== false;
 
@@ -33,7 +43,10 @@ export default function Assistant() {
     e.preventDefault();
     setBusy(true); setError(""); setResult(null);
     try { setResult(await analyze(job.trim(), cands.map((c) => ({ name: c.name.trim(), profile: c.profile.trim() })), version)); }
-    catch (err) { setError(err instanceof ApiError ? err.message : "Something went wrong. Try again."); }
+    catch (err) {
+      if (err instanceof ApiError && err.status === 401) setSignedOut(true);
+      else setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
+    }
     finally { setBusy(false); refreshUsage(); }
   }
 

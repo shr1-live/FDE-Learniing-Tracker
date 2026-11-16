@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { DELIVERY, WEEK1_STATUS } from "../data/week1Status";
 import { DAY_EXPLAIN, ONE_MINUTE } from "../data/week1Explain";
-import { Icon, IconName } from "../components/Icon";
+import { Kpi } from "../components/Kpi";
+import { Progress } from "../components/Progress";
 
 type Row = { Model: string; CaseId: string; Kind: string; Passed: boolean; Answer: string; LatencyMs: number; InputTokens: number; OutputTokens: number; Error: string | null };
 
@@ -26,12 +27,6 @@ const cellText = (r: Row | undefined) => {
   if (r.Error) return "error";
   return r.Passed ? "pass" : "FAIL";
 };
-
-function Kpi({ icon, label, value, sub }: { icon: IconName; label: string; value: string; sub: string }) {
-  return (
-    <div className="kpi"><div className="kh"><Icon name={icon} />{label}</div><div className="kv">{value}</div><div className="ks">{sub}</div></div>
-  );
-}
 
 export default function Week1Report() {
   const [runId, setRunId] = useState(RUNS[RUNS.length - 1]?.id ?? "");
@@ -113,7 +108,7 @@ export default function Week1Report() {
             <label htmlFor="run">Run</label>
             <select id="run" value={runId} onChange={(e) => { setRunId(e.target.value); setPicked(null); }}>{RUNS.map((r) => <option key={r.id} value={r.id}>{runLabel(r.id)}</option>)}</select>
             <fieldset className="pick"><legend className="small muted">Models to show</legend>
-              {allModels.map((m) => <label key={m} className="check"><input type="checkbox" checked={models.includes(m)} onChange={() => toggle(m)} /><span>{m}</span></label>)}
+              {allModels.map((m) => <label key={m} className="pickitem"><input type="checkbox" checked={models.includes(m)} onChange={() => toggle(m)} /><span>{m}</span></label>)}
             </fieldset>
           </div>
 
@@ -126,12 +121,12 @@ export default function Week1Report() {
                 <Kpi icon="alert" label="Failed calls" value={String(errors)} sub="timeouts or provider errors" />
               </div>
 
-              <div className="tablewrap"><table>
+              <div className="tablewrap" tabIndex={0} role="region" aria-label="Results table, scrolls sideways on small screens"><table>
                 <thead><tr><th>Model</th><th>Passed</th><th>Errors</th><th>Median time</th><th>Input tokens</th><th>Output tokens</th></tr></thead>
                 <tbody>{stats.map((s) => (<tr key={s.m}><td>{s.m}</td><td>{s.passed} of {s.n}</td><td>{s.errors}</td><td>{(s.med / 1000).toFixed(1)} s</td><td>{s.tin}</td><td>{s.tout}</td></tr>))}</tbody>
               </table></div>
 
-              <div className="tablewrap gap"><table>
+              <div className="tablewrap gap" tabIndex={0} role="region" aria-label="Pass or fail for every prompt, scrolls sideways on small screens"><table>
                 <thead><tr><th>Prompt</th><th>Kind</th>{models.map((m) => <th key={m}>{m}</th>)}</tr></thead>
                 <tbody>{cases.map((c) => (
                   <tr key={c}><td>{c}</td><td>{rows.find((r) => r.CaseId === c)?.Kind}</td>

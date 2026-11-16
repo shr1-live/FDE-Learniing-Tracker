@@ -1,6 +1,6 @@
-:root{--bg:#EEF1F4;--surface:#FFFFFF;--ink:#1D2733;--muted:#566272;--line:#CBD3DC;--blue:#2B5BA9;--bluesoft:#E4ECF8;--hl:#F2C94C;--fill:rgba(242,201,76,.55);--moss:#3E7C5A;--amber:#8A5000;--ambersoft:#FBF0DD;--err:#B3261E;--side-bg:#1D2733;--side-fg:#C9D3DF;--side-hover:rgba(255,255,255,.09);--side-on-bg:#EEF1F4;--side-on-fg:#1D2733;--btn-bg:#1D2733;--btn-fg:#FFFFFF;--tagv-bg:#F6E3EE;--tagv-fg:#8A2D5B;--on-bg:#1D2733;--on-fg:#FFFFFF;--head:'Bricolage Grotesque','Hanken Grotesk',system-ui,sans-serif;--text:'Hanken Grotesk',system-ui,sans-serif;color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E141B;--surface:#17202A;--ink:#E7ECF2;--muted:#9AA7B6;--line:#2B3744;--blue:#8DB3EE;--bluesoft:#16253B;--hl:#E5BC3E;--fill:rgba(229,188,62,.32);--moss:#6FBF92;--amber:#F0B25E;--ambersoft:#33260F;--err:#F2918B;--side-bg:#0A0F15;--side-fg:#B9C5D3;--side-hover:rgba(255,255,255,.08);--side-on-bg:#E7ECF2;--side-on-fg:#10161D;--btn-bg:#E5BC3E;--btn-fg:#10161D;--tagv-bg:#3A1A2B;--tagv-fg:#F09CC3;--on-bg:#E5BC3E;--on-fg:#10161D;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0E141B;--surface:#17202A;--ink:#E7ECF2;--muted:#9AA7B6;--line:#2B3744;--blue:#8DB3EE;--bluesoft:#16253B;--hl:#E5BC3E;--fill:rgba(229,188,62,.32);--moss:#6FBF92;--amber:#F0B25E;--ambersoft:#33260F;--err:#F2918B;--side-bg:#0A0F15;--side-fg:#B9C5D3;--side-hover:rgba(255,255,255,.08);--side-on-bg:#E7ECF2;--side-on-fg:#10161D;--btn-bg:#E5BC3E;--btn-fg:#10161D;--tagv-bg:#3A1A2B;--tagv-fg:#F09CC3;--on-bg:#E5BC3E;--on-fg:#10161D;color-scheme:dark}
+:root{--bg:#EEF1F4;--surface:#FFFFFF;--ink:#1D2733;--muted:#566272;--line:#CBD3DC;--blue:#2B5BA9;--bluesoft:#E4ECF8;--hl:#F2C94C;--fill:rgba(242,201,76,.55);--moss:#3E7C5A;--on-moss:#FFFFFF;--amber:#8A5000;--ambersoft:#FBF0DD;--err:#B3261E;--side-bg:#1D2733;--side-fg:#C9D3DF;--side-hover:rgba(255,255,255,.09);--side-on-bg:#EEF1F4;--side-on-fg:#1D2733;--btn-bg:#1D2733;--btn-fg:#FFFFFF;--tagv-bg:#F6E3EE;--tagv-fg:#8A2D5B;--on-bg:#1D2733;--on-fg:#FFFFFF;--head:'Bricolage Grotesque','Hanken Grotesk',system-ui,sans-serif;--text:'Hanken Grotesk',system-ui,sans-serif;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E141B;--surface:#17202A;--ink:#E7ECF2;--muted:#9AA7B6;--line:#2B3744;--blue:#8DB3EE;--bluesoft:#16253B;--hl:#E5BC3E;--fill:rgba(229,188,62,.32);--moss:#6FBF92;--on-moss:#0E141B;--amber:#F0B25E;--ambersoft:#33260F;--err:#F2918B;--side-bg:#0A0F15;--side-fg:#B9C5D3;--side-hover:rgba(255,255,255,.08);--side-on-bg:#E7ECF2;--side-on-fg:#10161D;--btn-bg:#E5BC3E;--btn-fg:#10161D;--tagv-bg:#3A1A2B;--tagv-fg:#F09CC3;--on-bg:#E5BC3E;--on-fg:#10161D;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0E141B;--surface:#17202A;--ink:#E7ECF2;--muted:#9AA7B6;--line:#2B3744;--blue:#8DB3EE;--bluesoft:#16253B;--hl:#E5BC3E;--fill:rgba(229,188,62,.32);--moss:#6FBF92;--on-moss:#0E141B;--amber:#F0B25E;--ambersoft:#33260F;--err:#F2918B;--side-bg:#0A0F15;--side-fg:#B9C5D3;--side-hover:rgba(255,255,255,.08);--side-on-bg:#E7ECF2;--side-on-fg:#10161D;--btn-bg:#E5BC3E;--btn-fg:#10161D;--tagv-bg:#3A1A2B;--tagv-fg:#F09CC3;--on-bg:#E5BC3E;--on-fg:#10161D;color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--text);font-size:16px;line-height:1.6}
@@ -102,8 +102,8 @@ td select{width:auto}
 .btn.wide{display:block;width:100%;margin-top:10px;text-align:center}
 .linkbtn.alt{display:block;margin-top:12px;color:var(--blue);font-size:14px}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
-.tag.done{background:var(--moss);color:#fff}
-.tag.st-approved{background:var(--moss);color:#fff}.tag.st-pending{background:var(--ambersoft);color:var(--amber)}.tag.st-rejected{background:var(--tagv-bg);color:var(--tagv-fg)}
+.tag.done{background:var(--moss);color:var(--on-moss)}
+.tag.st-approved{background:var(--moss);color:var(--on-moss)}.tag.st-pending{background:var(--ambersoft);color:var(--amber)}.tag.st-rejected{background:var(--tagv-bg);color:var(--tagv-fg)}
 .reqs{display:flex;flex-direction:column;gap:10px}.reqs li{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}.reqs .row{margin:0}
 .gate{min-height:100vh;display:grid;place-items:center;padding:20px}.gatecard{max-width:460px;text-align:center}
 .gatecard .row{justify-content:center}
@@ -111,7 +111,7 @@ td select{width:auto}
 .burger:hover{border-color:var(--blue)}
 .shell.collapsed{grid-template-columns:minmax(0,1fr)}.shell.collapsed .side{display:none}
 .markbtn{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:4px;padding:1px 8px;cursor:pointer;flex:none}
-.markbtn:hover{border-color:var(--moss)}.markbtn.on{background:var(--moss);border-color:var(--moss);color:#fff}
+.markbtn:hover{border-color:var(--moss)}.markbtn.on{background:var(--moss);border-color:var(--moss);color:var(--on-moss)}
 .rdone>a{text-decoration:line-through;color:var(--muted)}
 .notes{flex:1 1 100%;margin-top:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);padding:2px 14px}
 .notes summary{cursor:pointer;font-weight:600;padding:8px 0;color:var(--blue)}
@@ -141,4 +141,11 @@ td select{width:auto}
 .side .burger{margin-right:0;background:transparent;color:var(--side-fg);border-color:rgba(255,255,255,.28)}
 .side .burger:hover{border-color:#F2C94C}
 .shell:not(.collapsed) .topbar .burger{display:none}
-
+/* Nav icons, filter checkboxes, sign-in spacing, keyboard focus on scrollable tables */
+.side nav a{display:flex;align-items:center;gap:10px}
+.side nav a svg{flex:none;opacity:.85}
+.pickitem{display:inline-flex;gap:8px;align-items:center;font-weight:500;margin:0;cursor:pointer}.pickitem input{width:18px;height:18px;accent-color:var(--blue)}
+.tablewrap:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.card form .btn,form.card .btn{margin-top:12px}
+@media (max-width:520px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.kpi{padding:10px 12px}.kpi .kv{font-size:22px}.kpi .kh{font-size:13px}}
+.copy{min-height:36px;padding:6px 14px;font-size:14px}

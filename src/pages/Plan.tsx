@@ -16,7 +16,7 @@ export function PlanList() {
           <li key={d.n}><Link to={`/plan/${d.n}`}>
             <span className="dn">Day {d.n}</span>
             <span className="dt"><b>{d.name}</b><small>{d.layer} · {d.outline}</small></span>
-            <span className="meter small"><i style={{ width: p.pct * 100 + "%" }} /></span>
+            <span className="meter small" aria-hidden="true"><i style={{ width: p.pct * 100 + "%" }} /></span>
             <span className="lc">{p.done}/{p.total}</span>
           </Link></li>); })}
       </ul>
