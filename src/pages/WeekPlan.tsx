@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { canReview, useMe } from "../lib/useRole";
 import { useStore } from "../lib/store";
 import { API_URL } from "../lib/api";
 import { mine } from "../lib/submissionsApi";
@@ -10,6 +12,7 @@ const flags = (v: unknown, len: number): boolean[] => Array.from({ length: len }
 
 export default function WeekPlan() {
   const { entries, setEntry } = useStore();
+  const { me } = useMe();
   const [keys, setKeys] = useState<Set<string> | null>(null); // null = unknown: each panel asks the server itself
   const [listLoaded, setListLoaded] = useState(!API_URL);
   useEffect(() => {
@@ -30,6 +33,11 @@ export default function WeekPlan() {
     <>
       <header className="ph"><h1>{WEEK_TITLE}</h1>
         <p className="muted">One task a day. Read what to study, build the practical task, then tick each point once it is true for your work. Build the tasks in their own project folder or repo with your own LLM key; ticking is your own check. When a day is done, submit your proof (a link, a screenshot or a file) under it so a reviewer can approve it.</p></header>
+      {canReview(me) && (
+        <div className="callout ok" role="note">
+          <b>You are signed in as {me?.role === "admin" ? "an admin" : "a reviewer"}.</b> The proof panels below show <i>your own</i> work. To check other people's work, open <Link to="/review">Review submissions</Link>.
+        </div>
+      )}
       <div className="card"><h3>Week progress</h3><Progress value={pct} label="Week progress" /><p className="muted small">{got} of {total} points done</p></div>
       {WEEK_DAYS.map((d) => {
         const f = flags(entries[dayKey(d.n)], d.done.length);

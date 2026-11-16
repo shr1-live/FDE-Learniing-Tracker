@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { API_URL, apiJson } from "./api";
+import { useStore } from "./store";
+import { useDevPersona } from "./devPersona";
 
 export type Me = { id: string; email: string; role: "member" | "reviewer" | "admin"; access: string };
 
@@ -32,3 +34,10 @@ export function useRole(who: string): { me: Me | null; ready: boolean } {
 }
 
 export const canReview = (me: Me | null) => me?.role === "reviewer" || me?.role === "admin";
+
+/** The role of whoever is signed in right now (or whichever test account is active in a development build). */
+export function useMe(): { me: Me | null; ready: boolean } {
+  const { user } = useStore();
+  const persona = useDevPersona();
+  return useRole(persona + "|" + (user?.email ?? ""));
+}

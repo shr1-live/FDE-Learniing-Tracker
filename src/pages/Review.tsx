@@ -1,7 +1,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { API_URL, ApiError } from "../lib/api";
 import * as api from "../lib/submissionsApi";
-import { canReview, useRole } from "../lib/useRole";
+import { canReview, useMe } from "../lib/useRole";
 import { WEEK_DAYS } from "../data/weekPlan";
 import { Kpi } from "../components/Kpi";
 import { ProofList } from "../components/ProofList";
@@ -21,7 +21,7 @@ export function taskTitle(key: string) {
 
 export default function Review() {
   const persona = useDevPersona();
-  const { me, ready } = useRole(persona);
+  const { me, ready } = useMe();
   const [status, setStatus] = useState("submitted");
   const [rows, setRows] = useState<api.Row[]>([]);
   const [counts, setCounts] = useState<api.Counts | null>(null);

@@ -22,7 +22,7 @@ import { Progress } from "./components/Progress";
 import Review from "./pages/Review";
 import { DevPersonaBar } from "./components/DevPersonaBar";
 import { useDevPersona } from "./lib/devPersona";
-import { canReview, useRole } from "./lib/useRole";
+import { canReview, useMe } from "./lib/useRole";
 
 const ADMIN_ONLY = new Set(["/plan", "/curated"]); // the admin's personal ten-day plan
 const NAV: [string, string][] = [["/", "Dashboard"], ["/plan", "Ten-day plan"], ["/outline", "Six-week programme"], ["/week", "Week 1 tasks"], ["/assistant", "Assistant"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/curated", "Curated: .NET"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
@@ -36,7 +36,7 @@ export default function App() {
   const { ready, user, signOut, saveError, pct, access, isAdmin } = useStore();
   const [collapsed, setCollapsed] = useState(() => { try { const v = localStorage.getItem("fde:nav"); return v === null ? window.innerWidth < 900 : v === "1"; } catch { return false; } });
   const persona = useDevPersona(); // empty on the live site
-  const { me } = useRole(persona + (user?.email ?? ""));
+  const { me } = useMe();
   const toggle = () => setCollapsed((c) => { try { localStorage.setItem("fde:nav", c ? "0" : "1"); } catch { /* ignore */ } return !c; });
   if (!ready) return <main className="center"><p className="muted">Loading</p></main>;
   if (!user) return <Landing />;

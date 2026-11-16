@@ -1,8 +1,10 @@
 import { getPersonas, setActive, useDevPersona } from "../lib/devPersona";
+import { useMe } from "../lib/useRole";
 
-/** DEV BUILDS ONLY: switch between test accounts (member, reviewer, admin) to try the review flow locally. Renders nothing in production. */
+/** DEV BUILDS ONLY: switch between test accounts to try the review flow locally. Renders nothing in production. */
 export function DevPersonaBar() {
   const active = useDevPersona();
+  const { me } = useMe();
   if (!import.meta.env.DEV) return null;
   const names = Object.keys(getPersonas());
   if (names.length === 0) return null;
@@ -12,6 +14,7 @@ export function DevPersonaBar() {
       <div className="themesw">
         {names.map((n) => <button key={n} type="button" aria-pressed={active === n} onClick={() => setActive(n)}>{n}</button>)}
       </div>
+      <small>{me ? `Acting as ${me.email} (${me.role})` : "Checking who this is..."}</small>
     </div>
   );
 }
