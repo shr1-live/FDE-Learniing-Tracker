@@ -17,13 +17,20 @@ import Gate from "./pages/Gate";
 import Docs from "./pages/Docs";
 import BackButton from "./components/BackButton";
 import ThemeSwitch from "./components/ThemeSwitch";
+import { Icon, IconName } from "./components/Icon";
+import { Progress } from "./components/Progress";
 
 const ADMIN_ONLY = new Set(["/plan", "/curated"]); // the admin's personal ten-day plan
 const NAV: [string, string][] = [["/", "Dashboard"], ["/plan", "Ten-day plan"], ["/outline", "Six-week programme"], ["/week", "Week 1 tasks"], ["/assistant", "Assistant"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/curated", "Curated: .NET"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
 
+const NAV_ICON: Record<string, IconName> = {
+  "/": "home", "/myplan": "user", "/plan": "list", "/outline": "book", "/week": "tasks", "/assistant": "spark", "/report": "chart",
+  "/stack": "compass", "/curated": "layers", "/readiness": "target", "/docs": "download", "/admin": "shield",
+};
+
 export default function App() {
   const { ready, user, signOut, saveError, pct, access, isAdmin } = useStore();
-  const [collapsed, setCollapsed] = useState(() => { try { return localStorage.getItem("fde:nav") === "1"; } catch { return false; } });
+  const [collapsed, setCollapsed] = useState(() => { try { const v = localStorage.getItem("fde:nav"); return v === null ? window.innerWidth < 900 : v === "1"; } catch { return false; } });
   const toggle = () => setCollapsed((c) => { try { localStorage.setItem("fde:nav", c ? "0" : "1"); } catch { /* ignore */ } return !c; });
   if (!ready) return <main className="center"><p className="muted">Loading</p></main>;
   if (!user) return <Landing />;
@@ -35,9 +42,14 @@ export default function App() {
   return (
     <div className={"shell" + (collapsed ? " collapsed" : "")}>
       <aside className="side">
-        <div className="brand"><span className="mark" aria-hidden="true"><i /><i /><i /></span>FDE Tracker</div>
-        <nav aria-label="Main">{nav.map(([to, label]) => (<NavLink key={to} to={to} end={to === "/"}>{label}</NavLink>))}</nav>
-        <div className="who"><ThemeSwitch /><div className="meter small"><i style={{ width: pct + "%" }} /></div><small>{user.email}</small><button className="linkbtn" onClick={signOut}>Sign out</button></div>
+        <div className="side-head">
+          <div className="brand"><span className="mark" aria-hidden="true"><i /><i /><i /></span>FDE Tracker</div>
+          <button type="button" className="burger" onClick={toggle} aria-expanded={!collapsed} aria-label="Show or hide the side menu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+        </div>
+        <nav aria-label="Main">{nav.map(([to, label]) => (<NavLink key={to} to={to} end={to === "/"}><Icon name={NAV_ICON[to] ?? "list"} />{label}</NavLink>))}</nav>
+        <div className="who"><ThemeSwitch /><Progress value={pct} label="Overall progress" small /><small>{user.email}</small><button className="linkbtn" onClick={signOut}>Sign out</button></div>
       </aside>
       <main className="main">
         <div className="topbar">

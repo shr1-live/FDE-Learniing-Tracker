@@ -4,6 +4,9 @@ import { STACKS } from "../data/stacks";
 import { DAYS, TOTAL_CHECKS } from "../data/types";
 import { LayerStack, dayProgress } from "../components/Bits";
 import { WEEKS } from "../data/outline";
+import { WEEK_DAYS, dayKey } from "../data/weekPlan";
+import { Kpi } from "../components/Kpi";
+import { Progress } from "../components/Progress";
 
 function AdminDashboard() {
   const { profile, setProfile, pct, entries } = useStore();
@@ -16,6 +19,11 @@ function AdminDashboard() {
         <h1>{profile.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Dashboard"}</h1>
         <p className="muted">{done} of {TOTAL_CHECKS} checks done. {hours.toFixed(1)} hours logged.</p>
       </header>
+      <div className="kpis" aria-label="Your progress">
+        <Kpi icon="target" label="Ten-day plan" value={`${pct}%`} sub={`${done} of ${TOTAL_CHECKS} checks done`} />
+        <Kpi icon="clock" label="Hours logged" value={hours.toFixed(1)} sub="across all days" />
+        <Kpi icon="trend" label="Next up" value={`Day ${next.n}`} sub={next.name} />
+      </div>
       <div className="dash">
         <section>
           <h2>Your ten layers</h2><p className="muted small">Start at Day 1 and work down. Each bar fills as you tick its checks.</p>
@@ -40,7 +48,7 @@ function AdminDashboard() {
           </div>
           <div className="card">
             <h3>Overall</h3>
-            <div className="meter" aria-label={`${pct} percent`}><i style={{ width: pct + "%" }} /></div>
+            <Progress value={pct} label="Ten-day plan progress" />
             <p className="muted small">{pct}% of the ten-day plan</p>
           </div>
         </aside>
@@ -52,12 +60,22 @@ function AdminDashboard() {
 function MemberDashboard() {
   const { profile, setProfile, pct, entries, setEntry } = useStore();
   const doneWeeks = WEEKS.filter((w) => entries["wk:" + w.n]).length;
+  const mine = Array.isArray(entries["myplan"]) ? (entries["myplan"] as { d: boolean }[]) : [];
+  const weekTotal = WEEK_DAYS.reduce((a, d) => a + d.done.length, 0);
+  const weekDone = WEEK_DAYS.reduce((a, d) => { const f = entries[dayKey(d.n)]; return a + (Array.isArray(f) ? f.filter((x) => x === true).length : 0); }, 0);
+  const nextWeek = WEEKS.find((w) => !entries["wk:" + w.n]);
   return (
     <>
       <header className="ph">
         <h1>{profile.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Dashboard"}</h1>
         <p className="muted">{doneWeeks} of {WEEKS.length} weeks done. Work through the six-week programme and tick each week's output as you reach it.</p>
       </header>
+      <div className="kpis" aria-label="Your progress">
+        <Kpi icon="target" label="Programme" value={`${pct}%`} sub={`${doneWeeks} of ${WEEKS.length} weeks done`} />
+        <Kpi icon="tasks" label="Week 1 tasks" value={`${weekDone} of ${weekTotal}`} sub="acceptance points ticked" />
+        <Kpi icon="list" label="My plan" value={`${mine.filter((i) => i.d).length} of ${mine.length}`} sub={mine.length ? "steps done" : "no steps yet"} />
+        <Kpi icon="trend" label="Next up" value={nextWeek ? `Week ${nextWeek.n}` : "All done"} sub={nextWeek ? nextWeek.focus : "every week ticked"} />
+      </div>
       <div className="dash">
         <section>
           <h2>Your six weeks</h2><p className="muted small">Tick a week when you have produced its expected output.</p>
@@ -88,7 +106,7 @@ function MemberDashboard() {
           </div>
           <div className="card">
             <h3>Overall</h3>
-            <div className="meter" aria-label={`${pct} percent`}><i style={{ width: pct + "%" }} /></div>
+            <Progress value={pct} label="Six-week programme progress" />
             <p className="muted small">{pct}% of the six-week programme</p>
           </div>
         </aside>

@@ -3,10 +3,12 @@
 export type Criterion = { text: string; done: boolean; ticket?: string };
 export type DayStatus = { n: number; title: string; criteria: Criterion[] };
 
+// A dated snapshot, not a live check: update the date and the states when something is merged or deployed.
+export const DELIVERY_AS_OF = "2026-11-16";
 export const DELIVERY = [
+  { text: "Assistant page and this report (frontend)", state: "Merged into develop; not in main or live yet" },
   { text: "Backend assistant (branch feature/llm-assistant)", state: "Built and tested, waiting for the pull request" },
-  { text: "Day 1 model comparison (branch feature/evals-day1-model-comparison)", state: "Built, waiting for the pull request" },
-  { text: "Assistant page in this app (branch feature/assistant-page)", state: "Built, waiting for the pull request" },
+  { text: "Evals tool and the Day 1 comparison (backend branches)", state: "Built, waiting for the pull requests" },
   { text: "Hosted backend on Render and a hosted LLM", state: "Not set up yet (needs the owner)" },
 ];
 
@@ -22,8 +24,8 @@ export const WEEK1_STATUS: DayStatus[] = [
   { n: 2, title: "Advanced Prompt Engineering", criteria: [
     { text: "Consistent output structure", done: true },
     { text: "Prompt versions are stored", done: true },
-    { text: "Test cases are repeatable", done: false, ticket: "A2" },
-    { text: "Three prompt versions compared on the same inputs", done: false, ticket: "A2" },
+    { text: "Test cases are repeatable (fixed cases, each version run twice)", done: true, ticket: "A2" },
+    { text: "Three prompt versions compared on the same inputs", done: true, ticket: "A2" },
     { text: "Missing information is identified rather than invented", done: true },
     { text: "Output is grounded in supplied candidate evidence", done: true },
   ] },
@@ -52,6 +54,6 @@ export const WEEK1_STATUS: DayStatus[] = [
     { text: "Failure handling", done: true },
     { text: "Basic logs and token/latency tracking", done: true },
     { text: "Tests", done: true },
-    { text: "Documentation and a demo", done: false, ticket: "D1" },
+    { text: "Documentation and a demo (README section, demo script, report)", done: true, ticket: "D1" },
   ] },
 ];

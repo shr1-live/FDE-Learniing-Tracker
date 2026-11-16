@@ -1,4 +1,5 @@
 import { useStore } from "../lib/store";
+import { Progress } from "../components/Progress";
 import { WEEK_DAYS, WEEK_TITLE, dayKey } from "../data/weekPlan";
 
 const flags = (v: unknown, len: number): boolean[] => Array.from({ length: len }, (_, i) => Array.isArray(v) && v[i] === true);
@@ -18,7 +19,7 @@ export default function WeekPlan() {
     <>
       <header className="ph"><h1>{WEEK_TITLE}</h1>
         <p className="muted">One task a day. Read what to study, build the practical task, then tick each point once it is true for your work. Build the tasks in their own project folder or repo with your own LLM key; this page only tracks your progress.</p></header>
-      <div className="card"><h3>Week progress</h3><div className="meter" aria-label={`${pct} percent`}><i style={{ width: pct + "%" }} /></div><p className="muted small">{got} of {total} points done</p></div>
+      <div className="card"><h3>Week progress</h3><Progress value={pct} label="Week progress" /><p className="muted small">{got} of {total} points done</p></div>
       {WEEK_DAYS.map((d) => {
         const f = flags(entries[dayKey(d.n)], d.done.length);
         const n = f.filter(Boolean).length;
