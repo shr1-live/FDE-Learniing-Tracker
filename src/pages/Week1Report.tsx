@@ -4,6 +4,7 @@ import { DAY_EXPLAIN, ONE_MINUTE } from "../data/week1Explain";
 import { Kpi } from "../components/Kpi";
 import { Progress } from "../components/Progress";
 import { Day2Results } from "../components/Day2Results";
+import { LiveStatus } from "../components/LiveStatus";
 
 type Row = { Model: string; CaseId: string; Kind: string; Passed: boolean; Answer: string; LatencyMs: number; InputTokens: number; OutputTokens: number; Error: string | null };
 
@@ -63,6 +64,8 @@ export default function Week1Report() {
     <>
       <header className="ph"><h1>Week 1 report</h1>
         <p className="muted">What was built, what is proven, and what is still to do, against each acceptance criterion, plus a model comparison you can filter. "Done" means built and checked on its branch; delivery to the live site is listed separately.</p></header>
+
+      <LiveStatus />
 
       <div className="kpis" aria-label="Programme summary">
         <Kpi icon="target" label="Criteria met" value={`${pct}%`} sub={`${done} of ${total} acceptance criteria`} />
