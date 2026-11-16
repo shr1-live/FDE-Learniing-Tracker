@@ -13,7 +13,7 @@ export const DAY_EXPLAIN: DayExplain[] = [
   { n: 1,
     built: "An endpoint in the backend that sends a prompt to an AI model and returns a checked answer, plus a test tool that asks the same 10 questions to several models.",
     how: "The backend uses the common chat format, so any provider works. The key and model name live only in server settings, never in code. If the model is slow or fails, the user gets a clear message, and every call is logged with its time and token counts.",
-    proof: "The 10-question comparison below, 22 automatic tests, and a real end-to-end run with a local model.",
+    proof: "The 20-question comparison below, 40 automatic tests, and a real end-to-end run with a local model.",
     notYet: "Only small local models were compared. Add a hosted model to the comparison before choosing for production." },
   { n: 2,
     built: "Three versions of the instructions we give the model (v1 simple, v2 structured, v3 with rules, an example and a defence against hidden orders), stored as files.",
@@ -33,6 +33,6 @@ export const DAY_EXPLAIN: DayExplain[] = [
   { n: 5,
     built: "The Assistant page in this app. It sends the job description and profiles to the backend with the signed-in user's token and shows the fit, quotes, gaps, speed and token use.",
     how: "Input and output are checked, errors show clear messages, usage is logged per person, and a daily limit protects the bill.",
-    proof: "A working local flow with a real model, and 22 passing tests.",
+    proof: "A working local flow with a real model, and 40 passing tests.",
     notYet: "Streaming the answer as it is written (optional) and going live on a hosted server. A recorded video demo is not made; there is a written demo script." },
 ];
