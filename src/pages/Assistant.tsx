@@ -15,7 +15,7 @@ export default function Assistant() {
   const [signedOut, setSignedOut] = useState(false);
   const [result, setResult] = useState<Analysis | null>(null);
 
-  const refreshUsage = () => getUsage().then(setUsage).catch((e: ApiError) => { if (e.status === 401) setSignedOut(true); else if (e.status !== 403) setError(e.message); });
+  const refreshUsage = () => getUsage().then((u) => { setSignedOut(false); setUsage(u); }).catch((e: ApiError) => { if (e.status === 401) setSignedOut(true); else if (e.status !== 403) setError(e.message); });
   useEffect(() => { if (API_URL) refreshUsage(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
   if (!API_URL) {
@@ -31,7 +31,7 @@ export default function Assistant() {
     return (
       <>
         <header className="ph"><h1>Recruitment assistant</h1></header>
-        <div className="card" role="status"><p>Sign in with your office account to use the assistant.</p><p className="muted small">Guest mode and local mode cannot use it, because the assistant needs your account to enforce the daily limit.</p></div>
+        <div className="card" role="status"><p>Sign in with your office account to use the assistant.</p><p className="muted small">If you are in guest or local mode, sign out and sign in with your office account: the assistant needs your account to enforce the daily limit.</p></div>
       </>
     );
   }

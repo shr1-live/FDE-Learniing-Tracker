@@ -3,6 +3,8 @@
 export type Criterion = { text: string; done: boolean; ticket?: string };
 export type DayStatus = { n: number; title: string; criteria: Criterion[] };
 
+// A dated snapshot, not a live check: update the date and the states when something is merged or deployed.
+export const DELIVERY_AS_OF = "2026-11-16";
 export const DELIVERY = [
   { text: "Assistant page and this report (frontend)", state: "Merged into develop; not in main or live yet" },
   { text: "Backend assistant (branch feature/llm-assistant)", state: "Built and tested, waiting for the pull request" },
