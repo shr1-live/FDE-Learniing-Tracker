@@ -3,7 +3,8 @@ import { API_URL, ApiError } from "../lib/api";
 import * as api from "../lib/submissionsApi";
 import { ProofList } from "./ProofList";
 import { NOT_SUBMITTED, StatusTag } from "./StatusTag";
-import { EXPECT, RATING_GUIDE, dayOf } from "../data/weekExpect";
+import { RATING_GUIDE } from "../data/weekExpect";
+import { hintFor } from "../data/programme";
 
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "");
 
@@ -51,7 +52,7 @@ export function SubmitPanel({ taskKey, exists, listLoaded }: { taskKey: string; 
 
   const editable = !sub || sub.editable;
   const latest = sub?.reviews[0];
-  const hint = EXPECT[dayOf(taskKey) ?? 0]?.learnHint ?? "What you understood and could now explain to someone else.";
+  const hint = hintFor(taskKey);
   const dirty = note !== (sub?.note ?? "") || learned !== (sub?.learned ?? "") || rating !== (sub?.rating ?? "");
   // What is still missing before this can be sent to a reviewer
   const missing = [

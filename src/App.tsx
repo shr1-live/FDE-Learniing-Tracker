@@ -20,15 +20,17 @@ import ThemeSwitch from "./components/ThemeSwitch";
 import { Icon, IconName } from "./components/Icon";
 import { Progress } from "./components/Progress";
 import Review from "./pages/Review";
+import TaskAssistant from "./pages/TaskAssistant";
+import { PROGRAMME } from "./data/programme";
 import { DevPersonaBar } from "./components/DevPersonaBar";
 import { useDevPersona } from "./lib/devPersona";
 import { canReview, useMe } from "./lib/useRole";
 
 const ADMIN_ONLY = new Set(["/plan", "/curated"]); // the admin's personal ten-day plan
-const NAV: [string, string][] = [["/", "Dashboard"], ["/plan", "Ten-day plan"], ["/outline", "Six-week programme"], ["/week", "Week 1 tasks"], ["/assistant", "Assistant"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/curated", "Curated: .NET"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
+const NAV: [string, string][] = [["/", "Dashboard"], ["/plan", "Ten-day plan"], ["/outline", "Six-week programme"], ...PROGRAMME.map((w): [string, string] => [`/week/${w.n}`, `Week ${w.n} tasks`]), ["/assistant", "Assistant"], ["/task-assistant", "Task assistant"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/curated", "Curated: .NET"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
 
 const NAV_ICON: Record<string, IconName> = {
-  "/": "home", "/myplan": "user", "/plan": "list", "/outline": "book", "/week": "tasks", "/assistant": "spark", "/report": "chart", "/review": "inbox",
+  "/": "home", "/myplan": "user", "/plan": "list", "/outline": "book", "/assistant": "spark", "/task-assistant": "list", "/report": "chart", "/review": "inbox",
   "/stack": "compass", "/curated": "layers", "/readiness": "target", "/docs": "download", "/admin": "shield",
 };
 
@@ -56,7 +58,7 @@ export default function App() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
         </div>
-        <nav aria-label="Main">{nav.map(([to, label]) => (<NavLink key={to} to={to} end={to === "/"}><Icon name={NAV_ICON[to] ?? "list"} />{label}</NavLink>))}</nav>
+        <nav aria-label="Main">{nav.map(([to, label]) => (<NavLink key={to} to={to} end={to === "/"}><Icon name={NAV_ICON[to] ?? (to.startsWith("/week/") ? "tasks" : "list")} />{label}</NavLink>))}</nav>
         <div className="who"><DevPersonaBar /><ThemeSwitch /><Progress value={pct} label="Overall progress" small /><small>{user.email}</small><button className="linkbtn" onClick={signOut}>Sign out</button></div>
       </aside>
       <main className="main">
@@ -73,7 +75,9 @@ export default function App() {
           <Route path="/plan/:n" element={mine(<DayPage />)} />
           <Route path="/myplan" element={isAdmin ? <Navigate to="/plan" replace /> : <MyPlan />} />
           <Route path="/outline" element={<Outline />} />
-          <Route path="/week" element={<WeekPlan />} />
+          <Route path="/week" element={<Navigate to="/week/1" replace />} />
+          <Route path="/week/:n" element={<WeekPlan />} />
+          <Route path="/task-assistant" element={<TaskAssistant />} />
           <Route path="/assistant" element={<Assistant />} />
           <Route path="/report" element={<Week1Report />} />
           <Route path="/review" element={<Review />} />

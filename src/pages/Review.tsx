@@ -2,24 +2,16 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { API_URL, ApiError } from "../lib/api";
 import * as api from "../lib/submissionsApi";
 import { canReview, useMe } from "../lib/useRole";
-import { WEEK_DAYS } from "../data/weekPlan";
 import { Kpi } from "../components/Kpi";
 import { ProofList } from "../components/ProofList";
 import { StatusTag } from "../components/StatusTag";
 import { useDevPersona } from "../lib/devPersona";
 import { ExpectedList } from "../components/ExpectedList";
-import { dayOf } from "../data/weekExpect";
+import { parseTask, taskTitle } from "../data/programme";
 
 const FILTERS: [string, string][] = [["submitted", "Waiting for review"], ["changes_requested", "Changes requested"], ["approved", "Approved"], ["all", "All"]];
 
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-");
-
-/** "week1-day2" -> "Week 1, Day 2: Advanced Prompt Engineering". Unknown tasks show their key. */
-export function taskTitle(key: string) {
-  const m = /^week1-day(\d)$/.exec(key);
-  const day = m ? WEEK_DAYS.find((d) => d.n === Number(m[1])) : undefined;
-  return day ? `Week 1, Day ${day.n}: ${day.title}` : key;
-}
 
 export default function Review() {
   const persona = useDevPersona();
@@ -35,6 +27,7 @@ export default function Review() {
 
   const listReq = useRef(0);
   const openReq = useRef(0);
+  const parsed = open ? parseTask(open.task_key) : null;
   const refresh = useCallback(async () => {
     const mine = ++listReq.current;
     try {
@@ -122,7 +115,7 @@ export default function Review() {
           {open.rating != null && <p><b>Their own rating:</b> {open.rating} of 5</p>}
           <h3>Proof</h3>
           <ProofList items={open.items} />
-          {dayOf(open.task_key) !== null && <ExpectedList day={dayOf(open.task_key)!} open />}
+          {parsed && <ExpectedList week={parsed.week} day={parsed.day} open />}
 
           {open.reviews.length > 0 && (
             <>

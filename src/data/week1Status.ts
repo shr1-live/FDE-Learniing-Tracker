@@ -8,6 +8,7 @@ export const DELIVERY_AS_OF = "2026-11-16";
 export const DELIVERY = [
   { text: "Assistant page and this report (frontend)", state: "Merged into develop; not in main or live yet" },
   { text: "Backend assistant (branch feature/llm-assistant)", state: "Built and tested, waiting for the pull request" },
+  { text: "Task assistant (Day 3) and the extended Day 2 comparison", state: "Built and tested locally; waiting for the pull request. The real-model delete flow still needs a stronger model" },
   { text: "Evals tool and the Day 1 comparison (backend branches)", state: "Built, waiting for the pull requests" },
   { text: "Hosted backend on Render and a hosted LLM", state: "Not set up yet (needs the owner)" },
 ];
@@ -30,13 +31,13 @@ export const WEEK1_STATUS: DayStatus[] = [
     { text: "Output is grounded in supplied candidate evidence", done: true },
   ] },
   { n: 3, title: "Structured Outputs and Tool Calling", criteria: [
-    { text: "Schema validation", done: false, ticket: "B2" },
-    { text: "Invalid arguments handled", done: false, ticket: "B2" },
-    { text: "Tools execute only in application code", done: false, ticket: "B1" },
-    { text: "Authentication and permission checks", done: false, ticket: "B1" },
-    { text: "Tool failures handled", done: false, ticket: "B2" },
-    { text: "Destructive actions require confirmation", done: false, ticket: "B2" },
-    { text: "Execution is logged", done: false, ticket: "B1" },
+    { text: "Schema validation", done: true, ticket: "B2" },
+    { text: "Invalid arguments handled", done: true, ticket: "B2" },
+    { text: "Tools execute only in application code", done: true, ticket: "B1" },
+    { text: "Authentication and permission checks", done: true, ticket: "B1" },
+    { text: "Tool failures handled", done: true, ticket: "B2" },
+    { text: "Destructive actions require confirmation", done: true, ticket: "B2" },
+    { text: "Execution is logged", done: true, ticket: "B1" },
   ] },
   { n: 4, title: "LLM Evaluation, Reliability and Guardrails", criteria: [
     { text: "All test categories represented (30 cases)", done: false, ticket: "C1" },

@@ -73,8 +73,3 @@ export const EXPECT: Record<number, DayExpectation> = {
     ],
   },
 };
-
-export const dayOf = (taskKey: string): number | null => {
-  const m = /^week1-day(\d)$/.exec(taskKey);
-  return m ? Number(m[1]) : null;
-};

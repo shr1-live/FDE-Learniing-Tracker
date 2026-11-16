@@ -176,4 +176,3 @@ export const WEEK_DAYS: WeekDay[] = [
 ];
 
 // Stored per person as one small entry per day: wp1:d1 -> [true, false, ...] (one flag per "done" item).
-export const dayKey = (n: number) => `wp1:d${n}`;

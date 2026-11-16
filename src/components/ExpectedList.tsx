@@ -1,10 +1,11 @@
-import { WEEK_DAYS } from "../data/weekPlan";
-import { EXPECT, RATING_GUIDE } from "../data/weekExpect";
+import { getWeek } from "../data/programme";
+import { RATING_GUIDE } from "../data/weekExpect";
 
 /** What each acceptance point means, and what proof to attach: the standard a learner works to and a reviewer checks against. */
-export function ExpectedList({ day, open = false }: { day: number; open?: boolean }) {
-  const d = WEEK_DAYS.find((x) => x.n === day);
-  const e = EXPECT[day];
+export function ExpectedList({ week, day, open = false }: { week: number; day: number; open?: boolean }) {
+  const w = getWeek(week);
+  const d = w?.days.find((x) => x.n === day);
+  const e = w?.expect[day];
   if (!d || !e) return null;
   return (
     <details open={open}>

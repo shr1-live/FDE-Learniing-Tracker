@@ -4,7 +4,7 @@ import { STACKS } from "../data/stacks";
 import { DAYS, TOTAL_CHECKS } from "../data/types";
 import { LayerStack, dayProgress } from "../components/Bits";
 import { WEEKS } from "../data/outline";
-import { WEEK_DAYS, dayKey } from "../data/weekPlan";
+import { PROGRAMME, dayKey } from "../data/programme";
 import { Kpi } from "../components/Kpi";
 import { Progress } from "../components/Progress";
 
@@ -61,8 +61,9 @@ function MemberDashboard() {
   const { profile, setProfile, pct, entries, setEntry } = useStore();
   const doneWeeks = WEEKS.filter((w) => entries["wk:" + w.n]).length;
   const mine = Array.isArray(entries["myplan"]) ? (entries["myplan"] as { d: boolean }[]) : [];
-  const weekTotal = WEEK_DAYS.reduce((a, d) => a + d.done.length, 0);
-  const weekDone = WEEK_DAYS.reduce((a, d) => { const f = entries[dayKey(d.n)]; return a + (Array.isArray(f) ? f.filter((x) => x === true).length : 0); }, 0);
+  const days = PROGRAMME.flatMap((w) => w.days.map((day) => ({ week: w.n, day })));
+  const weekTotal = days.reduce((a, x) => a + x.day.done.length, 0);
+  const weekDone = days.reduce((a, x) => { const f = entries[dayKey(x.week, x.day.n)]; return a + (Array.isArray(f) ? f.filter((v) => v === true).length : 0); }, 0);
   const nextWeek = WEEKS.find((w) => !entries["wk:" + w.n]);
   return (
     <>
@@ -72,7 +73,7 @@ function MemberDashboard() {
       </header>
       <div className="kpis" aria-label="Your progress">
         <Kpi icon="target" label="Programme" value={`${pct}%`} sub={`${doneWeeks} of ${WEEKS.length} weeks done`} />
-        <Kpi icon="tasks" label="Week 1 tasks" value={`${weekDone} of ${weekTotal}`} sub="acceptance points ticked" />
+        <Kpi icon="tasks" label="Programme tasks" value={`${weekDone} of ${weekTotal}`} sub="acceptance points ticked" />
         <Kpi icon="list" label="My plan" value={`${mine.filter((i) => i.d).length} of ${mine.length}`} sub={mine.length ? "steps done" : "no steps yet"} />
         <Kpi icon="trend" label="Next up" value={nextWeek ? `Week ${nextWeek.n}` : "All done"} sub={nextWeek ? nextWeek.focus : "every week ticked"} />
       </div>
