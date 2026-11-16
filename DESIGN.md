@@ -125,3 +125,29 @@ WCAG 2.2 AA minimum. Visible focus on everything; 44px touch targets; one `h1` p
 - **Program.** Ordered steps with progress per step; tabs for Learn, Build, Practice, Notes only when the step has that content.
 - **Review queue.** Table of submissions with status, author, topic, age; open one to review.
 - **Admin.** People, roles, access requests, programs.
+
+## Reference and product KPIs (added 2026-11-16)
+
+**Reference site: Khan Academy.** This is a free, internal learning tool whose core job is mastery and visible progress, not selling or lead generation. Khan Academy is the closest match: free and non-commercial, progress and mastery shown everywhere, a calm and trustworthy look, and one clear "continue" action. Subscription and conversion references (Duolingo streak pressure, Udemy urgency badges, Coursera certificates and pricing) fit a public marketplace and are not used. We borrow structure and UX patterns only, never text, logos or assets.
+
+**Principles taken from the EdTech brief, adapted to this tool**
+- Value in five seconds: the dashboard opens with progress and the next step, with one primary action.
+- Progress is always visible: progress bars on every programme, week and day; "next up" is one click away.
+- One primary action per screen; proof near the action (what is done, what is left).
+- WCAG 2.2 AA, keyboard navigation, good contrast, mobile first, dark mode; tokens defined once and reused.
+- Honest status only: never imply something is live, merged or finished when it is not.
+- Icons are inline SVG and decorative: the meaning is always in words next to them.
+
+**KPIs this tool should show (the dashboard and report are built around them)**
+| KPI | Where it shows |
+|---|---|
+| Programme completion | Dashboard progress bar; Week 1 report "Criteria met" |
+| Activation (first task done) | Dashboard "next up" |
+| Week and day completion | Plan, Week 1 tasks, Week 1 report |
+| Assistant usage and model quality (pass rate, speed, tokens, failures) | Assistant page, Week 1 report |
+| Return visits (streak or last seen) | Optional, later |
+
+**Not applicable to this internal free tool:** pricing and payments, SEO and public marketing pages, referral and coupon programmes, certificates.
+
+**Phased redesign plan:** UI1 tokens, fonts, icon set and app shell; UI2 dashboard as a KPI view; UI3 remaining pages; UI4 accessibility, performance and dark-mode pass.
+
