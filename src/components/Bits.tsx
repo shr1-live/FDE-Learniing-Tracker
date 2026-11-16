@@ -32,13 +32,13 @@ export function LayerStack() {
   );
 }
 
-export function CopyBtn({ text }: { text: string }) {
-  const [label, setLabel] = useState("Copy");
+export function CopyBtn({ text, label: idle = "Copy" }: { text: string; label?: string }) {
+  const [label, setLabel] = useState(idle);
   return (
     <button type="button" className="copy" onClick={async () => {
       try { await navigator.clipboard.writeText(text); setLabel("Copied"); }
-      catch { setLabel("Select the address"); }
-      setTimeout(() => setLabel("Copy"), 1600);
+      catch { setLabel("Copy failed"); window.prompt("Copy this link:", text); }
+      setTimeout(() => setLabel(idle), 1600);
     }}>{label}</button>
   );
 }
@@ -47,14 +47,19 @@ export function ResourceList({ items, kind }: { items: { r: Resource; k: string 
   const { entries, setEntry } = useStore();
   if (!items.length) return <p className="muted">Nothing for this stack today. See the Stack guide.</p>;
   return (
-    <ul className="links">
+    <ul className="reslist">
       {items.map(({ r, k }) => { const done = !!entries[k]; return (
-        <li key={r.url} className={done ? "rdone" : ""}>
-          <span className={"tag " + (kind === "Video" ? "v" : "r")}>{kind}</span>
-          <a href={r.url} target="_blank" rel="noopener noreferrer">{r.title}</a>
-          {(r.channel || r.note) && <span className="meta">{[r.channel, r.note].filter(Boolean).join(" · ")}</span>}
-          <span className="urlrow"><code>{r.url}</code><CopyBtn text={r.url} />
-            <button type="button" className={"markbtn" + (done ? " on" : "")} aria-pressed={done} onClick={() => setEntry(k, !done)}>{done ? "\u2713 Completed" : kind === "Video" ? "Mark watched" : "Mark read"}</button></span>
+        <li key={r.url} className={"rescard" + (done ? " rdone" : "")}>
+          <div className="reshead">
+            <span className={"tag " + (kind === "Video" ? "v" : "r")}>{kind}</span>
+            {done && <span className="tag st-approved">{"\u2713"} Completed</span>}
+          </div>
+          <a className="restitle" href={r.url} target="_blank" rel="noopener noreferrer">{r.title}</a>
+          {(r.channel || r.note) && <p className="meta">{[r.channel, r.note].filter(Boolean).join(" \u00b7 ")}</p>}
+          <div className="resact">
+            <CopyBtn text={r.url} label="Copy link" />
+            <button type="button" className={"markbtn" + (done ? " on" : "")} aria-pressed={done} onClick={() => setEntry(k, !done)}>{done ? (kind === "Video" ? "Mark unwatched" : "Mark unread") : kind === "Video" ? "Mark watched" : "Mark read"}</button>
+          </div>
           {GUIDES[r.url] && <StudyNotes url={r.url} />}
         </li>); })}
     </ul>

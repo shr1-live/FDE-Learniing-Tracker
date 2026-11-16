@@ -33,7 +33,7 @@ export default function Curated() {
         </section>
       </div>
       <h2>Your ten days</h2>
-      <ol className="daylist numbered">{DAYS.map((d) => (<li key={d.n}><Link to={`/plan/${d.n}`}><span className="dn">Day {d.n}</span><span className="dt"><b>{d.name}</b><small>{d.goal}</small></span></Link></li>))}</ol>
+      <ol className="daylist">{DAYS.map((d) => (<li key={d.n}><Link to={`/plan/${d.n}`}><span className="dn">Day {d.n}</span><span className="dt"><b>{d.name}</b><small>{d.goal}</small></span></Link></li>))}</ol>
     </>
   );
 }
