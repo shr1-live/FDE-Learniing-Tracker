@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import { PlanList, DayPage } from "./pages/Plan";
 import Outline from "./pages/Outline";
 import WeekPlan from "./pages/WeekPlan";
+import Assistant from "./pages/Assistant";
 import Readiness from "./pages/Readiness";
 import StackGuide from "./pages/StackGuide";
 import Curated from "./pages/Curated";
@@ -17,7 +18,7 @@ import BackButton from "./components/BackButton";
 import ThemeSwitch from "./components/ThemeSwitch";
 
 const ADMIN_ONLY = new Set(["/plan", "/curated"]); // the admin's personal ten-day plan
-const NAV: [string, string][] = [["/", "Dashboard"], ["/plan", "Ten-day plan"], ["/outline", "Six-week programme"], ["/week", "Week 1 tasks"], ["/stack", "Stack guide"], ["/curated", "Curated: .NET"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
+const NAV: [string, string][] = [["/", "Dashboard"], ["/plan", "Ten-day plan"], ["/outline", "Six-week programme"], ["/week", "Week 1 tasks"], ["/assistant", "Assistant"], ["/stack", "Stack guide"], ["/curated", "Curated: .NET"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
 
 export default function App() {
   const { ready, user, signOut, saveError, pct, access, isAdmin } = useStore();
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/myplan" element={isAdmin ? <Navigate to="/plan" replace /> : <MyPlan />} />
           <Route path="/outline" element={<Outline />} />
           <Route path="/week" element={<WeekPlan />} />
+          <Route path="/assistant" element={<Assistant />} />
           <Route path="/stack" element={<StackGuide />} />
           <Route path="/curated" element={mine(<Curated />)} />
           <Route path="/readiness" element={<Readiness />} />
