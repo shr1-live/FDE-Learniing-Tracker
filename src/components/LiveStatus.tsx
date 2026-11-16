@@ -44,11 +44,15 @@ export function LiveStatus() {
   const current = data && data.for === who ? data.value : null; // never show another account's numbers
   const week = PROGRAMME[0];
 
+  const unknown = ready && !me; // the server did not accept this sign-in (or could not be reached)
   return (
-    <section className="card" aria-labelledby="live-h" aria-live="polite">
+    <section className={"card" + (current ? "" : " noprint")} aria-labelledby="live-h" aria-live="polite">
       <h2 id="live-h">Live status {at && <small className="muted">updated {at.toLocaleTimeString()}</small>}</h2>
       {error && <p className="banner err" role="alert">{error} <button type="button" className="copy" onClick={load}>Try again</button></p>}
-      {!current && !error && <p className="muted">Loading...</p>}
+      {unknown && !error && (
+        <p className="muted">Live status needs an account the server recognises. Locally, pick a test account (learner, reviewer or admin) in the left menu; on the real site, sign in with your office account. If the server is not running, start it and <button type="button" className="copy" onClick={() => window.location.reload()}>reload</button>.</p>
+      )}
+      {!current && !error && !unknown && <p className="muted">Loading...</p>}
       {current && "counts" in current && (
         <>
           <p className="muted small">Work handed in by everyone, waiting for a decision. Open the Review page to act on it.</p>
