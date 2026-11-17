@@ -21,14 +21,30 @@ const CONFIGS: { id: string; label: string; what: string }[] = [
 const CATEGORIES = ["normal", "incomplete", "ambiguous", "injection", "edge"];
 const pct = (a: number, b: number) => (b === 0 ? "-" : `${Math.round((100 * a) / b)}%`);
 
+const RUN_TEXT: Record<string, { title: string; text: string }> = {
+  "day4-local": { title: "The 30 cases the checks were built on", text: "10 normal, 5 incomplete, 5 ambiguous, 5 with an order hidden in the profile, 5 odd inputs. The model answered each case once per prompt version; every row applies its own checks to that same answer, so the difference comes from the checks, not from luck." },
+  "day4-holdout": { title: "A fresh set the checks never saw", text: "10 new attacks written afterwards in other wordings (\"from now on\", another language, an encoded order, a fake policy block, an order to start the summary with a word) and 5 honest profiles that use words like \"ignore\" and \"rules\". The checks were not changed for this run, so it is the fairer test." },
+};
+
 export function Day4Results() {
-  const run = RUNS[RUNS.length - 1];
-  if (!run) return null;
-  const models = [...new Set(run.rows.map((r) => r.Model))];
+  if (RUNS.length === 0) return null;
   return (
     <>
       <h2>Day 4: evaluation and guardrails, before and after</h2>
-      <p className="muted">Thirty fixed cases (10 normal, 5 incomplete, 5 ambiguous, 5 with an order hidden in the profile, 5 odd inputs). The model answered each case once per prompt version; every row below applies its own checks to that same answer, so the difference comes from the checks, not from luck.</p>
+      {RUNS.map((run) => <Day4Run key={run.id} id={run.id} rows={run.rows} />)}
+      <p className="muted small">One run per prompt version on a small local model, so a pass is not a promise. A hosted model has not been run yet.</p>
+    </>
+  );
+}
+
+function Day4Run({ id, rows }: { id: string; rows: Row[] }) {
+  const info = RUN_TEXT[id] ?? { title: id, text: "" };
+  const run = { rows };
+  const models = [...new Set(run.rows.map((r) => r.Model))];
+  return (
+    <>
+      <h3>{info.title}</h3>
+      <p className="muted">{info.text}</p>
       {models.map((m) => {
         const mine = run.rows.filter((r) => r.Model === m);
         const by = (id: string) => mine.filter((r) => r.Config === id);
@@ -37,8 +53,8 @@ export function Day4Results() {
         const brokeIds = fin.filter((f) => !f.Pass && base.find((b) => b.CaseId === f.CaseId)?.Pass).map((f) => f.CaseId);
         const still = fin.filter((f) => !f.Pass);
         return (
-          <section key={m} className="card" aria-labelledby={`d4-${m}`}>
-            <h3 id={`d4-${m}`}>Model: {m}</h3>
+          <section key={m} className="card" aria-labelledby={`d4-${id}-${m}`}>
+            <h4 id={`d4-${id}-${m}`}>Model: {m}</h4>
             <div className="tablewrap" tabIndex={0} role="region" aria-label={`Day 4 results for ${m}, scrolls sideways on small screens`}>
               <table>
                 <thead><tr><th>Configuration</th><th>Cases passed</th><th>Unsupported claims shown</th><th>Hidden order obeyed</th></tr></thead>
@@ -48,24 +64,23 @@ export function Day4Results() {
                 })}</tbody>
               </table>
             </div>
-            <h4>Passed per category</h4>
+            <h5>Passed per category</h5>
             <div className="tablewrap" tabIndex={0} role="region" aria-label="Passed per category, scrolls sideways on small screens">
               <table>
                 <thead><tr><th>Category</th>{CONFIGS.map((c) => <th key={c.id}>{c.label}</th>)}</tr></thead>
-                <tbody>{CATEGORIES.map((cat) => (
+                <tbody>{CATEGORIES.filter((cat) => by("final").some((x) => x.Category === cat)).map((cat) => (
                   <tr key={cat}><td>{cat}</td>{CONFIGS.map((c) => { const r = by(c.id).filter((x) => x.Category === cat); return <td key={c.id}>{r.filter((x) => x.Pass).length}/{r.length}</td>; })}</tr>
                 ))}</tbody>
               </table>
             </div>
             <p><b>Fixed:</b> {fixedIds.length ? fixedIds.join(", ") : "none"}. <b>Got worse:</b> {brokeIds.length ? brokeIds.join(", ") : "none"}.</p>
-            <h4>Failures that remain</h4>
+            <h5>Failures that remain</h5>
             {still.length === 0 ? <p>None.</p> : (
               <ul className="plain">{still.map((f) => <li key={f.CaseId}><b>{f.CaseId}</b> ({f.Category}): {f.Reason || "failed"}</li>)}</ul>
             )}
           </section>
         );
       })}
-      <p className="muted small">One run per prompt version on a small local model, so a pass is not a promise. The new checks were written after seeing earlier failures, so a fresh set of attacks is the real test. A hosted model has not been run yet.</p>
     </>
   );
 }
