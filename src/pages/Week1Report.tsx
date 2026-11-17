@@ -5,6 +5,7 @@ import { DAY_EXPLAIN, ONE_MINUTE } from "../data/week1Explain";
 import { Kpi } from "../components/Kpi";
 import { Progress } from "../components/Progress";
 import { Day2Results } from "../components/Day2Results";
+import { Day4Results } from "../components/Day4Results";
 import { LiveStatus } from "../components/LiveStatus";
 
 type Row = { Model: string; CaseId: string; Kind: string; Passed: boolean; Answer: string; LatencyMs: number; InputTokens: number; OutputTokens: number; Error: string | null };
@@ -165,6 +166,7 @@ export default function Week1Report() {
         </>
       )}
       <Day2Results />
+      <Day4Results />
     </>
   );
 }

@@ -8,7 +8,7 @@ export const DELIVERY_AS_OF = "2026-11-16";
 export const DELIVERY = [
   { text: "Assistant page and this report (frontend)", state: "Merged into develop; not in main or live yet" },
   { text: "Backend assistant (branch feature/llm-assistant)", state: "Built and tested, waiting for the pull request" },
-  { text: "Task assistant (Day 3) and the extended Day 2 comparison", state: "Built and tested locally; waiting for the pull request. The real-model delete flow still needs a stronger model" },
+  { text: "Day 4 evaluation and guardrails, task assistant (Day 3), extended Day 2 comparison", state: "Built and tested locally; waiting for the pull request. The real-model delete flow still needs a stronger model" },
   { text: "Evals tool and the Day 1 comparison (backend branches)", state: "Built, waiting for the pull requests" },
   { text: "Hosted backend on Render and a hosted LLM", state: "Not set up yet (needs the owner)" },
 ];
@@ -40,12 +40,12 @@ export const WEEK1_STATUS: DayStatus[] = [
     { text: "Execution is logged", done: true, ticket: "B1" },
   ] },
   { n: 4, title: "LLM Evaluation, Reliability and Guardrails", criteria: [
-    { text: "All test categories represented (30 cases)", done: false, ticket: "C1" },
-    { text: "Expected behaviour defined", done: false, ticket: "C1" },
-    { text: "Before-and-after results recorded", done: false, ticket: "C2" },
-    { text: "Failure cases documented", done: false, ticket: "C2" },
-    { text: "Prompt-injection tests do not override trusted instructions", done: false, ticket: "C2" },
-    { text: "No unsupported candidate claims", done: false, ticket: "C2" },
+    { text: "All test categories represented (30 cases)", done: true, ticket: "C1" },
+    { text: "Expected behaviour defined", done: true, ticket: "C1" },
+    { text: "Before-and-after results recorded", done: true, ticket: "C2" },
+    { text: "Failure cases documented", done: true, ticket: "C2" },
+    { text: "Prompt-injection tests do not override trusted instructions", done: true, ticket: "C2" },
+    { text: "No unsupported candidate claims", done: true, ticket: "C2" },
   ] },
   { n: 5, title: "End-to-End LLM Application", criteria: [
     { text: "Working end-to-end flow", done: true },
