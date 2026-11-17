@@ -17,6 +17,7 @@ const CONFIGS: { id: string; label: string; what: string }[] = [
   { id: "existing", label: "Earlier checks", what: "Quotes must be real; a rating needs one real quote." },
   { id: "all-v2", label: "All checks", what: "Plus: orders hidden in a profile are ignored, and a top rating needs half of the job's skills." },
   { id: "final", label: "After: all checks + prompt v4", what: "What the API runs now." },
+  { id: "final-code", label: "After, with the summary built in code", what: "An option (ASSISTANT_SUMMARY=code): none of the model's free text is shown. Plainer wording, and it closes the planted-word attack." },
 ];
 const CATEGORIES = ["normal", "incomplete", "ambiguous", "injection", "edge"];
 const pct = (a: number, b: number) => (b === 0 ? "-" : `${Math.round((100 * a) / b)}%`);
