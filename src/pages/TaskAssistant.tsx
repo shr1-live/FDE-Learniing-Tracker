@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { API_URL, ApiError } from "../lib/api";
 import * as api from "../lib/tasksApi";
+import { GeminiKeyPanel } from "../components/GeminiKeyPanel";
 
 const OUTCOME: Record<string, { label: string; cls: string }> = {
   ok: { label: "Done", cls: "st-approved" },
@@ -70,6 +71,7 @@ export default function TaskAssistant() {
       <header className="ph"><h1>Task assistant</h1>
         <p className="muted">Tell it what to do in plain words. It can create, list, update and delete your tasks, but it only <i>asks</i>: our server checks every request, only touches your own tasks, asks you before deleting, and writes everything to the log below.</p></header>
 
+      <GeminiKeyPanel />
       {error && <p className="banner err" role="alert">{error}</p>}
 
       <div className="dash">
