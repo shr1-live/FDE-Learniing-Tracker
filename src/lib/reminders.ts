@@ -38,6 +38,14 @@ export const isEndOfDay = (now: Date, hour: number) => now.getDay() !== 0 && now
 export function buildReminders(w: Work, hour: number): Reminder[] {
   const out: Reminder[] = [];
 
+  if (w.newInFeed.length > 0) {
+    const n = w.newInFeed.length, first = w.newInFeed[0];
+    out.push({ id: `feed:${first.id}:${n}`, tone: "info", title: `${n} new in the feed`, body: `${first.author} shared "${first.title}"${n > 1 ? ` and ${n - 1} more` : ""}.`, to: "/feed", toLabel: "Open the feed" });
+  }
+  if ((w.sharesWaiting ?? 0) > 0) {
+    const n = w.sharesWaiting!;
+    out.push({ id: `shares:${n}`, tone: "warn", title: `${n} shared link${n === 1 ? "" : "s"} waiting for approval`, body: "Approve them so everyone sees them in the feed.", to: "/feed?tab=review", toLabel: "Review shares" });
+  }
   if (!w.learner) {
     const n = w.counts?.submitted ?? 0;
     if (n > 0) out.push({ id: `queue:${n}`, tone: "warn", title: `${n} submission${n === 1 ? "" : "s"} waiting for your review`, body: "Learners are waiting for a decision.", to: "/review", toLabel: "Open the review queue" });

@@ -3,7 +3,7 @@ import { API_URL, apiJson } from "./api";
 import { useStore } from "./store";
 import { useDevPersona } from "./devPersona";
 
-export type Me = { id: string; email: string; role: "member" | "reviewer" | "admin"; access: string };
+export type Me = { id: string; email: string; role: "member" | "reviewer" | "admin"; access: string; batch?: { id: string; name: string; starts_on: string } | null };
 
 // One request per person, shared by every component that asks (the menu and the review page).
 const inflight = new Map<string, Promise<Me | null>>();

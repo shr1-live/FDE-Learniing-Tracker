@@ -61,7 +61,6 @@ export function WorkToday() {
   const w = useWork();
   const { entries } = useStore();
   const wrap = buildReminders(w, eodHour(entries)).find((r) => r.id.startsWith("eod:"));
-  const week1 = w.weeks[0];
   return (
     <section className="work" aria-labelledby="work-h">
       <div className="work-head"><h2 id="work-h">Your work</h2><LiveBadge /></div>
@@ -102,28 +101,6 @@ export function WorkToday() {
               <div className="row"><Link className="btn ghost" to="/backlog">{w.missed.length ? "Catch up" : "Open the backlog"}</Link></div>
             </article>
 
-            <article className="wcard" aria-labelledby="w-week">
-              <p className="eyebrow">This programme</p>
-              <h3 id="w-week"><span className="bignum tnum">{w.totals.finished}</span> of {w.totals.days} days done</h3>
-              <Progress value={w.totals.points ? (w.totals.ticked / w.totals.points) * 100 : 0} label="Points ticked" />
-              <p className="muted small tnum">{w.totals.ticked} of {w.totals.points} points ticked{week1?.start ? `, started ${fmtDate(week1.start)}` : ""}</p>
-            </article>
-
-            {w.proofTracked && (
-              <article className={"wcard" + (w.proofActions.length ? " warn" : "")} aria-labelledby="w-proof">
-                <p className="eyebrow">Proof</p>
-                <h3 id="w-proof"><span className="bignum tnum">{w.handedIn}</span> of {w.totals.days} handed in</h3>
-                {w.proofActions.length === 0
-                  ? <p className="muted">Nothing is waiting on you.</p>
-                  : (
-                    <ul className="plain">
-                      {w.proofActions.map((i) => (
-                        <li key={dayTitle(i)}><Link to={dayLink(i)}>{dayTitle(i)}</Link>: {i.state.proof === "changes_requested" ? "changes requested" : "saved, not submitted"}</li>
-                      ))}
-                    </ul>
-                  )}
-              </article>
-            )}
           </div>
         </>
       )}
