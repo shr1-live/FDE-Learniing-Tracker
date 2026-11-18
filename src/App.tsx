@@ -21,18 +21,29 @@ import { Icon, IconName } from "./components/Icon";
 import { Progress } from "./components/Progress";
 import Review from "./pages/Review";
 import TaskAssistant from "./pages/TaskAssistant";
+import Backlog from "./pages/Backlog";
+import StudyNotes from "./pages/StudyNotes";
+import { WorkProvider, useWork } from "./lib/work";
+import { NotificationBell } from "./components/NotificationBell";
 import { PROGRAMME } from "./data/programme";
 import { DevPersonaBar } from "./components/DevPersonaBar";
 import { useDevPersona } from "./lib/devPersona";
 import { canReview, useMe } from "./lib/useRole";
 
 const ADMIN_ONLY = new Set(["/plan", "/curated"]); // the admin's personal ten-day plan
-const NAV: [string, string][] = [["/", "Dashboard"], ["/plan", "Ten-day plan"], ["/outline", "Six-week programme"], ...PROGRAMME.map((w): [string, string] => [`/week/${w.n}`, `Week ${w.n} tasks`]), ["/assistant", "Assistant"], ["/task-assistant", "Task assistant"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/curated", "Curated: .NET"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
+const NAV: [string, string][] = [["/", "Dashboard"], ["/plan", "Ten-day plan"], ["/outline", "Six-week programme"], ...PROGRAMME.map((w): [string, string] => [`/week/${w.n}`, `Week ${w.n} tasks`]), ["/backlog", "Backlog"], ["/notes", "Study notes"], ["/assistant", "Assistant"], ["/task-assistant", "Task assistant"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/curated", "Curated: .NET"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
 
 const NAV_ICON: Record<string, IconName> = {
-  "/": "home", "/myplan": "user", "/plan": "list", "/outline": "book", "/assistant": "spark", "/task-assistant": "list", "/report": "chart", "/review": "inbox",
+  "/": "home", "/backlog": "calendar", "/notes": "book", "/myplan": "user", "/plan": "list", "/outline": "book", "/assistant": "spark", "/task-assistant": "list", "/report": "chart", "/review": "inbox",
   "/stack": "compass", "/curated": "layers", "/readiness": "target", "/docs": "download", "/admin": "shield",
 };
+
+/** The number of missed days, shown next to "Backlog" in the menu (words in the label, number as a hint). */
+function BacklogCount() {
+  const { missed, learner } = useWork();
+  if (!learner || missed.length === 0) return null;
+  return <span className="navcount" aria-label={`${missed.length} missed`}>{missed.length}</span>;
+}
 
 export default function App() {
   const { ready, user, signOut, saveError, pct, access, isAdmin } = useStore();
@@ -50,6 +61,7 @@ export default function App() {
   if (canReview(me)) nav.splice(nav.findIndex(([to]) => to === "/report") + 1, 0, ["/review", "Review submissions"]);
   const mine = (el: JSX.Element) => (isAdmin ? el : <Navigate to="/" replace />);
   return (
+    <WorkProvider>
     <div className={"shell" + (collapsed ? " collapsed" : "")}>
       <aside className="side">
         <div className="side-head">
@@ -58,7 +70,7 @@ export default function App() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
         </div>
-        <nav aria-label="Main">{nav.map(([to, label]) => (<NavLink key={to} to={to} end={to === "/"}><Icon name={NAV_ICON[to] ?? (to.startsWith("/week/") ? "tasks" : "list")} />{label}</NavLink>))}</nav>
+        <nav aria-label="Main">{nav.map(([to, label]) => (<NavLink key={to} to={to} end={to === "/"}><Icon name={NAV_ICON[to] ?? (to.startsWith("/week/") ? "tasks" : "list")} />{label}{to === "/backlog" && <BacklogCount />}</NavLink>))}</nav>
         <div className="who"><DevPersonaBar /><ThemeSwitch /><Progress value={pct} label="Overall progress" small /><small>{user.email}</small><button className="linkbtn" onClick={signOut}>Sign out</button></div>
       </aside>
       <main className="main">
@@ -67,6 +79,7 @@ export default function App() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
           <BackButton />
+          <div className="topright"><NotificationBell /></div>
         </div>
         {saveError && <p className="banner err" role="alert">Could not save to the database: {saveError}</p>}
         <Routes key={persona}>
@@ -77,6 +90,9 @@ export default function App() {
           <Route path="/outline" element={<Outline />} />
           <Route path="/week" element={<Navigate to="/week/1" replace />} />
           <Route path="/week/:n" element={<WeekPlan />} />
+          <Route path="/backlog" element={<Backlog />} />
+          <Route path="/notes" element={<StudyNotes />} />
+          <Route path="/notes/:day" element={<StudyNotes />} />
           <Route path="/task-assistant" element={<TaskAssistant />} />
           <Route path="/assistant" element={<Assistant />} />
           <Route path="/report" element={<Week1Report />} />
@@ -90,5 +106,6 @@ export default function App() {
         </Routes>
       </main>
     </div>
+    </WorkProvider>
   );
 }

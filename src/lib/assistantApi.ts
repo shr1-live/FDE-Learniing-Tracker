@@ -12,8 +12,11 @@ export type Analysis = {
     check: { matched: string[]; missing: string[]; score: number };
   }[];
 };
-export type Usage = { configured: boolean; model: string | null; daily_cap: number; used_today: number; prompt_versions: string[] };
+export type Usage = { configured: boolean; model: string | null; daily_cap: number; used_today: number; prompt_versions: string[]; using_own_key?: boolean };
+export type GeminiModels = { models: string[]; suggested: string | null };
 
+/** Asks Google (through our server) which models this key can use. Also proves the key works. The key is not stored on the way. */
+export const getModels = (key: string) => apiJson<GeminiModels>("GET", "/api/assistant/models", undefined, { "X-Gemini-Key": key.trim() });
 export const getUsage = () => apiJson<Usage>("GET", "/api/assistant/usage");
 export const analyze = (job_description: string, candidates: Candidate[], prompt_version: string) =>
   apiJson<Analysis>("POST", "/api/assistant/analyze", { job_description, candidates, prompt_version });

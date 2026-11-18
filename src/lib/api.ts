@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import { devToken } from "./devPersona";
+import { ownKeyHeaders, usesModel } from "./llmKey";
 
 // Address of the backend API (Render). Not a secret. Without it, pages that need the API say they are not connected.
 export const API_URL = ((import.meta.env.VITE_API_URL as string | undefined) ?? "").replace(/\/$/, "");
@@ -22,12 +23,14 @@ async function bearer(): Promise<string> {
   throw new ApiError(401, SIGN_IN);
 }
 
-async function send(method: string, path: string, body?: BodyInit, json = false): Promise<Response> {
+async function send(method: string, path: string, body?: BodyInit, json = false, extra?: Record<string, string>): Promise<Response> {
   const token = await bearer();
+  // The person's own Gemini key goes only on assistant requests; every other request never carries it.
+  const own = usesModel(path) ? { ...ownKeyHeaders(), ...extra } : {};
   try {
     return await fetch(API_URL + path, {
       method,
-      headers: { Authorization: `Bearer ${token}`, ...(json ? { "Content-Type": "application/json" } : {}) },
+      headers: { Authorization: `Bearer ${token}`, ...own, ...(json ? { "Content-Type": "application/json" } : {}) },
       body,
     });
   } catch {
@@ -40,8 +43,8 @@ async function failure(res: Response): Promise<ApiError> {
   return new ApiError(res.status, typeof body?.error === "string" ? body.error : "Something went wrong. Try again.");
 }
 
-export async function apiJson<T>(method: "GET" | "POST" | "PUT" | "DELETE", path: string, payload?: unknown): Promise<T> {
-  const res = await send(method, path, payload === undefined ? undefined : JSON.stringify(payload), payload !== undefined);
+export async function apiJson<T>(method: "GET" | "POST" | "PUT" | "DELETE", path: string, payload?: unknown, extra?: Record<string, string>): Promise<T> {
+  const res = await send(method, path, payload === undefined ? undefined : JSON.stringify(payload), payload !== undefined, extra);
   if (!res.ok) throw await failure(res);
   return (await res.json()) as T;
 }

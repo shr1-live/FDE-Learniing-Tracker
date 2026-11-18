@@ -7,6 +7,8 @@ import { WEEKS } from "../data/outline";
 import { PROGRAMME, dayKey } from "../data/programme";
 import { Kpi } from "../components/Kpi";
 import { Progress } from "../components/Progress";
+import { WorkToday } from "../components/WorkToday";
+
 
 function AdminDashboard() {
   const { profile, setProfile, pct, entries } = useStore();
@@ -19,6 +21,7 @@ function AdminDashboard() {
         <h1>{profile.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Dashboard"}</h1>
         <p className="muted">{done} of {TOTAL_CHECKS} checks done. {hours.toFixed(1)} hours logged.</p>
       </header>
+      <WorkToday />
       <div className="kpis" aria-label="Your progress">
         <Kpi icon="target" label="Ten-day plan" value={`${pct}%`} sub={`${done} of ${TOTAL_CHECKS} checks done`} />
         <Kpi icon="clock" label="Hours logged" value={hours.toFixed(1)} sub="across all days" />
@@ -71,6 +74,7 @@ function MemberDashboard() {
         <h1>{profile.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Dashboard"}</h1>
         <p className="muted">{doneWeeks} of {WEEKS.length} weeks done. Work through the six-week programme and tick each week's output as you reach it.</p>
       </header>
+      <WorkToday />
       <div className="kpis" aria-label="Your progress">
         <Kpi icon="target" label="Programme" value={`${pct}%`} sub={`${doneWeeks} of ${WEEKS.length} weeks done`} />
         <Kpi icon="tasks" label="Programme tasks" value={`${weekDone} of ${weekTotal}`} sub="acceptance points ticked" />
