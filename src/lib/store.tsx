@@ -28,7 +28,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [profile, setProf] = useState<Profile>({ display_name: "", stack: "dotnet" });
   const [saveError, setSaveError] = useState("");
   const [access, setAccess] = useState<Access>("approved");
-  const isAdmin = mode === "supabase" && user?.email.toLowerCase() === ADMIN_EMAIL;
+  // Admin pages can be previewed in local mode only in a development build started with VITE_DEV_ADMIN=1; production builds drop this branch.
+  const devAdmin = import.meta.env.DEV && import.meta.env.VITE_DEV_ADMIN === "1";
+  const isAdmin = (mode === "supabase" || devAdmin) && user?.email.toLowerCase() === ADMIN_EMAIL;
   const pending = useRef<Record<string, unknown>>({});
   const timer = useRef<number | undefined>(undefined);
 

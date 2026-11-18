@@ -46,7 +46,7 @@ export default function Admin() {
         <thead><tr><th>Email</th><th>Status</th><th>Progress</th><th /></tr></thead>
         <tbody>{(reqs ?? []).map((r) => { const p = prog.find((x) => x.email?.toLowerCase() === r.email); return (
           <tr key={r.email}><td>{r.email}</td><td><span className={"tag st-" + r.status}>{r.status}</span></td>
-            <td>{p ? <><span className="meter small"><i style={{ width: p.pct + "%" }} /></span> {p.pct}% · {stackById(p.stack).label}</> : <span className="muted">-</span>}</td>
+            <td>{p ? <><span className="meter small" aria-hidden="true"><i style={{ width: p.pct + "%" }} /></span> {p.pct}% · {stackById(p.stack).label}</> : <span className="muted">-</span>}</td>
             <td>{r.status === "approved" ? <button className="copy" onClick={() => decide(r.email, "rejected")}>Revoke</button> : <button className="copy" onClick={() => decide(r.email, "approved")}>Approve</button>}</td></tr>); })}</tbody>
       </table></div>
     </>

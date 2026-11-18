@@ -1,13 +1,21 @@
 import { useMemo, useState } from "react";
-import { DELIVERY, WEEK1_STATUS } from "../data/week1Status";
+import { useStore } from "../lib/store";
+import { DELIVERY, DELIVERY_AS_OF, WEEK1_STATUS } from "../data/week1Status";
 import { DAY_EXPLAIN, ONE_MINUTE } from "../data/week1Explain";
-import { Icon, IconName } from "../components/Icon";
+import { Kpi } from "../components/Kpi";
+import { Progress } from "../components/Progress";
+import { Day2Results } from "../components/Day2Results";
+import { Day4Results } from "../components/Day4Results";
+import { LiveStatus } from "../components/LiveStatus";
 
 type Row = { Model: string; CaseId: string; Kind: string; Passed: boolean; Answer: string; LatencyMs: number; InputTokens: number; OutputTokens: number; Error: string | null };
 
 // Every file in src/data/runs is one evaluation run (written by the Evals tool). Drop a new file in and it appears here.
-const RUNS = Object.entries(import.meta.glob("../data/runs/*.json", { eager: true, import: "default" }) as Record<string, Row[]>)
-  .map(([path, rows]) => ({ id: path.split("/").pop()!.replace(".json", ""), rows }))
+const isRows = (v: unknown): v is Row[] =>
+  Array.isArray(v) && v.length > 0 && v.every((r) => !!r && typeof r === "object" && typeof (r as Row).Model === "string" && typeof (r as Row).CaseId === "string" && typeof (r as Row).Passed === "boolean");
+const RUNS = Object.entries(import.meta.glob("../data/runs/*.json", { eager: true, import: "default" }) as Record<string, unknown>)
+  .filter(([, rows]) => isRows(rows))
+  .map(([path, rows]) => ({ id: path.split("/").pop()!.replace(".json", ""), rows: rows as Row[] }))
   .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true })); // day2 before day10
 const runLabel = (id: string) => { const m = /^day(\d+)-(.*)$/.exec(id); return m ? `Day ${m[1]} · ${m[2]}` : id; };
 
@@ -27,20 +35,23 @@ const cellText = (r: Row | undefined) => {
   return r.Passed ? "pass" : "FAIL";
 };
 
-function Kpi({ icon, label, value, sub }: { icon: IconName; label: string; value: string; sub: string }) {
-  return (
-    <div className="kpi"><div className="kh"><Icon name={icon} />{label}</div><div className="kv">{value}</div><div className="ks">{sub}</div></div>
-  );
-}
-
 export default function Week1Report() {
+  const { user } = useStore();
+  /** Save as PDF through the browser's print dialog: always the current report, nothing stored, no extra service. */
+  function downloadPdf() {
+    const closed = [...document.querySelectorAll<HTMLDetailsElement>("main details:not([open])")];
+    closed.forEach((d) => { d.open = true; });                         // closed sections would print empty
+    const restore = () => { closed.forEach((d) => { d.open = false; }); window.removeEventListener("afterprint", restore); };
+    window.addEventListener("afterprint", restore);
+    window.print();
+  }
   const [runId, setRunId] = useState(RUNS[RUNS.length - 1]?.id ?? "");
   const [picked, setPicked] = useState<string[] | null>(null);
   const rows = useMemo(() => RUNS.find((r) => r.id === runId)?.rows ?? [], [runId]);
 
   const total = WEEK1_STATUS.reduce((a, d) => a + d.criteria.length, 0);
   const done = WEEK1_STATUS.reduce((a, d) => a + d.criteria.filter((c) => c.done).length, 0);
-  const daysDone = WEEK1_STATUS.filter((d) => d.criteria.every((c) => c.done)).length;
+  const daysDone = WEEK1_STATUS.filter((d) => d.criteria.length > 0 && d.criteria.every((c) => c.done)).length;
   const pct = Math.round((done / total) * 100);
 
   const allModels = [...new Set(rows.map((r) => r.Model))];
@@ -64,6 +75,11 @@ export default function Week1Report() {
     <>
       <header className="ph"><h1>Week 1 report</h1>
         <p className="muted">What was built, what is proven, and what is still to do, against each acceptance criterion, plus a model comparison you can filter. "Done" means built and checked on its branch; delivery to the live site is listed separately.</p></header>
+
+      <p className="printonly muted">Generated {new Date().toLocaleString()}{user?.email ? ` for ${user.email}` : ""}.</p>
+      <div className="row noprint"><button type="button" className="btn" onClick={downloadPdf}>Download PDF</button><span className="muted small">Opens your browser's print window: choose "Save as PDF".</span></div>
+
+      <LiveStatus />
 
       <div className="kpis" aria-label="Programme summary">
         <Kpi icon="target" label="Criteria met" value={`${pct}%`} sub={`${done} of ${total} acceptance criteria`} />
@@ -102,7 +118,7 @@ export default function Week1Report() {
         );
       })}
 
-      <h2>Delivery</h2>
+      <h2>Delivery <small className="muted">as of {DELIVERY_AS_OF}</small></h2>
       <div className="card"><ul className="plain">{DELIVERY.map((x) => <li key={x.text}><b>{x.text}</b>: {x.state}</li>)}</ul></div>
 
       <h2>Model comparison</h2>
@@ -113,7 +129,7 @@ export default function Week1Report() {
             <label htmlFor="run">Run</label>
             <select id="run" value={runId} onChange={(e) => { setRunId(e.target.value); setPicked(null); }}>{RUNS.map((r) => <option key={r.id} value={r.id}>{runLabel(r.id)}</option>)}</select>
             <fieldset className="pick"><legend className="small muted">Models to show</legend>
-              {allModels.map((m) => <label key={m} className="check"><input type="checkbox" checked={models.includes(m)} onChange={() => toggle(m)} /><span>{m}</span></label>)}
+              {allModels.map((m) => <label key={m} className="pickitem"><input type="checkbox" checked={models.includes(m)} onChange={() => toggle(m)} /><span>{m}</span></label>)}
             </fieldset>
           </div>
 
@@ -126,12 +142,12 @@ export default function Week1Report() {
                 <Kpi icon="alert" label="Failed calls" value={String(errors)} sub="timeouts or provider errors" />
               </div>
 
-              <div className="tablewrap"><table>
+              <div className="tablewrap" tabIndex={0} role="region" aria-label="Results table, scrolls sideways on small screens"><table>
                 <thead><tr><th>Model</th><th>Passed</th><th>Errors</th><th>Median time</th><th>Input tokens</th><th>Output tokens</th></tr></thead>
                 <tbody>{stats.map((s) => (<tr key={s.m}><td>{s.m}</td><td>{s.passed} of {s.n}</td><td>{s.errors}</td><td>{(s.med / 1000).toFixed(1)} s</td><td>{s.tin}</td><td>{s.tout}</td></tr>))}</tbody>
               </table></div>
 
-              <div className="tablewrap gap"><table>
+              <div className="tablewrap gap" tabIndex={0} role="region" aria-label="Pass or fail for every prompt, scrolls sideways on small screens"><table>
                 <thead><tr><th>Prompt</th><th>Kind</th>{models.map((m) => <th key={m}>{m}</th>)}</tr></thead>
                 <tbody>{cases.map((c) => (
                   <tr key={c}><td>{c}</td><td>{rows.find((r) => r.CaseId === c)?.Kind}</td>
@@ -142,13 +158,15 @@ export default function Week1Report() {
               {failed.length > 0 && <div className="card"><h3>Failed answers</h3>
                 <ul className="plain">{failed.map((f) => <li key={f.Model + f.CaseId}><b>{f.Model} / {f.CaseId}</b>: {f.Error ?? f.Answer}</li>)}</ul></div>}
 
-              {best && <div className="card"><h3>Recommendation</h3>
+              {best && <div className="card"><h3>Recommendation {models.length < allModels.length ? "(among the models shown)" : ""}</h3>
                 <p>Use <b>{best.m}</b>. It passed {best.passed} of {best.n} prompts with a median time of {(best.med / 1000).toFixed(1)} s{stats.filter((s) => s.m !== best.m).map((o) => `, against ${o.m} at ${o.passed} of ${o.n} and ${(o.med / 1000).toFixed(1)} s`).join("")}.</p>
                 <p className="muted small">Why: answer quality comes first because a wrong answer costs more than a slow one; speed breaks ties; a model with errors is ruled out first. Limits: a small sample scored by simple keyword rules. The first call to each model includes loading it, and speed and cost depend on where a model runs. A fair refusal can be marked wrong when its wording is not in the accepted list; rules were not changed after seeing results.</p></div>}
             </>
           )}
         </>
       )}
+      <Day2Results />
+      <Day4Results />
     </>
   );
 }

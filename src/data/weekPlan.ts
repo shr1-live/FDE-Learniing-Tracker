@@ -7,6 +7,10 @@ export type WeekDay = {
   task: string;
   how: string[];
   done: string[]; // acceptance criteria, each one is a tick box
+  /** Catch-up: the day in three plain sentences, for someone who missed it or feels lost. */
+  summary?: string;
+  /** Catch-up: the few ideas to remember from the theory. */
+  keyIdeas?: string[];
 };
 
 export const WEEK_TITLE = "Week 1: LLM engineering, day by day";
@@ -15,6 +19,8 @@ export const WEEK_DAYS: WeekDay[] = [
   {
     n: 1,
     title: "LLM Fundamentals and Model Selection",
+    summary: "A language model reads and writes text in small pieces called tokens; everything you send and get back is counted in tokens, which is what you pay for and what limits how much fits in one request. You talk to it through an API with a system message (the rules), a user message (the request) and settings such as temperature (0 gives the most repeatable answers). Models differ in quality, speed, cost and reliability, so you choose one by running the same fixed questions on two of them and comparing.",
+    keyIdeas: ["Tokens are the unit of size, cost and the context limit.", "System message for rules, user message for the request; temperature 0 for repeatable answers.", "Handle timeouts, rate limits (429) and server errors; log the time and tokens of every call.", "Choose a model with evidence: the same prompts on two models, compared on quality, speed and cost."],
     topics: [
       "LLM architecture: high-level transformer concepts.",
       "Tokens, tokenization and context windows.",
@@ -47,6 +53,8 @@ export const WEEK_DAYS: WeekDay[] = [
   {
     n: 2,
     title: "Advanced Prompt Engineering",
+    summary: "How you word the instructions changes the answer. A good prompt states the context, the task, the rules and the exact shape of the answer; examples (one or a few) show what good looks like, asking the model to reason first can help, and big tasks can be split into steps. Anything that comes from a user or a document is data, never an order, and every prompt version is kept as a file and compared on the same fixed test cases.",
+    keyIdeas: ["Structure every prompt: context, task, constraints, expected output.", "Zero-, one- and few-shot; reasoning before the answer; split big tasks into steps.", "Text from users and documents is data, never instructions (prompt injection).", "Store prompt versions and compare them on the same cases, more than once."],
     topics: [
       "Zero-shot, one-shot and few-shot prompting.",
       "Role prompting and instruction hierarchy.",
@@ -78,6 +86,8 @@ export const WEEK_DAYS: WeekDay[] = [
   {
     n: 3,
     title: "Structured Outputs and Tool Calling",
+    summary: "A model can return data in a fixed shape (structured output) and can ask your program to run a function (tool calling), but it is your code that checks and runs it. Every argument is checked against a schema, the person's permissions are checked, and anything destructive waits for the person's confirmation. Failures are handled cleanly and every call is logged.",
+    keyIdeas: ["Structured output: a fixed JSON shape, validated in your code.", "The model only asks for a tool; your code checks and runs it.", "Confirm before anything destructive, and check who is allowed.", "Log every tool call, including the refused ones."],
     topics: [
       "Why structured outputs are useful in LLM applications.",
       "JSON mode and schema-constrained responses.",
@@ -111,6 +121,8 @@ export const WEEK_DAYS: WeekDay[] = [
   {
     n: 4,
     title: "LLM Evaluation, Reliability and Guardrails",
+    summary: "You cannot improve what you do not measure. Build a fixed set of test cases (normal, incomplete, ambiguous, attacks and edge cases) with the expected behaviour for each, and score the answers automatically. Add guardrails, which are checks in your own code, run the same cases again, compare before and after, and write down what still fails.",
+    keyIdeas: ["A fixed evaluation set with the expected behaviour for every case.", "Automatic scoring, run before and after every change.", "Guardrails in code: block unsupported claims and injected orders.", "Write down the failures honestly."],
     topics: [
       "Defining quality criteria and success metrics for LLM features.",
       "Creating representative test datasets and test cases.",
@@ -143,6 +155,8 @@ export const WEEK_DAYS: WeekDay[] = [
   {
     n: 5,
     title: "End-to-End LLM Application",
+    summary: "Put it all together into one working application: checked input, the model call, a structured answer that is checked before anyone sees it, and at least two functions your own code runs. Add clear error messages, logging of time and tokens, tests, a README and a demo someone else can follow.",
+    keyIdeas: ["One working flow from input to checked output.", "At least two controlled functions in your own code.", "Failure handling, logging and tests.", "A README and a demo someone else can follow."],
     topics: [
       "Understanding the architecture of a basic LLM-powered application.",
       "Connecting an application to an LLM provider API.",
@@ -176,4 +190,3 @@ export const WEEK_DAYS: WeekDay[] = [
 ];
 
 // Stored per person as one small entry per day: wp1:d1 -> [true, false, ...] (one flag per "done" item).
-export const dayKey = (n: number) => `wp1:d${n}`;
