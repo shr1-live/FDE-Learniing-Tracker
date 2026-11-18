@@ -5,10 +5,13 @@ const FIT_LABEL: Record<string, string> = { strong: "Strong fit", partial: "Part
 const MAX_CANDIDATES = 5;
 const blank = (): Candidate => ({ name: "", profile: "" });
 
+// What each stored prompt version does, in a few words (v4 is the default; see the Week 1 report for the comparison).
+const VERSION_NOTE: Record<string, string> = { v1: "plain", v2: "structured", v3: "one example", v4: "recommended", v5: "reasons first, asks questions", v6: "three examples", v7: "two steps" };
+
 export default function Assistant() {
   const [job, setJob] = useState("");
   const [cands, setCands] = useState<Candidate[]>([blank()]);
-  const [version, setVersion] = useState("v2");
+  const [version, setVersion] = useState("v4");
   const [usage, setUsage] = useState<Usage | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -77,7 +80,7 @@ export default function Assistant() {
             </div>
             <label htmlFor="ver">Prompt version</label>
             <select id="ver" value={version} onChange={(e) => setVersion(e.target.value)}>
-              {(usage?.prompt_versions ?? ["v1", "v2", "v3"]).map((v) => <option key={v} value={v}>{v}{v === "v2" ? " (recommended)" : ""}</option>)}
+              {(usage?.prompt_versions ?? ["v1", "v2", "v3", "v4", "v5", "v6", "v7"]).map((v) => <option key={v} value={v}>{v}{VERSION_NOTE[v] ? ` (${VERSION_NOTE[v]})` : ""}</option>)}
             </select>
             <div className="row"><button className="btn" disabled={!ready}>{busy ? "Analysing..." : "Analyse"}</button></div>
           </form>
@@ -96,6 +99,8 @@ export default function Assistant() {
                 <div key={c.id} className="card">
                   <h3>{c.name}: {FIT_LABEL[c.fit] ?? c.fit}</h3>
                   {c.summary && <p>{c.summary}</p>}
+                  {c.reasoning && <p className="muted"><b className="small">Reasoning: </b>{c.reasoning}</p>}
+                  {(c.clarifying_questions?.length ?? 0) > 0 && <><b className="small">Questions to ask this candidate</b><ul className="plain">{c.clarifying_questions!.map((q) => <li key={q}>{q}</li>)}</ul></>}
                   {c.matched_skills.length > 0 && <><b className="small">Matched skills, with the profile's own words</b>
                     <ul className="plain">{c.matched_skills.map((m) => <li key={m.skill}><b>{m.skill}</b>: “{m.evidence}”</li>)}</ul></>}
                   {c.gaps.length > 0 && <><b className="small">Gaps</b><ul className="plain">{c.gaps.map((g) => <li key={g}>{g}</li>)}</ul></>}

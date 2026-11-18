@@ -1,5 +1,5 @@
 // Day 2: every stored prompt version on the same candidates, run twice. Reads src/data/runs/day2-*.json (written by the Evals tool).
-type Row = { Model: string; Version: string; Repeat: number; Batch?: number; Candidate: string; Parsed: boolean; Present: boolean; Grounded: boolean; FitOk: boolean; NoForbidden: boolean; IncompleteOk: boolean; Fit: string; Skills: string[] };
+type Row = { Model: string; Version: string; Repeat: number; Batch?: number; Clarifies?: boolean; HasReasoning?: boolean; Candidate: string; Parsed: boolean; Present: boolean; Grounded: boolean; FitOk: boolean; NoForbidden: boolean; IncompleteOk: boolean; Fit: string; Skills: string[] };
 
 const isRows = (v: unknown): v is Row[] =>
   Array.isArray(v) && v.length > 0 && v.every((r) => !!r && typeof r === "object" && typeof (r as Row).Version === "string" && typeof (r as Row).Candidate === "string" && typeof (r as Row).Parsed === "boolean");
@@ -23,16 +23,22 @@ function summarise(rows: Row[], model: string, version: string) {
     return ok.length === runs && new Set(ok.map((r) => r.Fit + "|" + [...r.Skills].sort().join(","))).size === 1;
   }).length;
   const n = mine.length;
+  const thin = mine.filter((r) => r.Parsed && r.Fit === "insufficient_information");
+  const asked = thin.filter((r) => r.Clarifies).length;
+  const reasoned = mine.filter((r) => r.HasReasoning).length;
   const c = (f: (r: Row) => boolean) => mine.filter(f).length;
   const overall = c((r) => r.Present) + c((r) => r.Grounded) + c((r) => r.FitOk) + c((r) => r.NoForbidden) + c((r) => r.IncompleteOk && r.Parsed);
-  return { version, calls, callsOk, n, people: people.length, consistent, grounded: c((r) => r.Grounded), fit: c((r) => r.FitOk), clean: c((r) => r.NoForbidden), missing: c((r) => r.IncompleteOk && r.Parsed), overall, max: n * 5 };
+  return { version, asked, thin: thin.length, reasoned, calls, callsOk, n, people: people.length, consistent, grounded: c((r) => r.Grounded), fit: c((r) => r.FitOk), clean: c((r) => r.NoForbidden), missing: c((r) => r.IncompleteOk && r.Parsed), overall, max: n * 5 };
 }
 
 const pct = (a: number, b: number) => (b === 0 ? "-" : `${Math.round((100 * a) / b)}%`);
 
 export function Day2Results() {
-  const run = RUNS[RUNS.length - 1];
-  if (!run) return null;
+  if (RUNS.length === 0) return null;
+  // Several results files can each cover some versions (the first four, then the newer three): for each model and version the latest file wins.
+  const latest = new Map<string, Row[]>();
+  for (const r of RUNS) for (const key of new Set(r.rows.map((x) => `${x.Model}|${x.Version}`))) latest.set(key, r.rows.filter((x) => `${x.Model}|${x.Version}` === key));
+  const run = { rows: [...latest.values()].flat() };
   const models = [...new Set(run.rows.map((r) => r.Model))];
   const versions = [...new Set(run.rows.map((r) => r.Version))].sort();
   const candidates = new Set(run.rows.map((r) => r.Candidate)).size;
@@ -48,9 +54,9 @@ export function Day2Results() {
             <h3 id={`d2-${m}`}>Model: {m}</h3>
             <div className="tablewrap" tabIndex={0} role="region" aria-label={`Prompt version results for ${m}, scrolls sideways on small screens`}>
               <table>
-                <thead><tr><th>Version</th><th>Usable calls (batches)</th><th>Grounded</th><th>Fit sensible</th><th>No invented skills</th><th>Missing info shown</th><th>Repeatable</th><th>Overall</th></tr></thead>
+                <thead><tr><th>Version</th><th>Usable calls (batches)</th><th>Grounded</th><th>Fit sensible</th><th>No invented skills</th><th>Missing info shown</th><th>Repeatable</th><th>Overall</th><th>Asks a question when it cannot judge</th><th>Gives reasoning</th></tr></thead>
                 <tbody>{stats.map((s) => (
-                  <tr key={s.version}><td>{s.version}</td><td>{s.callsOk}/{s.calls}</td><td>{s.grounded}/{s.n}</td><td>{s.fit}/{s.n}</td><td>{s.clean}/{s.n}</td><td>{s.missing}/{s.n}</td><td>{s.consistent}/{s.people}</td><td>{pct(s.overall, s.max)}</td></tr>
+                  <tr key={s.version}><td>{s.version}</td><td>{s.callsOk}/{s.calls}</td><td>{s.grounded}/{s.n}</td><td>{s.fit}/{s.n}</td><td>{s.clean}/{s.n}</td><td>{s.missing}/{s.n}</td><td>{s.consistent}/{s.people}</td><td>{pct(s.overall, s.max)}</td><td>{s.asked}/{s.thin}</td><td>{s.reasoned}/{s.n}</td></tr>
                 ))}</tbody>
               </table>
             </div>
@@ -58,7 +64,7 @@ export function Day2Results() {
           </section>
         );
       })}
-      <p className="muted small">Version 1 is the plain baseline, version 2 adds structure and constraints, version 3 adds explicit rules, a worked example and a defence against instructions hidden in the data, and version 4 states the data-versus-instructions rule up front. Scores come from simple rules, so they show a trend, not a guarantee, and small local models vary between runs.</p>
+      <p className="muted small">Version 1 is the plain baseline, version 2 adds structure and constraints, version 3 adds explicit rules and one worked example, version 4 states the data-versus-instructions rule up front, version 5 asks the model to reason from the evidence before it rates and to suggest questions for thin profiles, version 6 adds three worked examples (few-shot), and version 7 is a two-step chain: step 1 pulls out quoted facts, step 2 rates from those facts only. Scores come from simple rules, so they show a trend, not a guarantee, and small local models vary between runs.</p>
     </>
   );
 }

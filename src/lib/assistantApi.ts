@@ -7,7 +7,7 @@ export type Analysis = {
   prompt_version: string; model: string; latency_ms: number; input_tokens: number; output_tokens: number;
   required_skills: string[]; warnings: string[];
   candidates: {
-    id: number; name: string; summary: string; fit: string; gaps: string[]; not_stated: string[];
+    id: number; name: string; summary: string; fit: string; gaps: string[]; not_stated: string[]; reasoning?: string; clarifying_questions?: string[]; instructions_found?: boolean;
     matched_skills: { skill: string; evidence: string }[];
     check: { matched: string[]; missing: string[]; score: number };
   }[];
