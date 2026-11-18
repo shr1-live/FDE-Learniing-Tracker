@@ -283,3 +283,28 @@ article.note{padding:14px 16px}article.note h3{margin:0 0 6px;font-size:18px}
 .keypanel h2{margin:0 0 8px;font-size:18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .keypanel .callout{margin:12px 0 4px;display:flex;gap:8px;align-items:center}
 .keypanel[open]>summary{margin-bottom:6px}
+
+/* ---- video resources, YouTube style ---- */
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px 14px;margin:0 0 12px;padding:0;list-style:none}
+.vcard{display:flex;flex-direction:column;gap:8px;min-width:0}
+.vthumb{position:relative;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#0E141B}
+.vthumb iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.vplay{position:absolute;inset:0;display:block;width:100%;height:100%;padding:0;border:0;background:#0E141B;cursor:pointer;color:#fff}
+.vplay img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s ease,filter .25s ease}
+.vplay:hover img,.vplay:focus-visible img{transform:scale(1.03);filter:brightness(.85)}
+.vbtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:44px;border-radius:12px;background:rgba(0,0,0,.72);display:grid;place-items:center;transition:background .2s ease}
+.vplay:hover .vbtn,.vplay:focus-visible .vbtn{background:#CC0000}
+.vplay:focus-visible{outline:3px solid var(--hl);outline-offset:-3px}
+.vdone{position:absolute;right:8px;bottom:8px;background:var(--moss);color:var(--on-moss);font-size:12px;font-weight:700;border-radius:4px;padding:2px 8px}
+.vnothumb{display:grid;place-items:center;text-decoration:none;font-weight:600}
+.vbody{display:flex;flex-direction:column;gap:4px;min-width:0}
+.vtitle{font-weight:600;color:var(--ink);text-decoration:none;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vtitle:hover{text-decoration:underline}
+.vcard .meta{margin:0}
+.vcard .resact{padding-top:4px}
+.vcard.rdone .vplay img{filter:saturate(.6) brightness(.8)}
+.reshead .meta{margin:0;align-self:center}
+@media (prefers-reduced-motion:reduce){.vplay img,.vbtn{transition:none}}
+@media print{.vthumb{display:none}}
+.vcard .markbtn,.rescard .markbtn{font-size:14px;min-height:36px;padding:6px 14px;border-radius:4px}
+a.copy{display:inline-flex;align-items:center;text-decoration:none}
