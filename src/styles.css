@@ -70,9 +70,7 @@ ul{margin:0;padding:0;list-style:none}ol.plain{padding-left:20px}ol.plain li{pad
 .daylist a{display:flex;gap:14px;align-items:center;padding:13px 16px;background:var(--surface);border:1px solid var(--line);border-radius:6px;text-decoration:none;color:var(--ink)}
 .daylist a:hover{border-color:var(--blue)}.daylist .dn{font-family:var(--head);font-weight:700;color:var(--blue);min-width:52px}
 .daylist .dt{flex:1;min-width:0;display:flex;flex-direction:column}.daylist small{color:var(--muted);font-size:13.5px}
-.links li{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;padding:8px 0;border-bottom:1px dashed var(--line);min-width:0}
-.links a{overflow-wrap:anywhere}.meta{font-size:13px;color:var(--muted)}
-.urlrow{flex:1 1 100%;display:flex;gap:8px;align-items:center;min-width:0}.urlrow code{font-size:12px;color:var(--muted);overflow-wrap:anywhere;user-select:all;min-width:0}
+.meta{font-size:13px;color:var(--muted);margin:2px 0 0}
 .copy{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:4px;padding:1px 8px;cursor:pointer;flex:none}
 .tag{font-size:12px;font-weight:600;border-radius:4px;padding:1px 7px}.tag.v{background:var(--tagv-bg);color:var(--tagv-fg)}.tag.r{background:var(--bluesoft);color:var(--blue)}
 .track{border-radius:6px;padding:12px 16px;margin:0 0 12px}.track h3{margin:0 0 4px}.ta{background:var(--bluesoft)}.tb{background:var(--ambersoft)}.tb h3{color:var(--amber)}.ta h3{color:var(--blue)}
@@ -112,7 +110,6 @@ td select{width:auto}
 .shell.collapsed{grid-template-columns:minmax(0,1fr)}.shell.collapsed .side{display:none}
 .markbtn{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:4px;padding:1px 8px;cursor:pointer;flex:none}
 .markbtn:hover{border-color:var(--moss)}.markbtn.on{background:var(--moss);border-color:var(--moss);color:var(--on-moss)}
-.rdone>a{text-decoration:line-through;color:var(--muted)}
 .notes{flex:1 1 100%;margin-top:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);padding:2px 14px}
 .notes summary{cursor:pointer;font-weight:600;padding:8px 0;color:var(--blue)}
 .readorder{list-style:none;padding:0;margin:8px 0;counter-reset:o}
@@ -120,7 +117,7 @@ td select{width:auto}
 .readorder li::before{content:counter(o) ".";position:absolute;left:4px;font-weight:700}
 .readorder span{color:var(--muted);font-size:14px}
 .skipnote{font-size:14px;padding:8px 10px;border-radius:6px;background:var(--ambersoft);color:var(--amber)}
-.primer{margin:0 0 16px}.primer summary{cursor:pointer;font-family:var(--head);font-weight:700;font-size:18px}
+.primer{margin:0 0 16px;border:1px solid var(--line);border-radius:6px;padding:10px 14px}.primer[open]{padding-bottom:14px}.primer summary{cursor:pointer;font-family:var(--head);font-weight:700;font-size:18px}
 .primer .big{margin:12px 0}
 .terms{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px 24px;margin:0}
 .terms div{padding:6px 0;border-bottom:1px solid var(--line)}.terms dt{font-weight:600}.terms dd{margin:0;color:var(--muted)}
@@ -149,3 +146,52 @@ td select{width:auto}
 .card form .btn,form.card .btn{margin-top:12px}
 @media (max-width:520px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.kpi{padding:10px 12px}.kpi .kv{font-size:22px}.kpi .kh{font-size:13px}}
 .copy{min-height:36px;padding:6px 14px;font-size:14px}
+/* Submissions: proof list, panel, callouts, dev account switcher */
+.submitpanel{margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.submitpanel h3{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.proofs{list-style:none;margin:8px 0 12px;padding:0;display:grid;gap:8px}
+.proof{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface)}
+.proofbody{flex:1;min-width:160px;display:grid;gap:2px;overflow-wrap:anywhere}
+.proofhead{display:flex;align-items:center;gap:6px}
+.proofactions{display:flex;gap:6px}
+.thumb{width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:var(--bg);flex:none}
+.proofform fieldset{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:12px 0}
+.proofform legend{font-weight:600;padding:0 6px}
+.callout{border-radius:8px;padding:10px 14px;margin:8px 0;border:1px solid var(--line)}
+.callout p{margin:6px 0 0}
+.callout.ok{background:var(--bluesoft)}
+.callout.warn{background:var(--ambersoft)}
+.tag.st-draft{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.tag svg{vertical-align:-2px}
+.wrap{white-space:pre-wrap;overflow-wrap:anywhere}
+.devbar{display:grid;gap:4px;margin-bottom:10px;padding:8px;border:1px dashed rgba(255,255,255,.35);border-radius:8px}
+.devbar small{opacity:.8}
+.addproof{margin:10px 0}.addproof>summary{cursor:pointer;font-weight:600;padding:6px 0}
+
+/* Plan day page: everything in cards */
+.dayhead{margin-bottom:16px;display:flex;flex-direction:column;gap:10px}.dayhead h1{margin:0}.dayhead .goal{margin:0}.dayhead .row{margin-top:2px}
+.eyebrow{margin:0;font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--muted)}
+.two.cards{align-items:start;gap:16px;margin-bottom:16px}.two.cards>.card h2:first-child{margin-top:0}
+.colstack{display:flex;flex-direction:column;gap:16px;min-width:0}.colstack .track{margin:0}
+.reslist{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));margin:0 0 8px;padding:0;list-style:none}
+.rescard{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--bg);min-width:0}
+.rescard.rdone{border-color:var(--moss)}
+.reshead{display:flex;gap:6px;flex-wrap:wrap}.restitle{font-weight:600;overflow-wrap:anywhere}
+.resact{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+.rescard .notes{flex:none;margin-top:4px}
+
+/* Print / Save as PDF: only the report content, on white, with every section open. */
+.printonly{display:none}
+@media print{
+  .side,.topbar,.noprint,.burger,.who,button,.copy{display:none!important}
+  .printonly{display:block}
+  html,body,.shell,.main,.card{background:#fff!important;color:#000!important;box-shadow:none!important}
+  .shell{display:block!important}
+  .main{max-width:none!important;padding:0!important}
+  .card,.kpis>*{box-sizing:border-box;max-width:100%}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  tr,.kpis>*,.proof{break-inside:avoid}
+  h2,h3{break-after:avoid}
+  a{color:#000;text-decoration:underline}
+  .tablewrap{overflow:visible!important}
+}

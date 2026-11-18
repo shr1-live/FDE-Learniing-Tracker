@@ -1,9 +1,12 @@
 import { useMemo, useState } from "react";
+import { useStore } from "../lib/store";
 import { DELIVERY, DELIVERY_AS_OF, WEEK1_STATUS } from "../data/week1Status";
 import { DAY_EXPLAIN, ONE_MINUTE } from "../data/week1Explain";
 import { Kpi } from "../components/Kpi";
 import { Progress } from "../components/Progress";
 import { Day2Results } from "../components/Day2Results";
+import { Day4Results } from "../components/Day4Results";
+import { LiveStatus } from "../components/LiveStatus";
 
 type Row = { Model: string; CaseId: string; Kind: string; Passed: boolean; Answer: string; LatencyMs: number; InputTokens: number; OutputTokens: number; Error: string | null };
 
@@ -33,6 +36,15 @@ const cellText = (r: Row | undefined) => {
 };
 
 export default function Week1Report() {
+  const { user } = useStore();
+  /** Save as PDF through the browser's print dialog: always the current report, nothing stored, no extra service. */
+  function downloadPdf() {
+    const closed = [...document.querySelectorAll<HTMLDetailsElement>("main details:not([open])")];
+    closed.forEach((d) => { d.open = true; });                         // closed sections would print empty
+    const restore = () => { closed.forEach((d) => { d.open = false; }); window.removeEventListener("afterprint", restore); };
+    window.addEventListener("afterprint", restore);
+    window.print();
+  }
   const [runId, setRunId] = useState(RUNS[RUNS.length - 1]?.id ?? "");
   const [picked, setPicked] = useState<string[] | null>(null);
   const rows = useMemo(() => RUNS.find((r) => r.id === runId)?.rows ?? [], [runId]);
@@ -63,6 +75,11 @@ export default function Week1Report() {
     <>
       <header className="ph"><h1>Week 1 report</h1>
         <p className="muted">What was built, what is proven, and what is still to do, against each acceptance criterion, plus a model comparison you can filter. "Done" means built and checked on its branch; delivery to the live site is listed separately.</p></header>
+
+      <p className="printonly muted">Generated {new Date().toLocaleString()}{user?.email ? ` for ${user.email}` : ""}.</p>
+      <div className="row noprint"><button type="button" className="btn" onClick={downloadPdf}>Download PDF</button><span className="muted small">Opens your browser's print window: choose "Save as PDF".</span></div>
+
+      <LiveStatus />
 
       <div className="kpis" aria-label="Programme summary">
         <Kpi icon="target" label="Criteria met" value={`${pct}%`} sub={`${done} of ${total} acceptance criteria`} />
@@ -149,6 +166,7 @@ export default function Week1Report() {
         </>
       )}
       <Day2Results />
+      <Day4Results />
     </>
   );
 }

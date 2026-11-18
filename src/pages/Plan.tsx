@@ -5,6 +5,7 @@ import { useStore } from "../lib/store";
 import { stackById } from "../data/stacks";
 import { PRIMERS } from "../data/primers";
 import { CheckItem, DayChips, ResourceList, dayProgress } from "../components/Bits";
+import { Progress } from "../components/Progress";
 
 export function PlanList() {
   const { entries } = useStore();
@@ -40,24 +41,24 @@ export function DayPage() {
   return (
     <>
       <DayChips current={d.n} />
-      <header className="ph">
-        <p className="crumb"><Link to="/plan">Plan</Link> / Day {d.n} of {DAYS.length}</p>
+      <header className="card dayhead">
+        <p className="eyebrow"><Link to="/plan">Ten-day plan</Link> <span aria-hidden="true">/</span> Day {d.n} of {DAYS.length} <span aria-hidden="true">·</span> {d.layer} <span aria-hidden="true">·</span> {d.outline}</p>
         <h1>{d.name}</h1>
-        <p className="muted">{d.layer} · {d.outline}</p>
         <p className="goal">{d.goal}</p>
+        <Progress value={prog.total ? (100 * prog.done) / prog.total : 0} label={`Day ${d.n} progress`} />
         <div className="row">
+          <span className="muted small">{prog.done} of {prog.total} checks</span>
           {complete && <span className="tag done">Completed</span>}
           <button type="button" className={"btn" + (complete ? " ghost" : "")} onClick={() => setAll(!complete)}>{complete ? "Reopen this day" : "Mark day as completed"}</button>
-          <span className="muted small">{prog.done}/{prog.total} checks</span>
         </div>
       </header>
       {!net && <p className="banner">Steps below are written for .NET. Use the <Link to="/stack">Stack guide</Link> for {st.label} equivalents. <label className="inl"><input type="checkbox" checked={allStacks} onChange={(e) => setAllStacks(e.target.checked)} /> Show .NET-specific videos and reading</label></p>}
-      <div className="two">
-        <section>
+      <div className="two cards">
+        <section className="card">
           <h2>Learn <small>1.5 h</small></h2>
           <p>{d.learn}</p>
           {PRIMERS[d.n] && (
-            <details className="primer card">
+            <details className="primer">
               <summary>Read this first: the ideas in plain English</summary>
               <p className="big">{PRIMERS[d.n].big}</p>
               <dl className="terms">{PRIMERS[d.n].terms.map(([t, x]) => (<div key={t}><dt>{t}</dt><dd>{x}</dd></div>))}</dl>
@@ -68,23 +69,25 @@ export function DayPage() {
           <h3>Watch</h3><ResourceList kind="Video" items={withKeys(d.watch, "v")} />
           <h3>Read</h3><ResourceList kind="Read" items={withKeys(d.read, "r")} />
         </section>
-        <section>
+        <div className="colstack">
           {net ? (<>
             <div className="track ta"><h3>Track A: Azure</h3><p>{d.trackA}</p></div>
             <div className="track tb"><h3>Track B: no Azure</h3><p>{d.trackB}</p></div>
           </>) : (
             <div className="track tb"><h3>Provider options</h3><p>Use a hosted API key from any provider, or run a small model locally with Ollama. Keep the provider behind one interface so you can switch without touching the rest of the code.</p></div>
           )}
-          <h2>Build <small>3 h</small></h2>
-          <ul className="plain">{d.build.map((b) => <li key={b}>{b}</li>)}</ul>
-        </section>
+          <section className="card">
+            <h2>Build <small>3 h</small></h2>
+            <ul className="plain">{d.build.map((b) => <li key={b}>{b}</li>)}</ul>
+          </section>
+        </div>
       </div>
-      <div className="two">
-        <section>
+      <div className="two cards">
+        <section className="card">
           <h2>Practice <small>1 h</small></h2>
           <ul className="checks">{d.drills.map((t, i) => <CheckItem key={i} k={`d${d.n}-p${i}`} text={t} />)}</ul>
         </section>
-        <section>
+        <section className="card">
           <h2>Done when</h2>
           <ul className="checks">{d.done.map((t, i) => <CheckItem key={i} k={`d${d.n}-d${i}`} text={t} />)}</ul>
           <p className="muted small"><b>Cut if behind:</b> {d.cut}</p>
