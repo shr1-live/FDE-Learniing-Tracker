@@ -4,6 +4,8 @@ import { useStore } from "./lib/store";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Feed from "./pages/Feed";
+import ProgressPage from "./pages/Progress";
+import { setView, useView } from "./lib/viewAs";
 import { API_URL } from "./lib/api";
 import Outline from "./pages/Outline";
 import WeekPlan from "./pages/WeekPlan";
@@ -34,7 +36,7 @@ const ADMIN_ONLY = new Set<string>(); // nothing in the menu is admin-only now; 
 const NAV: [string, string][] = [["/", "Dashboard"], ["/myplan", "My plan"], ["/outline", "Six-week programme"], ...PROGRAMME.map((w): [string, string] => [`/week/${w.n}`, `Week ${w.n} tasks`]), ["/backlog", "Backlog"], ["/notes", "Study notes"], ["/feed", "Feed"], ["/assistant", "Assistant"], ["/task-assistant", "Task assistant"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
 
 const NAV_ICON: Record<string, IconName> = {
-  "/": "home", "/feed": "rss", "/backlog": "calendar", "/notes": "book", "/myplan": "user", "/outline": "book", "/assistant": "spark", "/task-assistant": "list", "/report": "chart", "/review": "inbox",
+  "/": "home", "/feed": "rss", "/progress": "chart", "/backlog": "calendar", "/notes": "book", "/myplan": "user", "/outline": "book", "/assistant": "spark", "/task-assistant": "list", "/report": "chart", "/review": "inbox",
   "/stack": "compass", "/readiness": "target", "/docs": "download", "/admin": "shield",
 };
 
@@ -50,6 +52,21 @@ function RoleBadge() {
   return <p className="rolebadge">Role: <b>{label}</b>{me.access !== "approved" ? " (waiting for approval)" : ""}{batch ? <><br />Batch: <b>{batch.name}</b></> : null}</p>;
 }
 
+/** Reviewers and the admin: switch between what a learner sees and what a reviewer sees. */
+function ViewSwitch() {
+  const { view, canSwitch } = useView();
+  if (!canSwitch) return null;
+  return (
+    <div className="viewsw" role="group" aria-label="View as">
+      <span>View as</span>
+      <div className="themesw">
+        <button type="button" aria-pressed={view === "learner"} onClick={() => setView("learner")}>Learner</button>
+        <button type="button" aria-pressed={view === "reviewer"} onClick={() => setView("reviewer")}>Reviewer</button>
+      </div>
+    </div>
+  );
+}
+
 function BacklogCount() {
   const { missed, learner } = useWork();
   if (!learner || missed.length === 0) return null;
@@ -61,6 +78,7 @@ export default function App() {
   const [collapsed, setCollapsed] = useState(() => { try { const v = localStorage.getItem("fde:nav"); return v === null ? window.innerWidth < 900 : v === "1"; } catch { return false; } });
   const persona = useDevPersona(); // empty on the live site
   const { me } = useMe();
+  const { reviewerView } = useView();
   const toggle = () => setCollapsed((c) => { try { localStorage.setItem("fde:nav", c ? "0" : "1"); } catch { /* ignore */ } return !c; });
   if (!ready) return <main className="center"><p className="muted">Loading</p></main>;
   if (!user) return <Landing />;
@@ -68,7 +86,8 @@ export default function App() {
   const adminHere = isAdmin || me?.role === "admin";
   const nav: [string, string][] = adminHere ? [...NAV, ["/admin", "Admin"]] : NAV.filter(([to]) => !ADMIN_ONLY.has(to));
   // Reviewers and admins (as the API says) get the review page. The API enforces this too; the link is only a convenience.
-  if (canReview(me)) nav.splice(nav.findIndex(([to]) => to === "/report") + 1, 0, ["/review", "Review submissions"]);
+  nav.splice(nav.findIndex(([to]) => to === "/report") + 1, 0, ["/progress", reviewerView ? "Reports" : "My report"]);
+  if (reviewerView) nav.splice(nav.findIndex(([to]) => to === "/progress"), 0, ["/review", "Review submissions"]);
   return (
     <WorkProvider>
     <div className={"shell" + (collapsed ? " collapsed" : "")}>
@@ -80,7 +99,7 @@ export default function App() {
           </button>
         </div>
         <nav aria-label="Main">{nav.map(([to, label]) => (<NavLink key={to} to={to} end={to === "/"}><Icon name={NAV_ICON[to] ?? (to.startsWith("/week/") ? "tasks" : "list")} />{label}{to === "/backlog" && <BacklogCount />}</NavLink>))}</nav>
-        <div className="who"><DevPersonaBar /><RoleBadge /><ThemeSwitch /><Progress value={pct} label="Overall progress" small /><small>{user.email}</small><button className="linkbtn" onClick={signOut}>Sign out</button></div>
+        <div className="who"><DevPersonaBar /><RoleBadge /><ViewSwitch /><ThemeSwitch /><Progress value={pct} label="Overall progress" small /><small>{user.email}</small><button className="linkbtn" onClick={signOut}>Sign out</button></div>
       </aside>
       <main className="main">
         <div className="topbar">
@@ -96,6 +115,8 @@ export default function App() {
           <Route path="/plan/*" element={<Navigate to="/" replace />} />
           <Route path="/myplan" element={<MyPlan />} />
           <Route path="/feed" element={<Feed />} />
+          <Route path="/progress" element={<ProgressPage />} />
+          <Route path="/progress/:id" element={<ProgressPage />} />
           <Route path="/outline" element={<Outline />} />
           <Route path="/week" element={<Navigate to="/week/1" replace />} />
           <Route path="/week/:n" element={<WeekPlan />} />

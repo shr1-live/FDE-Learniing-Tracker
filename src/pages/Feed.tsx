@@ -2,14 +2,15 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { API_URL, ApiError } from "../lib/api";
 import * as api from "../lib/feedApi";
-import { canReview, useMe } from "../lib/useRole";
+import { useMe } from "../lib/useRole";
+import { useView } from "../lib/viewAs";
 import { useStore } from "../lib/store";
 import { feedSeenKey } from "../lib/work";
 import { youTubeId } from "../components/Bits";
 import { Chip } from "../components/Chip";
 import { Icon } from "../components/Icon";
 
-const SORTS: [api.Sort, string][] = [["newest", "Newest first"], ["oldest", "Oldest first"], ["title", "Title A to Z"], ["recommended", "Recommended first"]];
+const SORTS: [api.Sort, string][] = [["newest", "Newest"], ["recommended", "Recommended"], ["oldest", "Oldest"], ["title", "A to Z"]];
 const STATUS: Record<api.MyItem["status"], [string, "ok" | "warn" | "bad" | "info" | "none"]> = {
   approved: ["In the feed", "ok"], in_review: ["Waiting for a reviewer", "warn"], changes_requested: ["Changes asked", "bad"], rejected: ["Not accepted", "bad"], draft: ["Draft", "none"],
 };
@@ -17,37 +18,71 @@ const site = (url: string | null) => { try { return url ? new URL(url).hostname.
 const when = (s: string | null) => (s ? new Date(s).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "");
 const msg = (e: unknown) => (e instanceof ApiError ? e.message : "Something went wrong. Try again.");
 
-/** One shared item. Videos play right here, like YouTube; anything else opens in a new tab. */
-function FeedCard({ item, playing, onPlay, reviewer, onRecommend }: { item: api.FeedItem; playing: boolean; onPlay: (id: string | null) => void; reviewer: boolean; onRecommend: (i: api.FeedItem) => void }) {
+/** "3 hours ago", "yesterday", "12 Nov": how people read times in a feed. */
+function ago(iso: string | null): string {
+  if (!iso) return "";
+  const s = (Date.now() - Date.parse(iso)) / 1000;
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)} hour${Math.floor(s / 3600) === 1 ? "" : "s"} ago`;
+  if (s < 172800) return "yesterday";
+  if (s < 7 * 86400) return `${Math.floor(s / 86400)} days ago`;
+  return when(iso);
+}
+const initials = (name: string) => (name || "?").split(/[\s._-]+/).filter(Boolean).slice(0, 2).map((x) => x[0]!.toUpperCase()).join("") || "?";
+/** A steady colour per topic, so the same topic always looks the same. */
+const hue = (key: string) => [...key].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
+
+function Media({ item, playing, onPlay, big = false }: { item: api.FeedItem; playing: boolean; onPlay: (id: string | null) => void; big?: boolean }) {
   const id = item.url ? youTubeId(item.url) : null;
+  if (id) {
+    return (
+      <div className={"vthumb" + (big ? " big" : "")}>
+        {playing
+          ? <iframe src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`} title={`Video: ${item.title}`} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
+          : <button type="button" className="vplay" onClick={() => onPlay(item.id)} aria-label={`Play ${item.title}`}>
+              <img src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt="" loading="lazy" />
+              <span className="vbtn" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M8 5v14l11-7z" fill="currentColor" /></svg></span>
+            </button>}
+      </div>
+    );
+  }
+  const domain = site(item.url);
+  const h = hue(item.topic || domain);
   return (
-    <li className="vcard fcard">
-      {id && (
-        <div className="vthumb">
-          {playing
-            ? <iframe src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`} title={`Video: ${item.title}`} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
-            : <button type="button" className="vplay" onClick={() => onPlay(item.id)} aria-label={`Play ${item.title}`}>
-                <img src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt="" loading="lazy" />
-                <span className="vbtn" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M8 5v14l11-7z" fill="currentColor" /></svg></span>
-              </button>}
-        </div>
-      )}
-      <div className="vbody">
-        <div className="row tight">
-          <span className={"tag " + (item.kind === "video" ? "v" : "r")}>{item.kind === "video" ? "Video" : item.kind === "note" ? "Note" : "Read"}</span>
-          <Chip tone="info">{item.topic_title}</Chip>
-          {item.recommended && <Chip tone="ok">Recommended</Chip>}
+    <a className={"vthumb fposter" + (big ? " big" : "")} href={item.url ?? undefined} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true"
+      style={{ background: `linear-gradient(135deg, hsl(${h} 55% 32%), hsl(${(h + 40) % 360} 60% 22%))` }}>
+      <span className="fp-letter">{(domain[0] ?? "?").toUpperCase()}</span>
+      <span className="fp-site">{domain || "link"}</span>
+    </a>
+  );
+}
+
+/** One shared item, like a card on YouTube or dev.to: picture, title, why it is worth it, who shared it and when. */
+function FeedCard({ item, playing, onPlay, reviewer, onRecommend, big = false }: { item: api.FeedItem; playing: boolean; onPlay: (id: string | null) => void; reviewer: boolean; onRecommend: (i: api.FeedItem) => void; big?: boolean }) {
+  const isVideo = !!(item.url && youTubeId(item.url));
+  return (
+    <li className={"fcard2" + (big ? " spot" : "") + (item.recommended ? " rec" : "")}>
+      <Media item={item} playing={playing} onPlay={onPlay} big={big} />
+      <div className="fbody">
+        <div className="fmeta-top">
+          <span className="ftopic" style={{ ["--h" as string]: String(hue(item.topic)) }}>{item.topic_title}</span>
+          <span className="fkind">{isVideo ? "Video" : item.kind === "note" ? "Note" : "Article"}</span>
+          {item.recommended && <span className="frec"><Icon name="check" size={14} /> Recommended</span>}
         </div>
         {item.url
-          ? <a className="vtitle" href={item.url} target="_blank" rel="noopener noreferrer">{item.title}<span className="sr"> (opens in a new tab)</span></a>
-          : <span className="vtitle">{item.title}</span>}
+          ? <a className="ftitle" href={item.url} target="_blank" rel="noopener noreferrer">{item.title}<span className="sr"> (opens in a new tab)</span></a>
+          : <span className="ftitle">{item.title}</span>}
         {item.summary && <p className="fsum">{item.summary}</p>}
-        <p className="meta">Shared by {item.author || "someone"} · {when(item.approved_at)}{item.url && !id ? ` · ${site(item.url)}` : ""}</p>
-        <div className="resact">
-          {id && (playing
+        <div className="fby">
+          <span className="favatar" aria-hidden="true" style={{ ["--h" as string]: String(hue(item.author)) }}>{initials(item.author)}</span>
+          <span><b>{item.author || "Someone"}</b><span className="muted"> &middot; {ago(item.approved_at)}{!isVideo && item.url ? ` · ${site(item.url)}` : ""}</span></span>
+        </div>
+        <div className="factions">
+          {isVideo && (playing
             ? <button type="button" className="copy" onClick={() => onPlay(null)}>Close player</button>
             : <button type="button" className="copy" onClick={() => onPlay(item.id)}>Play here</button>)}
-          {item.url && !id && <a className="copy" href={item.url} target="_blank" rel="noopener noreferrer">Open</a>}
+          {item.url && !isVideo && <a className="copy" href={item.url} target="_blank" rel="noopener noreferrer">Read</a>}
           {reviewer && <button type="button" className={"markbtn" + (item.recommended ? " on" : "")} aria-pressed={!!item.recommended} onClick={() => onRecommend(item)}>{item.recommended ? "Recommended" : "Recommend"}</button>}
         </div>
       </div>
@@ -55,7 +90,11 @@ function FeedCard({ item, playing, onPlay, reviewer, onRecommend }: { item: api.
   );
 }
 
-function ShareForm({ topics, onShared }: { topics: api.Topic[]; onShared: (status: string) => void }) {
+function Skeleton() {
+  return <ul className="fgrid" aria-hidden="true">{[0, 1, 2, 3, 4, 5].map((k) => <li key={k} className="fcard2 skel"><div className="vthumb" /><div className="fbody"><i /><i /><i className="short" /></div></li>)}</ul>;
+}
+
+function ShareForm({ topics, onShared, open, onToggle }: { topics: api.Topic[]; onShared: (status: string) => void; open?: boolean; onToggle?: (open: boolean) => void }) {
   const [url, setUrl] = useState(""); const [title, setTitle] = useState(""); const [topic, setTopic] = useState(""); const [why, setWhy] = useState("");
   const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
   const okUrl = /^https:\/\/\S+\.\S+/.test(url.trim());
@@ -68,8 +107,9 @@ function ShareForm({ topics, onShared }: { topics: api.Topic[]; onShared: (statu
     } catch (e2) { setErr(msg(e2)); } finally { setBusy(false); }
   }
   return (
-    <details className="card sharebox">
+    <details className="card sharebox" open={open || undefined} onToggle={(e) => onToggle?.((e.target as HTMLDetailsElement).open)}>
       <summary><Icon name="link" /> Share a video or blog</summary>
+      <p className="muted small">Paste a link to a video or an article that helped you. Say in a line why it is worth it.</p>
       <form onSubmit={go}>
         <label htmlFor="sh-url">Link (https)</label>
         <input id="sh-url" type="url" inputMode="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
@@ -132,7 +172,7 @@ export default function Feed() {
   const { me, ready } = useMe();
   const { setEntry } = useStore();
   const [params, setParams] = useSearchParams();
-  const reviewer = canReview(me);
+  const { reviewerView: reviewer } = useView();
   const tab = params.get("tab") === "review" && reviewer ? "review" : params.get("tab") === "mine" ? "mine" : "feed";
   const [sort, setSort] = useState<api.Sort>("newest");
   const [topic, setTopic] = useState("");
@@ -144,6 +184,7 @@ export default function Feed() {
   const [playing, setPlaying] = useState<string | null>(null);
   const [err, setErr] = useState("");
   const [note, setNote] = useState("");
+  const [composer, setComposer] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -173,9 +214,12 @@ export default function Feed() {
   const go = (t: string) => setParams(t === "feed" ? {} : { tab: t });
   return (
     <>
-      <header className="ph">
-        <h1>Feed</h1>
-        <p className="muted">Videos and blogs people in the programme found useful. Share one you liked: {reviewer ? "yours go straight into the feed." : "a reviewer checks it, then everyone sees it."}</p>
+      <header className="ph fhead">
+        <div>
+          <h1>Feed</h1>
+          <p className="muted">Videos and articles people in the programme found useful{items ? ` · ${items.length} shared` : ""}. {reviewer ? "Yours go straight into the feed." : "A reviewer checks each one, then everyone sees it."}</p>
+        </div>
+        <button type="button" className="btn" onClick={() => { setComposer(true); setParams({}); }}><Icon name="link" /> Share a link</button>
       </header>
       <div className="seg" role="tablist" aria-label="Feed views">
         <button type="button" role="tab" aria-selected={tab === "feed"} className={tab === "feed" ? "on" : ""} onClick={() => go("feed")}>Feed</button>
@@ -187,7 +231,7 @@ export default function Feed() {
 
       {tab === "review" && <ReviewQueue onDone={load} />}
 
-      {tab !== "review" && <ShareForm topics={topics} onShared={(s) => { setNote(s === "approved" ? "Shared. It is in the feed now and everyone will see it." : "Shared. A reviewer will check it, then everyone sees it."); void load(); }} />}
+      {tab !== "review" && <ShareForm topics={topics} open={composer} onToggle={setComposer} onShared={(s) => { setNote(s === "approved" ? "Shared. It is in the feed now and everyone will see it." : "Shared. A reviewer will check it, then everyone sees it."); void load(); }} />}
 
       {tab === "mine" && (
         mine.length === 0 ? <p className="muted">You have not shared anything yet.</p> : (
@@ -198,14 +242,35 @@ export default function Feed() {
 
       {tab === "feed" && (
         <>
-          <div className="card feedbar">
-            <div><label htmlFor="fd-sort">Sort</label><select id="fd-sort" value={sort} onChange={(e) => setSort(e.target.value as api.Sort)}>{SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
-            <div><label htmlFor="fd-topic">Topic</label><select id="fd-topic" value={topic} onChange={(e) => setTopic(e.target.value)}><option value="">All topics</option>{topics.map((t) => <option key={t.slug} value={t.slug}>{t.title}</option>)}</select></div>
-            <div><label htmlFor="fd-q">Search</label><input id="fd-q" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="title, person, topic" /></div>
+          <div className="fcontrols">
+            <div className="fpills" role="group" aria-label="Topic">
+              <button type="button" aria-pressed={!topic} className={!topic ? "on" : ""} onClick={() => setTopic("")}>All</button>
+              {topics.map((t) => <button key={t.slug} type="button" aria-pressed={topic === t.slug} className={topic === t.slug ? "on" : ""} onClick={() => setTopic(topic === t.slug ? "" : t.slug)}>{t.title}</button>)}
+            </div>
+            <div className="frow">
+              <div className="fsort" role="group" aria-label="Sort">
+                {SORTS.map(([v, l]) => <button key={v} type="button" aria-pressed={sort === v} className={sort === v ? "on" : ""} onClick={() => setSort(v)}>{l}</button>)}
+              </div>
+              <label className="fsearch"><span className="sr">Search the feed</span><Icon name="compass" /><input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search title, person, topic" /></label>
+            </div>
           </div>
-          {items === null ? <p className="muted">Loading...</p> : shown.length === 0
-            ? <div className="card emptystate"><Icon name="link" size={28} /><div><h3>Nothing here yet</h3><p className="muted">Be the first: share a video or blog above.</p></div></div>
-            : <ul className="vgrid">{shown.map((i) => <FeedCard key={i.id} item={i} playing={playing === i.id} onPlay={setPlaying} reviewer={reviewer} onRecommend={toggleRecommend} />)}</ul>}
+          {items === null ? <Skeleton /> : shown.length === 0
+            ? <div className="card emptystate"><Icon name="link" size={28} /><div><h3>{q || topic ? "Nothing matches" : "Nothing here yet"}</h3><p className="muted">{q || topic ? "Try another topic or a shorter word." : "Be the first: share a video or an article that helped you."}</p>{!(q || topic) && <button type="button" className="btn" onClick={() => setComposer(true)}>Share a link</button>}</div></div>
+            : (() => {
+              const spot = sort === "newest" && !topic && !q.trim() ? shown.find((i) => i.recommended) : undefined;
+              const rest = spot ? shown.filter((i) => i.id !== spot.id) : shown;
+              return (
+                <>
+                  {spot && (
+                    <section aria-labelledby="spot-h" className="fspot">
+                      <h2 id="spot-h" className="eyebrow">Recommended by a reviewer</h2>
+                      <ul className="fgrid one"><FeedCard item={spot} big playing={playing === spot.id} onPlay={setPlaying} reviewer={reviewer} onRecommend={toggleRecommend} /></ul>
+                    </section>
+                  )}
+                  {rest.length > 0 && <ul className="fgrid">{rest.map((i) => <FeedCard key={i.id} item={i} playing={playing === i.id} onPlay={setPlaying} reviewer={reviewer} onRecommend={toggleRecommend} />)}</ul>}
+                </>
+              );
+            })()}
           {next && <div className="row"><button type="button" className="btn ghost" onClick={async () => { try { const f = await api.feed({ sort, topic: topic || undefined, before: next }); setItems((xs) => [...(xs ?? []), ...f.items]); setNext(f.next); } catch (e) { setErr(msg(e)); } }}>Load more</button></div>}
         </>
       )}
