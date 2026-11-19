@@ -323,6 +323,17 @@ a.copy{display:inline-flex;align-items:center;text-decoration:none}
 .feedmini a{color:var(--ink);text-decoration:none}.feedmini a:hover{text-decoration:underline}.feedmini .meta{margin:2px 0 0}
 .work-head a{font-weight:600}
 td select{min-width:120px}
+/* Practice lab (/lab): reuses the existing tokens only */
+.labpick{border:1px solid var(--line);border-radius:8px;padding:6px 14px 12px;margin:12px 0 0;min-width:0}
+.labpick legend{font-weight:600;padding:0 6px}
+.labpick .pickitem{display:flex;flex-wrap:wrap;min-height:44px}
+.labpick select{max-width:100%}
+.labpick:disabled{opacity:.7}
+.labtabs{margin-top:24px}.labtabs button{min-height:44px}
+.labstatus{margin-top:12px}.labstatus .meter{margin-bottom:4px}
+.labrun{display:block}.labrun .proofbody{min-width:0}
+.copy.danger{color:var(--err);border-color:var(--err)}
+.labpick input[type=radio]{padding:0;margin:0;flex:none}
 
 /* view switch, reports */
 .viewsw{display:flex;flex-direction:column;gap:4px;font-size:13px}

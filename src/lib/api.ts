@@ -6,8 +6,15 @@ import { ownKeyHeaders, usesModel } from "./llmKey";
 export const API_URL = ((import.meta.env.VITE_API_URL as string | undefined) ?? "").replace(/\/$/, "");
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string) { super(message); }
+  /** kind / retryable / retryAfter come from the server's error body when it sends them (for example a 429 from Google). */
+  constructor(public status: number, message: string, public kind?: string, public retryable?: boolean, public retryAfter?: number) { super(message); }
 }
+
+/**
+ * ownKey: false sends an assistant request WITHOUT the person's Gemini key, so the server uses its own model.
+ * signal: lets a long run be stopped. Non-assistant paths never carry the key whatever is passed here.
+ */
+export type CallOptions = { ownKey?: boolean; signal?: AbortSignal };
 
 const SIGN_IN = "Sign in with your office account to use this.";
 
@@ -23,29 +30,36 @@ async function bearer(): Promise<string> {
   throw new ApiError(401, SIGN_IN);
 }
 
-async function send(method: string, path: string, body?: BodyInit, json = false, extra?: Record<string, string>): Promise<Response> {
+async function send(method: string, path: string, body?: BodyInit, json = false, extra?: Record<string, string>, opts?: CallOptions): Promise<Response> {
   const token = await bearer();
   // The person's own Gemini key goes only on assistant requests; every other request never carries it.
-  const own = usesModel(path) ? { ...ownKeyHeaders(), ...extra } : {};
+  // With ownKey: false the stored key is left off, so the request goes to the server's own model.
+  const own = usesModel(path) ? { ...(opts?.ownKey === false ? {} : ownKeyHeaders()), ...extra } : {};
   try {
     return await fetch(API_URL + path, {
       method,
       headers: { Authorization: `Bearer ${token}`, ...own, ...(json ? { "Content-Type": "application/json" } : {}) },
       body,
+      signal: opts?.signal,
     });
   } catch {
+    if (opts?.signal?.aborted) throw new ApiError(0, "Stopped.", "stopped");
     throw new ApiError(0, "Could not reach the service. If it was idle it may need about 30 seconds to wake up; try again.");
   }
 }
 
 async function failure(res: Response): Promise<ApiError> {
   const body = await res.json().catch(() => null);
-  return new ApiError(res.status, typeof body?.error === "string" ? body.error : "Something went wrong. Try again.");
+  const header = Number(res.headers.get("Retry-After"));
+  const after = typeof body?.retry_after_seconds === "number" ? body.retry_after_seconds : Number.isFinite(header) && header > 0 ? header : undefined;
+  return new ApiError(res.status, typeof body?.error === "string" ? body.error : "Something went wrong. Try again.",
+    typeof body?.kind === "string" ? body.kind : undefined, typeof body?.retryable === "boolean" ? body.retryable : undefined, after);
 }
 
-export async function apiJson<T>(method: "GET" | "POST" | "PUT" | "DELETE", path: string, payload?: unknown, extra?: Record<string, string>): Promise<T> {
-  const res = await send(method, path, payload === undefined ? undefined : JSON.stringify(payload), payload !== undefined, extra);
+export async function apiJson<T>(method: "GET" | "POST" | "PUT" | "DELETE", path: string, payload?: unknown, extra?: Record<string, string>, opts?: CallOptions): Promise<T> {
+  const res = await send(method, path, payload === undefined ? undefined : JSON.stringify(payload), payload !== undefined, extra, opts);
   if (!res.ok) throw await failure(res);
+  if (res.status === 204 || res.headers.get("Content-Length") === "0") return undefined as T; // e.g. DELETE answers with no body
   return (await res.json()) as T;
 }
 
