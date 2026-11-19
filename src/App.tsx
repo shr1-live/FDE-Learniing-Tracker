@@ -11,7 +11,6 @@ import Assistant from "./pages/Assistant";
 import Week1Report from "./pages/Week1Report";
 import Readiness from "./pages/Readiness";
 import StackGuide from "./pages/StackGuide";
-import Curated from "./pages/Curated";
 import Admin from "./pages/Admin";
 import MyPlan from "./pages/MyPlan";
 import Gate from "./pages/Gate";
@@ -31,12 +30,12 @@ import { DevPersonaBar } from "./components/DevPersonaBar";
 import { useDevPersona } from "./lib/devPersona";
 import { canReview, useMe } from "./lib/useRole";
 
-const ADMIN_ONLY = new Set(["/curated"]); // the admin's personal curated list
-const NAV: [string, string][] = [["/", "Dashboard"], ["/myplan", "My plan"], ["/outline", "Six-week programme"], ...PROGRAMME.map((w): [string, string] => [`/week/${w.n}`, `Week ${w.n} tasks`]), ["/backlog", "Backlog"], ["/notes", "Study notes"], ["/feed", "Feed"], ["/assistant", "Assistant"], ["/task-assistant", "Task assistant"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/curated", "Curated: .NET"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
+const ADMIN_ONLY = new Set<string>(); // nothing in the menu is admin-only now; the Admin page is added separately
+const NAV: [string, string][] = [["/", "Dashboard"], ["/myplan", "My plan"], ["/outline", "Six-week programme"], ...PROGRAMME.map((w): [string, string] => [`/week/${w.n}`, `Week ${w.n} tasks`]), ["/backlog", "Backlog"], ["/notes", "Study notes"], ["/feed", "Feed"], ["/assistant", "Assistant"], ["/task-assistant", "Task assistant"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
 
 const NAV_ICON: Record<string, IconName> = {
-  "/": "home", "/feed": "rss", "/backlog": "calendar", "/notes": "book", "/myplan": "user", "/plan": "list", "/outline": "book", "/assistant": "spark", "/task-assistant": "list", "/report": "chart", "/review": "inbox",
-  "/stack": "compass", "/curated": "layers", "/readiness": "target", "/docs": "download", "/admin": "shield",
+  "/": "home", "/feed": "rss", "/backlog": "calendar", "/notes": "book", "/myplan": "user", "/outline": "book", "/assistant": "spark", "/task-assistant": "list", "/report": "chart", "/review": "inbox",
+  "/stack": "compass", "/readiness": "target", "/docs": "download", "/admin": "shield",
 };
 
 /** The number of missed days, shown next to "Backlog" in the menu (words in the label, number as a hint). */
@@ -70,7 +69,6 @@ export default function App() {
   const nav: [string, string][] = adminHere ? [...NAV, ["/admin", "Admin"]] : NAV.filter(([to]) => !ADMIN_ONLY.has(to));
   // Reviewers and admins (as the API says) get the review page. The API enforces this too; the link is only a convenience.
   if (canReview(me)) nav.splice(nav.findIndex(([to]) => to === "/report") + 1, 0, ["/review", "Review submissions"]);
-  const mine = (el: JSX.Element) => (isAdmin ? el : <Navigate to="/" replace />);
   return (
     <WorkProvider>
     <div className={"shell" + (collapsed ? " collapsed" : "")}>
@@ -109,7 +107,7 @@ export default function App() {
           <Route path="/report" element={<Week1Report />} />
           <Route path="/review" element={<Review />} />
           <Route path="/stack" element={<StackGuide />} />
-          <Route path="/curated" element={mine(<Curated />)} />
+          <Route path="/curated" element={<Navigate to="/" replace />} />
           <Route path="/readiness" element={<Readiness />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/docs" element={<Docs />} />

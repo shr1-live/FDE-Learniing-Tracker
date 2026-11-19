@@ -22,12 +22,11 @@ function PeopleAndRoles() {
     catch (e) { setErr(msg(e)); setPeople([]); }
   }, []);
   useEffect(() => { void load(); }, [load]);
-  const run = async (f: () => Promise<unknown>) => { setErr(""); try { await f(); await load(); } catch (e) { setErr(msg(e)); } };
+  const run = async (f: () => Promise<unknown>) => { setErr(""); try { await f(); await load(); return true; } catch (e) { setErr(msg(e)); return false; } };
 
   async function addBatch(e: FormEvent) {
     e.preventDefault();
-    await run(() => admin.createBatch(name, start));
-    setName(""); setStart("");
+    if (await run(() => admin.createBatch(name, start))) { setName(""); setStart(""); }
   }
 
   return (

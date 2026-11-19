@@ -7,9 +7,13 @@ export type Me = { id: string; email: string; role: "member" | "reviewer" | "adm
 
 // One request per person, shared by every component that asks (the menu and the review page).
 const inflight = new Map<string, Promise<Me | null>>();
-function load(who: string): Promise<Me | null> {
+const fetchedAt = new Map<string, number>();
+const STALE_MS = 60000; // a role or batch the admin changed shows up within a minute of coming back to the tab
+function load(who: string, fresh = false): Promise<Me | null> {
   let p = inflight.get(who);
+  if (fresh && Date.now() - (fetchedAt.get(who) ?? 0) > STALE_MS) p = undefined;
   if (!p) {
+    fetchedAt.set(who, Date.now());
     p = apiJson<Me>("GET", "/api/me").catch(() => { inflight.delete(who); return null; }); // a failure is not remembered
     inflight.set(who, p);
   }
@@ -26,7 +30,9 @@ export function useRole(who: string): { me: Me | null; ready: boolean } {
     if (!API_URL) return;
     let alive = true;
     load(who).then((m) => { if (alive) setState({ who, me: m }); });
-    return () => { alive = false; };
+    const onVisible = () => { if (document.visibilityState === "visible") load(who, true).then((m) => { if (alive) setState((cur) => (cur?.who === who && JSON.stringify(cur.me) === JSON.stringify(m) ? cur : { who, me: m })); }); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { alive = false; document.removeEventListener("visibilitychange", onVisible); };
   }, [who]);
   // A role fetched for someone else is never used: until this person's answer arrives, there is no role.
   const mine = state?.who === who ? state.me : null;

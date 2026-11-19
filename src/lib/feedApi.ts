@@ -13,8 +13,9 @@ export type QueueItem = { id: string; title: string; kind: Kind; url?: string | 
 
 export const topics = () => apiJson<Topic[]>("GET", "/api/topics");
 
-export function feed(opts: { sort?: Sort; topic?: string; limit?: number } = {}) {
+export function feed(opts: { sort?: Sort; topic?: string; limit?: number; before?: string } = {}) {
   const q = new URLSearchParams();
+  if (opts.before) q.set("before", opts.before);
   if (opts.sort && opts.sort !== "newest") q.set("sort", opts.sort);
   if (opts.topic) q.set("topic", opts.topic);
   q.set("limit", String(opts.limit ?? 50));
@@ -27,12 +28,11 @@ export const mine = () => apiJson<MyItem[]>("GET", "/api/content/mine");
 export const share = (b: { topic: string; kind: Kind; title: string; url: string; summary?: string }) =>
   apiJson<{ id: string; status: MyItem["status"] }>("POST", "/api/content", { ...b, summary: b.summary?.trim() || undefined, submit: true });
 
-export const remove = (id: string) => apiJson<unknown>("DELETE", `/api/content/${id}`).catch((e) => { if (e?.status === undefined) return null; throw e; });
 export const recommend = (id: string, recommended: boolean) => apiJson<FeedItem>("POST", `/api/content/${id}/recommend`, { recommended });
 
 export const queue = () => apiJson<QueueItem[]>("GET", "/api/review/queue");
 export const decide = (id: string, decision: "approve" | "request_changes" | "reject", comment: string) =>
   apiJson<{ status: string }>("POST", `/api/review/${id}`, { decision, comment: comment.trim() || undefined });
 
-/** Video for YouTube links, otherwise an article. */
-export const kindFor = (url: string): Kind => /^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//i.test(url.trim()) ? "video" : "article";
+/** Video for YouTube links, otherwise a link (an "article" would need body text the share form does not ask for). */
+export const kindFor = (url: string): Kind => /^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//i.test(url.trim()) ? "video" : "link";

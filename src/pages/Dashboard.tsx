@@ -74,7 +74,7 @@ export default function Dashboard() {
             <select id="stack" value={profile.stack} onChange={(e) => setProfile({ stack: e.target.value })}>
               {STACKS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
             </select>
-            <p className="muted small">The Stack guide and the feed follow this choice.</p>
+            <p className="muted small">The Stack guide follows this choice.</p>
             <label htmlFor="dn">Display name</label>
             <input id="dn" value={profile.display_name} onChange={(e) => setProfile({ display_name: e.target.value })} />
           </div>

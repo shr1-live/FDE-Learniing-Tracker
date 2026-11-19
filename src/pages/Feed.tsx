@@ -139,6 +139,7 @@ export default function Feed() {
   const [q, setQ] = useState("");
   const [topics, setTopics] = useState<api.Topic[]>([]);
   const [items, setItems] = useState<api.FeedItem[] | null>(null);
+  const [next, setNext] = useState<string | null>(null);
   const [mine, setMine] = useState<api.MyItem[]>([]);
   const [playing, setPlaying] = useState<string | null>(null);
   const [err, setErr] = useState("");
@@ -147,13 +148,14 @@ export default function Feed() {
   const load = useCallback(async () => {
     try {
       const [f, m] = await Promise.all([api.feed({ sort, topic: topic || undefined }), api.mine().catch(() => [])]);
-      setItems(f.items); setMine(m); setErr("");
+      setItems(f.items); setNext(f.next); setMine(m); setErr("");
     } catch (e) { setErr(msg(e)); setItems([]); }
   }, [sort, topic]);
   useEffect(() => { if (API_URL && ready && me) void load(); }, [load, ready, me]);
   useEffect(() => { if (API_URL && ready && me) api.topics().then(setTopics).catch(() => setTopics([])); }, [ready, me]);
   // Opening the feed counts as having seen what is new.
-  useEffect(() => { if (items && items.length) setEntry(feedSeenKey, new Date().toISOString()); }, [items]); // eslint-disable-line react-hooks/exhaustive-deps
+  // only when the whole feed is on screen (not a topic, a search or another tab), so nothing new is marked seen unseen
+  useEffect(() => { if (tab === "feed" && !topic && !q.trim() && items && items.length) setEntry(feedSeenKey, new Date().toISOString()); }, [items, tab, topic]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const shown = useMemo(() => {
     const t = q.trim().toLowerCase();
@@ -204,6 +206,7 @@ export default function Feed() {
           {items === null ? <p className="muted">Loading...</p> : shown.length === 0
             ? <div className="card emptystate"><Icon name="link" size={28} /><div><h3>Nothing here yet</h3><p className="muted">Be the first: share a video or blog above.</p></div></div>
             : <ul className="vgrid">{shown.map((i) => <FeedCard key={i.id} item={i} playing={playing === i.id} onPlay={setPlaying} reviewer={reviewer} onRecommend={toggleRecommend} />)}</ul>}
+          {next && <div className="row"><button type="button" className="btn ghost" onClick={async () => { try { const f = await api.feed({ sort, topic: topic || undefined, before: next }); setItems((xs) => [...(xs ?? []), ...f.items]); setNext(f.next); } catch (e) { setErr(msg(e)); } }}>Load more</button></div>}
         </>
       )}
     </>
