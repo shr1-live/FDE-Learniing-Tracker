@@ -3,15 +3,7 @@ import { API_URL, apiJson } from "./api";
 import { useStore } from "./store";
 import { useDevPersona } from "./devPersona";
 
-export type Me = {
-  id: string; email: string; role: "member" | "reviewer" | "admin"; access: string; display_name?: string | null;
-  /** Programs V3: the programs this person is in, with their role there (the admin sees every program as "admin"). */
-  programs?: { id: string; name: string; role: "admin" | "coordinator" | "member" }[];
-  can_manage?: boolean;
-};
-
-/** Forget the cached /api/me answer (after an admin changes programs or roles, so the menu updates). */
-export function refreshMe() { inflight.clear(); fetchedAt.clear(); window.dispatchEvent(new Event("fde:me")); }
+export type Me = { id: string; email: string; role: "member" | "reviewer" | "admin"; access: string; batch?: { id: string; name: string; starts_on: string } | null };
 
 // One request per person, shared by every component that asks (the menu and the review page).
 const inflight = new Map<string, Promise<Me | null>>();
@@ -39,16 +31,15 @@ export function useRole(who: string): { me: Me | null; ready: boolean } {
     let alive = true;
     load(who).then((m) => { if (alive) setState({ who, me: m }); });
     const onVisible = () => { if (document.visibilityState === "visible") load(who, true).then((m) => { if (alive) setState((cur) => (cur?.who === who && JSON.stringify(cur.me) === JSON.stringify(m) ? cur : { who, me: m })); }); };
-    const onRefresh = () => load(who).then((m) => { if (alive) setState({ who, me: m }); });
     document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("fde:me", onRefresh);
-    return () => { alive = false; document.removeEventListener("visibilitychange", onVisible); window.removeEventListener("fde:me", onRefresh); };
+    return () => { alive = false; document.removeEventListener("visibilitychange", onVisible); };
   }, [who]);
   // A role fetched for someone else is never used: until this person's answer arrives, there is no role.
   const mine = state?.who === who ? state.me : null;
   return { me: mine, ready: !API_URL || state?.who === who };
 }
 
+export const canReview = (me: Me | null) => me?.role === "reviewer" || me?.role === "admin";
 
 /** The role of whoever is signed in right now (or whichever test account is active in a development build). */
 export function useMe(): { me: Me | null; ready: boolean } {
