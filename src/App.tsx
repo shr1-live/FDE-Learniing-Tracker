@@ -21,6 +21,7 @@ import { Icon, IconName } from "./components/Icon";
 import { Progress } from "./components/Progress";
 import Review from "./pages/Review";
 import TaskAssistant from "./pages/TaskAssistant";
+import Lab from "./pages/Lab";
 import Backlog from "./pages/Backlog";
 import StudyNotes from "./pages/StudyNotes";
 import { WorkProvider, useWork } from "./lib/work";
@@ -31,10 +32,10 @@ import { useDevPersona } from "./lib/devPersona";
 import { canReview, useMe } from "./lib/useRole";
 
 const ADMIN_ONLY = new Set<string>(); // nothing in the menu is admin-only now; the Admin page is added separately
-const NAV: [string, string][] = [["/", "Dashboard"], ["/myplan", "My plan"], ["/outline", "Six-week programme"], ...PROGRAMME.map((w): [string, string] => [`/week/${w.n}`, `Week ${w.n} tasks`]), ["/backlog", "Backlog"], ["/notes", "Study notes"], ["/feed", "Feed"], ["/assistant", "Assistant"], ["/task-assistant", "Task assistant"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
+const NAV: [string, string][] = [["/", "Dashboard"], ["/myplan", "My plan"], ["/outline", "Six-week programme"], ...PROGRAMME.map((w): [string, string] => [`/week/${w.n}`, `Week ${w.n} tasks`]), ["/backlog", "Backlog"], ["/notes", "Study notes"], ["/feed", "Feed"], ["/assistant", "Assistant"], ["/task-assistant", "Task assistant"], ["/lab", "Practice lab"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
 
 const NAV_ICON: Record<string, IconName> = {
-  "/": "home", "/feed": "rss", "/backlog": "calendar", "/notes": "book", "/myplan": "user", "/outline": "book", "/assistant": "spark", "/task-assistant": "list", "/report": "chart", "/review": "inbox",
+  "/": "home", "/feed": "rss", "/backlog": "calendar", "/notes": "book", "/myplan": "user", "/outline": "book", "/assistant": "spark", "/task-assistant": "list", "/lab": "chip", "/report": "chart", "/review": "inbox",
   "/stack": "compass", "/readiness": "target", "/docs": "download", "/admin": "shield",
 };
 
@@ -104,6 +105,7 @@ export default function App() {
           <Route path="/notes/:day" element={<StudyNotes />} />
           <Route path="/task-assistant" element={<TaskAssistant />} />
           <Route path="/assistant" element={<Assistant />} />
+          <Route path="/lab" element={<Lab />} />
           <Route path="/report" element={<Week1Report />} />
           <Route path="/review" element={<Review />} />
           <Route path="/stack" element={<StackGuide />} />
