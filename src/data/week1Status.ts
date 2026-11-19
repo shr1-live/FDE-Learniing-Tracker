@@ -4,13 +4,12 @@ export type Criterion = { text: string; done: boolean; ticket?: string };
 export type DayStatus = { n: number; title: string; criteria: Criterion[] };
 
 // A dated snapshot, not a live check: update the date and the states when something is merged or deployed.
-export const DELIVERY_AS_OF = "2026-11-16";
+export const DELIVERY_AS_OF = "2026-11-19";
 export const DELIVERY = [
-  { text: "Assistant page and this report (frontend)", state: "Merged into develop; not in main or live yet" },
-  { text: "Backend assistant (branch feature/llm-assistant)", state: "Built and tested, waiting for the pull request" },
-  { text: "Day 4 evaluation and guardrails, task assistant (Day 3), extended Day 2 comparison", state: "Built and tested locally; waiting for the pull request. The real-model delete flow still needs a stronger model" },
-  { text: "Evals tool and the Day 1 comparison (backend branches)", state: "Built, waiting for the pull requests" },
-  { text: "Hosted backend on Render and a hosted LLM", state: "Not set up yet (needs the owner)" },
+  { text: "Website (Vercel) and backend (Render), connected", state: "Live: backlog, study notes, feed, roles and batches, assistants" },
+  { text: "Days 1 to 5: tool, assistants, evaluations, guardrails", state: "Merged and live; evidence pages for Days 1, 2 and 3" },
+  { text: "Day 3 with a real model", state: "Local model: whole flow 5 of 5. Gemini: by hand in AI Studio, passed; still to run through the app" },
+  { text: "Day 1, 2 and 4 runs on Gemini", state: "Waiting for the owner's run with their own key" },
 ];
 
 export const WEEK1_STATUS: DayStatus[] = [
