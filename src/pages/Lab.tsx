@@ -133,7 +133,7 @@ function stamp() {
 
 function modelsOf(r: LabResult): string[] { return r.day === 1 ? r.models : [r.model]; }
 function labelOf(r: LabResult): string {
-  if (r.day === 1) return `Day 1: ${r.models.join(" vs ")}, ${r.rows.length} questions`;
+  if (r.day === 1) return `Day 1: ${r.models.join(" vs ")}, ${r.rows.filter((x) => x.cells.some((c) => c !== null)).length} questions`;
   if (r.day === 2) return `Day 2: ${r.model}, versions ${r.versions.map((v) => v.version).join(", ")}`;
   return `Day 3: ${r.model}, ${r.title}`;
 }
@@ -189,7 +189,7 @@ function Samples({ day, ctx }: { day: Day; ctx: Ctx }) {
           <ResultView result={pinned.result} caption={`Day ${day} sample run pinned by the admin`} />
         </details>
       ) : (
-        <p className="callout">{ctx.connected && ctx.samples === null && !ctx.savedError ? "Checking for a Gemini sample run..." : "No Gemini sample yet. Admin: run it once with your key and press Pin as sample."}</p>
+        <p className="callout">{ctx.connected && ctx.samples === null && !ctx.savedError ? "Checking for a Gemini sample run..." : "No pinned sample yet. Admin: run this day once (for example with your Gemini key) and press Pin as sample."}</p>
       )}
     </section>
   );
@@ -389,6 +389,7 @@ function Day2Panel({ ctx }: { ctx: Ctx }) {
       let n = 0; let expected = chosen.length; // grows once the server says how many batches a version has
       const put = (v: string, f: (x: Day2Version) => Day2Version) => { cur = { ...cur, versions: cur.versions.map((x) => (x.version === v ? f(x) : x)) }; setResult(cur); };
       let known = 1; // batches per version, learned from the first answer; kept so a failed first batch does not skip the others
+      let learned = false; // until one answer says how many batches there are, a failed batch is followed by a try at the next one
       for (const v of chosen) {
         let batches = known;
         if (known > 1) { expected += known - 1; setTotal(expected); }
@@ -398,7 +399,7 @@ function Day2Panel({ ctx }: { ctx: Ctx }) {
           try {
             const res = await call((s) => lab.day2Run(v, b, m, s));
             if (res.batches > batches) { expected += res.batches - batches; batches = res.batches; setTotal(expected); }
-            known = Math.max(known, res.batches);
+            known = Math.max(known, res.batches); learned = true;
             if (res.model && res.model !== cur.model) cur = { ...cur, model: res.model };
             put(v, (x) => ({
               ...x, batches: Math.max(x.batches, res.batches), passed: x.passed + res.passed, total: x.total + res.total,
@@ -407,7 +408,10 @@ function Day2Panel({ ctx }: { ctx: Ctx }) {
             }));
           } catch (e) {
             if (signal.aborted) break;
+            // Probing past the last batch: the server answers 400 ("Batch must be from 0 to N"), which only means there is no such batch.
+            if (!learned && b > 0 && e instanceof ApiError && e.status === 400) { setDone(++n); break; }
             put(v, (x) => ({ ...x, errors: [...x.errors, `batch ${b + 1}: ${lab.errorText(e)}`] }));
+            if (!learned && b === batches - 1 && batches < 6) { batches++; expected++; setTotal(expected); }
           }
           setDone(++n);
         }
