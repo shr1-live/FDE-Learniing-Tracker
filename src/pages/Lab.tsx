@@ -28,7 +28,8 @@ type Ctx = {
 };
 
 // ---------- running: one call at a time, a Stop button, and one retry after Google's free-tier limit ----------
-type Helpers = { signal: AbortSignal; say: (s: string) => void; call: <T>(f: (signal: AbortSignal) => Promise<T>) => Promise<T> };
+type CallOpts = { retry?: boolean };
+type Helpers = { signal: AbortSignal; say: (s: string) => void; call: <T>(f: (signal: AbortSignal) => Promise<T>, o?: CallOpts) => Promise<T> };
 
 function useRunner(day: Day, ctx: Ctx) {
   const [status, setStatus] = useState("");
@@ -41,10 +42,13 @@ function useRunner(day: Day, ctx: Ctx) {
     const c = new AbortController();
     ctrl.current = c; setRunning(true); ctx.setBusyDay(day); setStatus("Starting.");
     const pause = (ms: number) => new Promise<void>((res) => { const t = setTimeout(res, ms); c.signal.addEventListener("abort", () => { clearTimeout(t); res(); }, { once: true }); });
-    const call = async <T,>(f: (signal: AbortSignal) => Promise<T>): Promise<T> => {
+    let stopReason = "";
+    const call = async <T,>(f: (signal: AbortSignal) => Promise<T>, o?: CallOpts): Promise<T> => {
       try { return await f(c.signal); }
       catch (e) {
-        if (!(e instanceof ApiError) || e.status !== 429 || c.signal.aborted) throw e;
+        // Our own daily limit is not a short wait: stop the whole run and say why, instead of waiting and retrying every call.
+        if (e instanceof ApiError && e.kind === "daily_limit") { stopReason = e.message; c.abort(); throw e; }
+        if (!(e instanceof ApiError) || e.status !== 429 || c.signal.aborted || o?.retry === false) throw e;
         const wait = Math.min(Math.max(Math.round(e.retryAfter ?? 20), 1), 120);
         setStatus(`The free limit was reached. Waiting ${wait} seconds, then trying this call once more.`);
         for (let s = wait; s > 0 && !c.signal.aborted; s--) { setWaitLeft(s); await pause(1000); }
@@ -54,7 +58,10 @@ function useRunner(day: Day, ctx: Ctx) {
       }
     };
     try { await work({ signal: c.signal, say: setStatus, call }); }
-    finally { setRunning(false); setWaitLeft(0); ctx.setBusyDay(null); ctrl.current = null; }
+    finally {
+      if (stopReason) setStatus(`Stopped: ${stopReason} Calls on your own Gemini key are counted separately.`);
+      setRunning(false); setWaitLeft(0); ctx.setBusyDay(null); ctrl.current = null;
+    }
   }, [ctx, day]);
 
   return { status, setStatus, waitLeft, running, start, stop: () => ctrl.current?.abort() };
@@ -381,14 +388,17 @@ function Day2Panel({ ctx }: { ctx: Ctx }) {
     r.start(async ({ signal, say, call }) => {
       let n = 0; let expected = chosen.length; // grows once the server says how many batches a version has
       const put = (v: string, f: (x: Day2Version) => Day2Version) => { cur = { ...cur, versions: cur.versions.map((x) => (x.version === v ? f(x) : x)) }; setResult(cur); };
+      let known = 1; // batches per version, learned from the first answer; kept so a failed first batch does not skip the others
       for (const v of chosen) {
-        let batches = 1;
+        let batches = known;
+        if (known > 1) { expected += known - 1; setTotal(expected); }
         for (let b = 0; b < batches; b++) {
           if (signal.aborted) break;
           say(`Version ${v}, batch ${b + 1}${batches > 1 ? ` of ${batches}` : ""}.`);
           try {
             const res = await call((s) => lab.day2Run(v, b, m, s));
-            if (b === 0 && res.batches > 1) { batches = res.batches; expected += res.batches - 1; setTotal(expected); }
+            if (res.batches > batches) { expected += res.batches - batches; batches = res.batches; setTotal(expected); }
+            known = Math.max(known, res.batches);
             if (res.model && res.model !== cur.model) cur = { ...cur, model: res.model };
             put(v, (x) => ({
               ...x, batches: Math.max(x.batches, res.batches), passed: x.passed + res.passed, total: x.total + res.total,
@@ -481,25 +491,25 @@ function Day3Panel({ ctx }: { ctx: Ctx }) {
       let pendingId: string | null = null;
 
       await step("create", "create the task", async () => {
-        const rep = await call((s) => lab.day3.send(`Add a task: ${title}, due ${DUE}, high priority`, m, s));
+        const rep = await call((s) => lab.day3.send(`Add a task: ${title}, due ${DUE}, high priority`, m, s), { retry: false });
         const t = await find();
         const ok = !!t && t.priority === "high" && (t.due_date ?? "").startsWith(DUE);
         return { pass: ok, note: `${acts(rep)} | ${t ? `found, ${t.priority} priority, due ${t.due_date ?? "none"}` : "not in the task list"}` };
       });
       await step("list", "list the tasks", async () => {
-        const rep = await call((s) => lab.day3.send("What tasks do I have?", m, s));
+        const rep = await call((s) => lab.day3.send("What tasks do I have?", m, s), { retry: false });
         const listed = rep.actions.some((x) => x.tool === "list_tasks" && x.outcome === "ok");
         const named = rep.reply.toLowerCase().includes(title.toLowerCase());
         const there = !!(await find());
         return { pass: listed && there, note: `${acts(rep)} | named it in the reply: ${named ? "yes" : "no"} | in the list: ${there ? "yes" : "no"}` };
       });
       await step("update", "mark it done", async () => {
-        const rep = await call((s) => lab.day3.send(`Mark the task "${title}" as done`, m, s));
+        const rep = await call((s) => lab.day3.send(`Mark the task "${title}" as done`, m, s), { retry: false });
         const t = await find();
         return { pass: t?.status === "done", note: `${acts(rep)} | status ${t?.status ?? "task not found"}` };
       });
       await step("delete asks first", "ask to delete it", async () => {
-        const rep = await call((s) => lab.day3.send(`Delete the task "${title}"`, m, s));
+        const rep = await call((s) => lab.day3.send(`Delete the task "${title}"`, m, s), { retry: false });
         pendingId = rep.pending?.id ?? null;
         const there = !!(await find());
         return { pass: !!pendingId && there, note: `${acts(rep)} | confirmation asked: ${pendingId ? "yes" : "no"} | still there: ${there ? "yes" : "no"}` };
@@ -512,7 +522,7 @@ function Day3Panel({ ctx }: { ctx: Ctx }) {
         return { pass: there, note: `answered no | still there: ${there ? "yes" : "no"}` };
       });
       await step("confirm deletes", "ask again and say yes", async () => {
-        const rep = await call((s) => lab.day3.send(`Delete the task "${title}"`, m, s));
+        const rep = await call((s) => lab.day3.send(`Delete the task "${title}"`, m, s), { retry: false });
         const id = rep.pending?.id;
         if (!id) { const there = !!(await find()); return { pass: false, note: `${acts(rep)} | no confirmation question | still there: ${there ? "yes" : "no"}` }; }
         await call((s) => lab.day3.confirm(id, true, m, s));

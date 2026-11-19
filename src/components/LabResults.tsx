@@ -88,7 +88,9 @@ export function Day1Table({ result, caption }: { result: Day1Result; caption: st
 const share = (v: { passed: number; total: number }) => (v.total ? v.passed / v.total : -1);
 
 export function bestVersion(r: Day2Result) {
-  const done = r.versions.filter((v) => v.total > 0);
+  // Only versions that scored every candidate compete: a version with a failed batch could otherwise win on fewer candidates.
+  const most = Math.max(0, ...r.versions.map((v) => v.total));
+  const done = r.versions.filter((v) => v.total > 0 && v.total === most);
   return [...done].sort((a, b) => share(b) - share(a) || a.latency_ms - b.latency_ms)[0]?.version;
 }
 
