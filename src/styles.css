@@ -380,3 +380,83 @@ td select{min-width:120px}
 :root[data-theme="dark"] .ftopic{background:hsl(var(--h) 35% 22%);color:hsl(var(--h) 80% 86%)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ftopic{background:hsl(var(--h) 35% 22%);color:hsl(var(--h) 80% 86%)}}
 @media (prefers-reduced-motion:reduce){.fcard2,.fcard2:hover{transition:none;transform:none}.skel .vthumb,.skel .fbody i{animation:none}}
+
+/* ---- Programs V3 (same tokens as above) ---- */
+.btn.sm{padding:6px 12px;font-size:14px}
+.btn svg{vertical-align:-3px;margin-right:6px}
+.linkish{background:none;border:0;padding:0;font:inherit;color:var(--blue);text-decoration:underline;cursor:pointer}
+.grow{flex:1;min-width:0}
+.navgroup{margin-top:14px;display:flex;flex-direction:column;gap:2px}
+.navhead{margin:0 0 4px;padding:0 12px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--side-fg);opacity:.85;display:flex;justify-content:space-between;gap:8px}
+.navhead span{font-weight:500;text-transform:none;letter-spacing:0}
+.navnote{font-size:13px;padding:8px 12px;margin:8px 0 0}
+.side nav a{display:flex;align-items:center;gap:10px}
+.ptabs{display:flex;flex-wrap:wrap;gap:4px;margin-top:14px;border-bottom:1px solid var(--line)}
+.ptabs a{padding:8px 12px;text-decoration:none;color:var(--muted);font-weight:600;border-bottom:3px solid transparent;margin-bottom:-1px}
+.ptabs a:hover{color:var(--ink)}.ptabs a.active{color:var(--ink);border-bottom-color:var(--hl)}
+/* form fields with (i) */
+.ffields{display:grid;gap:4px}
+.flabel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 4px}.flabel label{margin:0}
+.req{color:var(--err)}
+.infobtn{width:22px;height:22px;border-radius:50%;border:1px solid var(--blue);background:var(--surface);color:var(--blue);font:700 12px/1 var(--text);font-style:italic;cursor:pointer;display:inline-grid;place-items:center;padding:0}
+.infobtn[aria-expanded="true"]{background:var(--blue);color:var(--surface)}
+.infotext{flex-basis:100%;font-size:14px;background:var(--bluesoft);color:var(--ink);border-radius:6px;padding:8px 10px}
+.vals div{padding:6px 0;border-bottom:1px solid var(--line)}.vals dt{font-weight:600;font-size:14px}.vals dd{margin:0}
+/* feed */
+.feedcol{max-width:680px}
+.posts{display:grid;gap:14px}
+.composer{margin-bottom:16px}.composer textarea{border-radius:20px;padding:10px 14px;resize:vertical;min-height:44px}
+.cfoot{justify-content:space-between;margin-top:10px}
+.phead{display:flex;gap:10px;align-items:flex-start}.phead>div{flex:1;min-width:0}
+.pdel{margin-left:auto}
+.favatar{width:40px;height:40px;font-size:14px;background:hsl(var(--h) 60% 27%)}
+.pcomment .favatar{width:32px;height:32px;font-size:12px}
+.pbody{margin:12px 0 10px}
+.pvideo{display:block;position:relative;width:100%;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:#000;border:0;padding:0;margin:8px 0}
+.pvideo iframe{width:100%;height:100%;border:0}
+.pthumb{cursor:pointer}.pthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pplay{position:absolute;inset:0;margin:auto;width:64px;height:44px;border-radius:12px;background:rgba(200,0,0,.9);color:#fff;display:grid;place-items:center;font-size:20px}
+.plink{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:8px 0;text-decoration:none;color:var(--ink)}
+.plink:hover{border-color:var(--blue)}.plink>span{display:flex;flex-direction:column;min-width:0}
+.pstats{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+.pstats .linkish{color:var(--muted)}
+.pactions{display:flex;gap:4px;padding-top:4px}
+.pact{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:none;border:0;border-radius:6px;padding:8px 10px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer}
+.pact:hover{background:var(--bg);color:var(--ink)}
+.pact.on{color:var(--err)}.pact.on svg{fill:currentColor}
+.composer .pact{flex:none}
+.pcomments{margin-top:10px;display:grid;gap:10px}
+.pcomment{display:flex;gap:8px}.pcbody{background:var(--bg);border-radius:10px;padding:8px 12px;flex:1;min-width:0}.pcbody p{margin:2px 0 0}
+.pcform{display:flex;gap:8px;align-items:center}.pcform input{border-radius:20px}
+/* plan */
+.weekblock{margin-top:8px}
+.weekhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.weekhead h2{margin:24px 0 10px}
+.daycard{margin-bottom:10px}.daycard.done{border-left:4px solid var(--moss)}
+.dayc-top{display:flex;gap:12px;align-items:flex-start}
+.dayc-top h3{margin:2px 0 0}
+.daycheck{margin:2px 0 0;cursor:pointer}.daycheck input{width:22px;height:22px;accent-color:var(--moss)}
+.daycard details{margin-top:8px}.daycard summary{cursor:pointer;color:var(--blue);font-weight:600;font-size:14px;min-height:32px;display:flex;align-items:center}
+.daycard h4{margin:14px 0 4px;font-size:15px}
+.topics{margin:0;padding-left:20px;list-style:disc}.topics li{margin:2px 0}
+.mystatus{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.dayedit{margin:10px 0}.dayedit h3{margin-top:0}
+.datebar label{margin:0}.datebar input{width:auto}
+.hist{display:grid;gap:8px}.hist .card{padding:10px 14px}
+/* tables like the sheets */
+table.sheet{width:100%;border-collapse:collapse;font-size:14px}
+table.sheet th,table.sheet td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+table.sheet thead th{background:var(--side-bg);color:#fff;font-weight:600;position:sticky;top:0}
+table.sheet td.wrap{max-width:320px}
+.clamp{max-width:260px}
+table.grid th[scope=row]{white-space:nowrap}
+.cellbtn{display:inline-flex;align-items:center;gap:4px;font:inherit;font-size:13px;font-weight:600;color:var(--moss);background:none;border:1px solid var(--line);border-radius:999px;padding:2px 8px;cursor:pointer}
+.dlcell{display:flex;align-items:flex-end}
+.gapb{margin-bottom:16px}
+/* manage */
+.invite{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;gap:8px 12px;align-items:end}
+.invite label{margin-top:0}
+.plainlist{padding-left:18px}.plainlist li{margin:6px 0}
+.fedit{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+.fitem{border:1px solid var(--line);border-radius:8px;padding:4px 12px 12px}
+.proglist{list-style:none;padding:0;margin:0;display:grid;gap:12px}.proglist li{padding-bottom:12px;border-bottom:1px solid var(--line)}
+@media (max-width:640px){.invite{grid-template-columns:1fr}.two{grid-template-columns:1fr}}

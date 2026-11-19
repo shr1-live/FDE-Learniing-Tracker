@@ -1,20 +1,21 @@
 import { useStore } from "../lib/store";
 
-export default function Gate() {
-  const { access, user, signOut, recheck } = useStore();
-  const pending = access === "pending";
+/** Shown when the server has not let this account in: not invited yet, removed, or the server could not be reached. */
+export default function Gate({ reason }: { reason: "pending" | "rejected" | "error" }) {
+  const { user, signOut } = useStore();
+  const title = reason === "pending" ? "You have not been invited yet" : reason === "rejected" ? "Access not granted" : "We could not check your access";
   return (
     <main className="gate">
       <section className="card gatecard">
-        <h1>{pending ? "Waiting for approval" : access === "rejected" ? "Access not granted" : "Something went wrong"}</h1>
+        <h1>{title}</h1>
         <p className="muted">
-          {pending && <>The free seats are taken, so your request was sent to the admin. This page opens by itself as soon as you are approved.</>}
-          {access === "rejected" && <>The admin did not approve this account. Contact them if you think this is a mistake.</>}
-          {access === "error" && <>We could not check your access. Make sure the database setup has been run, then try again.</>}
+          {reason === "pending" && <>This site is invite-only. Ask the admin or your program's coordinator to invite <b>{user?.email}</b>. Once they do, press Check again or sign in again.</>}
+          {reason === "rejected" && <>The admin removed this account's access. Contact them if you think this is a mistake.</>}
+          {reason === "error" && <>The server did not answer. If it was idle it can take about 30 seconds to wake up; try again.</>}
         </p>
         <p className="small muted">Signed in as {user?.email}</p>
         <div className="row">
-          <button className="btn" onClick={recheck}>Check again</button>
+          <button className="btn" onClick={() => window.location.reload()}>Check again</button>
           <button className="btn ghost" onClick={signOut}>Sign out</button>
         </div>
       </section>
