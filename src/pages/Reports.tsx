@@ -7,6 +7,7 @@ import { ValuesView } from "../components/FormFields";
 import { Chip } from "../components/Chip";
 import { Icon } from "../components/Icon";
 
+const started = (r: { values: Values; completed: boolean }) => r.completed || Object.values(r.values ?? {}).some((v) => String(v).trim() !== "");
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "program";
 
 function DownloadButton({ label, get, name }: { label: string; get: () => Promise<Blob>; name: string }) {
@@ -72,7 +73,8 @@ function ProgramWise({ program }: { program: Program }) {
   const [who, setWho] = useState("");
   useEffect(() => { reports.program(program.id).then((d) => { setData(d); setWho((w) => w || d.people[0]?.user_id || ""); }).catch((e) => { setErr(errText(e)); setData({ days: [], fields: [], people: [] }); }); }, [program.id]);
   const person = data?.people.find((p) => p.user_id === who);
-  const rows = useMemo(() => new Map((person?.rows ?? []).map((r) => [r.day_id, r])), [person]);
+  // The server sends a row for every day; a row with nothing filled in and not completed counts as not started.
+  const rows = useMemo(() => new Map((person?.rows ?? []).filter(started).map((r) => [r.day_id, r])), [person]);
   const many = (data?.people.length ?? 0) > 1;
   return (
     <>
@@ -89,7 +91,7 @@ function ProgramWise({ program }: { program: Program }) {
                 <thead><tr><th scope="col">Name</th><th scope="col">Days completed</th><th scope="col">In progress</th><th scope="col"><span className="sr">Open</span></th></tr></thead>
                 <tbody>{data.people.map((p) => {
                   const c = p.rows.filter((r) => r.completed).length;
-                  return <tr key={p.user_id}><th scope="row">{p.name}</th><td className="tnum">{c} of {data.days.length}</td><td className="tnum">{p.rows.filter((r) => !r.completed).length}</td><td><button type="button" className="linkish" onClick={() => setWho(p.user_id)} aria-pressed={who === p.user_id}>Show<span className="sr"> {p.name}</span></button></td></tr>;
+                  return <tr key={p.user_id}><th scope="row">{p.name}</th><td className="tnum">{c} of {data.days.length}</td><td className="tnum">{p.rows.filter((r) => !r.completed && started(r)).length}</td><td><button type="button" className="linkish" onClick={() => setWho(p.user_id)} aria-pressed={who === p.user_id}>Show<span className="sr"> {p.name}</span></button></td></tr>;
                 })}</tbody>
               </table>
             </div>
