@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, R
 import { useStore } from "./store";
 import { API_URL, ApiError } from "./api";
 import { canReview, useMe, type Me } from "./useRole";
+import { useView } from "./viewAs";
 import * as sub from "./submissionsApi";
 import { PROGRAMME, ProgrammeWeek } from "../data/programme";
 import { DayState, logChanges, parseDay, sameDay, startKey, weekStates } from "./backlog";
@@ -69,6 +70,7 @@ export function WorkProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState("");
   const who = me ? `${me.email}|${me.role}` : "";
   const reviewer = me?.role === "reviewer";
+  const { reviewerView } = useView();
 
   // the clock: due dates and the end-of-day hour roll over without a reload
   useEffect(() => { const t = window.setInterval(() => setNow(new Date()), 60000); return () => window.clearInterval(t); }, []);
@@ -145,7 +147,7 @@ export function WorkProvider({ children }: { children: ReactNode }) {
     const focus = dueToday[0] ?? open.find((i) => !i.state.missed) ?? open[0] ?? null;
     const proofTracked = proofs !== null;
     return {
-      now, me, learner: !reviewer, source: current ? "server" : "local", updatedAt: current?.at ?? null, error, refresh: () => void load(),
+      now, me, learner: !reviewerView, source: current ? "server" : "local", updatedAt: current?.at ?? null, error, refresh: () => void load(),
       weeks, items, missed, dueToday, proofActions, focus, allDone: items.length > 0 && open.length === 0,
       totals: {
         days: items.length, finished: items.filter((i) => i.state.finished).length,
@@ -157,7 +159,7 @@ export function WorkProvider({ children }: { children: ReactNode }) {
       newInFeed: newSince(feedNow?.items ?? [], feedNow?.mine ?? new Set(), entries[feedSeenKey]),
       sharesWaiting: feedNow?.waiting ?? null,
     };
-  }, [weeks, now, me, reviewer, current, error, proofs, load, feedNow, entries, batchStart]);
+  }, [weeks, now, me, reviewer, reviewerView, current, error, proofs, load, feedNow, entries, batchStart]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

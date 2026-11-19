@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useStore } from "../lib/store";
 import { useWork } from "../lib/work";
-import { canReview, useMe } from "../lib/useRole";
+import { useView } from "../lib/viewAs";
 import { STACKS } from "../data/stacks";
 import { Kpi } from "../components/Kpi";
 import { WorkToday } from "../components/WorkToday";
@@ -20,8 +20,7 @@ function programmeDay(start: Date, today: Date): number {
 export default function Dashboard() {
   const { profile, setProfile, pct } = useStore();
   const w = useWork();
-  const { me } = useMe();
-  const reviewer = canReview(me);
+  const { reviewerView: reviewer } = useView();
   const first = profile.display_name ? profile.display_name.split(" ")[0] : "";
   const day = w.batch ? programmeDay(w.batch.startsOn, w.now) : 0;
   const totalDays = w.totals.days;

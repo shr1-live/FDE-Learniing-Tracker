@@ -12,13 +12,16 @@ import { notesFor, notesPath } from "../data/studyNotes";
 import { useWork } from "../lib/work";
 import { dayStatus, fmtDate } from "../lib/backlog";
 import { Chip } from "../components/Chip";
+import { useView } from "../lib/viewAs";
 import { StartDate } from "../components/StartDate";
 import { StudyNote } from "../components/StudyNote";
 import { Icon } from "../components/Icon";
 
 const flags = (v: unknown, len: number): boolean[] => Array.from({ length: len }, (_, i) => Array.isArray(v) && v[i] === true);
 
-/** For reviewers: where learners stand on one day, with a way into the review queue. */
+const ST: Record<string, [string, "ok" | "warn" | "bad" | "info" | "none"]> = { submitted: ["Waiting for review", "info"], changes_requested: ["Changes asked", "bad"], approved: ["Approved", "ok"], draft: ["Saved, not submitted", "warn"] };
+
+/** Reviewer view: who handed in this day, and where each hand-in stands, with a way into the review. */
 function CohortSummary({ task, rows }: { task: string; rows: Row[] }) {
   const here = rows.filter((r) => r.task_key === task);
   const n = (s: string) => here.filter((r) => r.status === s).length;
@@ -26,6 +29,10 @@ function CohortSummary({ task, rows }: { task: string; rows: Row[] }) {
     <div className="submitpanel">
       <h3>Learners on this day</h3>
       <p>{n("submitted")} waiting for review, {n("changes_requested")} sent back, {n("approved")} approved. <Link to="/review">Open Review submissions</Link></p>
+      {here.length > 0 && (
+        <ul className="plain">{here.map((r) => { const [l, t] = ST[r.status] ?? [r.status, "none"]; return (
+          <li key={r.id}><b>{r.author}</b> <Chip tone={t}>{l}</Chip>{r.submitted_at ? <span className="muted small"> &middot; handed in {fmtDate(new Date(r.submitted_at))}</span> : null}{r.item_count ? <span className="muted small"> &middot; {r.item_count} proof</span> : null}</li>); })}</ul>
+      )}
     </div>
   );
 }
@@ -38,7 +45,8 @@ export default function WeekPlan() {
   const { me, ready } = useMe();
   const work = useWork();
   const { hash } = useLocation();
-  const reviewer = me?.role === "reviewer"; // reviewers review; they do not submit
+  const reviewerRole = me?.role === "reviewer"; // reviewers review; the server does not let them hand in proof
+  const { reviewerView: reviewer } = useView(); // what the screen shows: learner view or reviewer view
   const [cohort, setCohort] = useState<Row[]>([]);
   const [keys, setKeys] = useState<Set<string> | null>(null); // null = unknown: each panel asks the server itself
   const [listLoaded, setListLoaded] = useState(!API_URL);
@@ -46,10 +54,10 @@ export default function WeekPlan() {
   useEffect(() => { if (reviewer) reviewList("all").then(setCohort).catch(() => setCohort([])); }, [reviewer]);
   useEffect(() => {
     if (!API_URL) return;
-    if (reviewer) { setListLoaded(true); return; } // a reviewer has no submissions of their own to look up
+    if (reviewerRole) { setListLoaded(true); return; } // a reviewer has no submissions of their own to look up
     // Which days already have a submission. A person who is not signed in to the API simply has none.
     mine().then((rows) => setKeys(new Set(rows.map((r) => r.task_key)))).catch(() => setKeys(null)).finally(() => setListLoaded(true));
-  }, [reviewer]);
+  }, [reviewerRole]);
 
   // a link such as /week/1#wd3 scrolls to that day once the page is drawn
   // (once now, and once more after the panels have laid out)
@@ -87,8 +95,8 @@ export default function WeekPlan() {
       {canReview(me) && (
         <div className="callout ok" role="note">
           {reviewer
-            ? <><b>You are signed in as a reviewer.</b> Reviewers do not submit work. Under each day you can see where learners stand; to read their proof and give feedback, open <Link to="/review">Review submissions</Link>.</>
-            : <><b>You are signed in as an admin.</b> You can submit your own work here too. To check other people's work, open <Link to="/review">Review submissions</Link>.</>}
+            ? <><b>Reviewer view.</b> Under each day you see who handed in and where it stands. To read the proof and decide, open <Link to="/review">Review submissions</Link>; for each person's day-by-day report, open <Link to="/progress">Reports</Link>. Switch to the learner view in the menu to see the page as a learner does.</>
+            : <><b>Learner view.</b> This is the page as a learner sees it{reviewerRole ? " (reviewers cannot hand in proof themselves)" : ""}. Switch back to the reviewer view in the menu.</>}
         </div>
       )}
       <div className="card"><h3>Week progress</h3><Progress value={pct} label="Week progress" /><p className="muted small">{got} of {total} points done</p></div>
@@ -141,7 +149,9 @@ export default function WeekPlan() {
               <ExpectedList week={week.n} day={d.n} />
               {reviewer
                 ? <CohortSummary task={task} rows={cohort} />
-                : ready && <SubmitPanel taskKey={task} exists={keys ? keys.has(task) : undefined} listLoaded={listLoaded} />}
+                : reviewerRole
+                  ? <p className="callout ok small">A learner hands in proof here: links, screenshots or files, what they learned and a 1 to 5 self-rating. Reviewers cannot hand in proof.</p>
+                  : ready && <SubmitPanel taskKey={task} exists={keys ? keys.has(task) : undefined} listLoaded={listLoaded} />}
             </div>
           </section>
         );
