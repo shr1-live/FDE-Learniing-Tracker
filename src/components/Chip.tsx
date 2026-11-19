@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import type { Tone } from "../lib/backlog";
+
+export type Tone = "ok" | "warn" | "bad" | "info" | "none";
 
 /** A small status label. The words carry the meaning; the colour only backs them up. */
 export function Chip({ tone = "none", children }: { tone?: Tone; children: ReactNode }) {
