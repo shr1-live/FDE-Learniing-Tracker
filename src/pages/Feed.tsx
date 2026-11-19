@@ -2,7 +2,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { API_URL, ApiError } from "../lib/api";
 import * as api from "../lib/feedApi";
-import { useMe } from "../lib/useRole";
+import { canReview, useMe } from "../lib/useRole";
 import { useView } from "../lib/viewAs";
 import { useStore } from "../lib/store";
 import { feedSeenKey } from "../lib/work";
@@ -217,7 +217,7 @@ export default function Feed() {
       <header className="ph fhead">
         <div>
           <h1>Feed</h1>
-          <p className="muted">Videos and articles people in the programme found useful{items ? ` · ${items.length} shared` : ""}. {reviewer ? "Yours go straight into the feed." : "A reviewer checks each one, then everyone sees it."}</p>
+          <p className="muted">Videos and articles people in the programme found useful{items ? ` · ${items.length} shared` : ""}. {canReview(me) ? "Yours go straight into the feed." : "A reviewer checks each one, then everyone sees it."}</p>
         </div>
         <button type="button" className="btn" onClick={() => { setComposer(true); setParams({}); }}><Icon name="link" /> Share a link</button>
       </header>

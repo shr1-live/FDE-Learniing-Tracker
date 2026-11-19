@@ -36,7 +36,7 @@ export function ReportView({ report, own }: { report: rep.PersonReport; own: boo
         <div className="kpi"><div className="kh"><Icon name="check" />Approved</div><div className="kv tnum">{report.totals.approved}</div><div className="ks">days accepted by a reviewer</div></div>
         <div className="kpi"><div className="kh"><Icon name="inbox" />Waiting</div><div className="kv tnum">{report.totals.submitted}</div><div className="ks">handed in, not reviewed yet</div></div>
         <div className="kpi"><div className="kh"><Icon name="alert" />Changes asked</div><div className="kv tnum">{report.totals.changes_requested}</div><div className="ks">sent back by a reviewer</div></div>
-        <div className="kpi"><div className="kh"><Icon name="target" />Average self-rating</div><div className="kv tnum">{report.totals.avg_rating ?? "-"}</div><div className="ks">out of 5</div></div>
+        <div className="kpi"><div className="kh"><Icon name="target" />Average self-rating</div><div className="kv tnum">{report.totals.avg_rating ?? "-"}</div><div className="ks">out of 5, over handed-in days</div></div>
       </div>
       {PROGRAMME.map((w) => {
         const rows = w.days.map((d) => {
