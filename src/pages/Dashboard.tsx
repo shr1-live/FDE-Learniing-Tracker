@@ -1,104 +1,73 @@
 import { Link } from "react-router-dom";
 import { useStore } from "../lib/store";
+import { useWork } from "../lib/work";
+import { canReview, useMe } from "../lib/useRole";
 import { STACKS } from "../data/stacks";
-import { DAYS, TOTAL_CHECKS } from "../data/types";
-import { LayerStack, dayProgress } from "../components/Bits";
-import { WEEKS } from "../data/outline";
-import { PROGRAMME, dayKey } from "../data/programme";
 import { Kpi } from "../components/Kpi";
-import { Progress } from "../components/Progress";
 import { WorkToday } from "../components/WorkToday";
+import { fmtDate } from "../lib/backlog";
+import { youTubeId } from "../components/Bits";
 
-
-function AdminDashboard() {
-  const { profile, setProfile, pct, entries } = useStore();
-  const next = DAYS.find((d) => dayProgress(entries, d.n).pct < 1) ?? DAYS[DAYS.length - 1];
-  const hours = DAYS.reduce((a, d) => a + (Number(entries["hours:" + d.n]) || 0), 0);
-  const done = Math.round((pct / 100) * TOTAL_CHECKS);
-  return (
-    <>
-      <header className="ph">
-        <h1>{profile.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Dashboard"}</h1>
-        <p className="muted">{done} of {TOTAL_CHECKS} checks done. {hours.toFixed(1)} hours logged.</p>
-      </header>
-      <WorkToday />
-      <div className="kpis" aria-label="Your progress">
-        <Kpi icon="target" label="Ten-day plan" value={`${pct}%`} sub={`${done} of ${TOTAL_CHECKS} checks done`} />
-        <Kpi icon="clock" label="Hours logged" value={hours.toFixed(1)} sub="across all days" />
-        <Kpi icon="trend" label="Next up" value={`Day ${next.n}`} sub={next.name} />
-      </div>
-      <div className="dash">
-        <section>
-          <h2>Your ten layers</h2><p className="muted small">Start at Day 1 and work down. Each bar fills as you tick its checks.</p>
-          <LayerStack />
-        </section>
-        <aside>
-          <div className="card">
-            <h3>Next up</h3>
-            <p><b>Day {next.n}: {next.name}</b></p>
-            <p className="muted">{next.goal}</p>
-            <Link className="btn" to={`/plan/${next.n}`}>Open Day {next.n}</Link>
-          </div>
-          <div className="card">
-            <h3>Your stack</h3>
-            <label htmlFor="stack" className="sr">Stack</label>
-            <select id="stack" value={profile.stack} onChange={(e) => setProfile({ stack: e.target.value })}>
-              {STACKS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-            </select>
-            <p className="muted small">Resources and the Stack guide follow this choice.</p>
-            <label htmlFor="dn">Display name</label>
-            <input id="dn" value={profile.display_name} onChange={(e) => setProfile({ display_name: e.target.value })} />
-          </div>
-          <div className="card">
-            <h3>Overall</h3>
-            <Progress value={pct} label="Ten-day plan progress" />
-            <p className="muted small">{pct}% of the ten-day plan</p>
-          </div>
-        </aside>
-      </div>
-    </>
-  );
+/** Working days from the batch start to today, as "day N" of the programme (Monday to Friday). */
+function programmeDay(start: Date, today: Date): number {
+  if (today < start) return 0;
+  let n = 0;
+  for (const d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) if (d.getDay() !== 0 && d.getDay() !== 6) n++;
+  return n;
 }
 
-function MemberDashboard() {
-  const { profile, setProfile, pct, entries, setEntry } = useStore();
-  const doneWeeks = WEEKS.filter((w) => entries["wk:" + w.n]).length;
-  const mine = Array.isArray(entries["myplan"]) ? (entries["myplan"] as { d: boolean }[]) : [];
-  const days = PROGRAMME.flatMap((w) => w.days.map((day) => ({ week: w.n, day })));
-  const weekTotal = days.reduce((a, x) => a + x.day.done.length, 0);
-  const weekDone = days.reduce((a, x) => { const f = entries[dayKey(x.week, x.day.n)]; return a + (Array.isArray(f) ? f.filter((v) => v === true).length : 0); }, 0);
-  const nextWeek = WEEKS.find((w) => !entries["wk:" + w.n]);
+/** One dashboard for everyone: what to do now, the numbers that matter, and what is new in the feed. */
+export default function Dashboard() {
+  const { profile, setProfile, pct } = useStore();
+  const w = useWork();
+  const { me } = useMe();
+  const reviewer = canReview(me);
+  const first = profile.display_name ? profile.display_name.split(" ")[0] : "";
+  const day = w.batch ? programmeDay(w.batch.startsOn, w.now) : 0;
+  const totalDays = w.totals.days;
+  const latest = w.newInFeed.slice(0, 3);
   return (
     <>
       <header className="ph">
-        <h1>{profile.display_name ? `Hello, ${profile.display_name.split(" ")[0]}` : "Dashboard"}</h1>
-        <p className="muted">{doneWeeks} of {WEEKS.length} weeks done. Work through the six-week programme and tick each week's output as you reach it.</p>
+        <h1>{first ? `Hello, ${first}` : "Dashboard"}</h1>
+        <p className="muted">
+          {w.batch
+            ? <>{w.batch.name} · started {fmtDate(w.batch.startsOn)} · {day === 0 ? "starts soon" : day > totalDays ? "programme days are over: catch up and finish" : `day ${day} of ${totalDays}`}</>
+            : "One day of the programme per working day: learn the theory, build the practical task, hand in your proof."}
+        </p>
       </header>
-      <WorkToday />
-      <div className="kpis" aria-label="Your progress">
-        <Kpi icon="target" label="Programme" value={`${pct}%`} sub={`${doneWeeks} of ${WEEKS.length} weeks done`} />
-        <Kpi icon="tasks" label="Programme tasks" value={`${weekDone} of ${weekTotal}`} sub="acceptance points ticked" />
-        <Kpi icon="list" label="My plan" value={`${mine.filter((i) => i.d).length} of ${mine.length}`} sub={mine.length ? "steps done" : "no steps yet"} />
-        <Kpi icon="trend" label="Next up" value={nextWeek ? `Week ${nextWeek.n}` : "All done"} sub={nextWeek ? nextWeek.focus : "every week ticked"} />
+
+      <div className="kpis" aria-label="Key numbers">
+        <Kpi icon="target" label="Programme" value={`${w.totals.finished} of ${totalDays}`} sub={`days done · ${pct}% of points`} />
+        {w.learner && <Kpi icon="calendar" label="Backlog" value={String(w.missed.length)} sub={w.missed.length ? "missed days to catch up" : w.dueToday.length ? `${w.dueToday.length} due today` : "you are not behind"} />}
+        {w.learner && w.proofTracked && <Kpi icon="file" label="Proof handed in" value={`${w.handedIn} of ${totalDays}`} sub={w.proofActions.length ? `${w.proofActions.length} need you` : "nothing waiting on you"} />}
+        <Kpi icon="rss" label="New in the feed" value={String(w.newInFeed.length)} sub="since your last visit" />
+        {reviewer && <Kpi icon="inbox" label="Proof to review" value={w.counts ? String(w.counts.submitted) : "-"} sub={w.counts ? `${w.counts.approved} approved so far` : "loading"} />}
+        {reviewer && <Kpi icon="link" label="Shares to approve" value={w.sharesWaiting === null ? "-" : String(w.sharesWaiting)} sub="links waiting for the feed" />}
       </div>
+
+      <WorkToday />
+
       <div className="dash">
-        <section>
-          <h2>Your six weeks</h2><p className="muted small">Tick a week when you have produced its expected output.</p>
-          <ul className="weeklist">
-            {WEEKS.map((w) => (
-              <li key={w.n} className="card">
-                <label className="check"><input type="checkbox" checked={!!entries["wk:" + w.n]} onChange={(e) => setEntry("wk:" + w.n, e.target.checked)} />
-                  <span><b>Week {w.n}: {w.focus}</b><br />{w.output}</span></label>
-              </li>
-            ))}
-          </ul>
+        <section aria-labelledby="feed-h">
+          <div className="work-head"><h2 id="feed-h">New in the feed</h2><Link to="/feed">Open the feed</Link></div>
+          {latest.length === 0
+            ? <div className="card"><p className="muted">Nothing new since your last visit. Found a good video or blog? <Link to="/feed">Share it</Link> so everyone sees it.</p></div>
+            : (
+              <ul className="stackcards tight">
+                {latest.map((i) => {
+                  const id = i.url ? youTubeId(i.url) : null;
+                  return (
+                    <li key={i.id} className="card feedmini">
+                      {id && <img src={`https://i.ytimg.com/vi/${id}/mqdefault.jpg`} alt="" loading="lazy" />}
+                      <div><Link to="/feed"><b>{i.title}</b></Link><p className="meta">{i.topic_title} · shared by {i.author}{i.recommended ? " · recommended" : ""}</p></div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
         </section>
         <aside>
-          <div className="card">
-            <h3>Your own plan</h3>
-            <p className="muted">Add the steps you want to work through, in your own order.</p>
-            <Link className="btn" to="/myplan">Open My plan</Link>
-          </div>
           <div className="card">
             <h3>Your stack</h3>
             <label htmlFor="stack" className="sr">Stack</label>
@@ -110,17 +79,12 @@ function MemberDashboard() {
             <input id="dn" value={profile.display_name} onChange={(e) => setProfile({ display_name: e.target.value })} />
           </div>
           <div className="card">
-            <h3>Overall</h3>
-            <Progress value={pct} label="Six-week programme progress" />
-            <p className="muted small">{pct}% of the six-week programme</p>
+            <h3>Programme</h3>
+            <p className="muted small">Weeks of five working days, as in the programme sheet: topic, topics to cover, practical task, what you learn, proof, rating.</p>
+            <div className="row"><Link className="btn ghost" to="/week/1">Week 1 tasks</Link><Link className="btn ghost" to="/outline">All six weeks</Link></div>
           </div>
         </aside>
       </div>
     </>
   );
-}
-
-export default function Dashboard() {
-  const { isAdmin } = useStore();
-  return isAdmin ? <AdminDashboard /> : <MemberDashboard />;
 }

@@ -67,8 +67,9 @@ export type DayState = {
  * A day is FINISHED when all its points are ticked and, where proof is tracked, the proof is submitted or approved.
  * A day is MISSED when it is not finished and either its due date has passed, or (with no start date set) a later day has been started.
  */
-export function weekStates(week: ProgrammeWeek, entries: Record<string, unknown>, proofs: Map<string, Status> | null, today = new Date()): DayState[] {
-  const start = parseDay(entries[startKey(week.n)]);
+export function weekStates(week: ProgrammeWeek, entries: Record<string, unknown>, proofs: Map<string, Status> | null, today = new Date(), batchStart: Date | null = null): DayState[] {
+  // The batch's start date decides due dates; a personal start date is only used when the person is in no batch.
+  const start = batchStart ?? parseDay(entries[startKey(week.n)]);
   const started = week.days.map((d) => flags(entries[dayKey(week.n, d.n)], d.done.length).some(Boolean) || (proofs?.has(taskKey(week.n, d.n)) ?? false));
   return week.days.map((day, i) => {
     const task = taskKey(week.n, day.n);

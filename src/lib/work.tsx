@@ -7,6 +7,12 @@ import { canReview, useMe, type Me } from "./useRole";
 import * as sub from "./submissionsApi";
 import { PROGRAMME, ProgrammeWeek } from "../data/programme";
 import { DayState, logChanges, parseDay, sameDay, startKey, weekStates } from "./backlog";
+import * as feedApi from "./feedApi";
+import type { FeedItem } from "./feedApi";
+
+const FEED_REFRESH_MS = 60000;
+/** Where the time the person last opened the feed is kept (with their other progress). */
+export const feedSeenKey = "seen:feed";
 
 const REFRESH_MS = 15000;
 
@@ -38,6 +44,12 @@ export type Work = {
   counts: sub.Counts | null;
   /** Weeks with no start date set (so no due dates). */
   weeksWithoutStart: number[];
+  /** The person's batch, from the server (null when not in one, or unknown). */
+  batch: { id: string; name: string; startsOn: Date } | null;
+  /** New feed items since the person last opened the feed, not their own. */
+  newInFeed: FeedItem[];
+  /** Shares waiting for a reviewer (reviewers and the admin only). */
+  sharesWaiting: number | null;
 };
 
 const Ctx = createContext<Work | null>(null);
@@ -88,10 +100,33 @@ export function WorkProvider({ children }: { children: ReactNode }) {
 
   const current = server && server.for === who ? server : null; // never show another account's numbers
   const proofs = current?.proofs ?? null;
+  const batchStart = me?.batch ? parseDay(me.batch.starts_on) : null;
+
+  // The feed changes slowly: once a minute is enough to tell people something new was shared.
+  const [feedState, setFeedState] = useState<{ for: string; items: FeedItem[]; mine: Set<string>; waiting: number | null } | null>(null);
+  useEffect(() => {
+    setFeedState(null);
+    if (!API_URL || !ready || !me || me.access !== "approved") return;
+    const key = `${me.email}|${me.role}`;
+    const pull = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const [f, m, q] = await Promise.all([
+          feedApi.feed({ limit: 30 }), feedApi.mine().catch(() => []),
+          canReview(me) ? feedApi.queue().then((x) => x.length).catch(() => null) : Promise.resolve(null),
+        ]);
+        setFeedState({ for: key, items: f.items, mine: new Set(m.map((x) => x.id)), waiting: q });
+      } catch { /* the feed is extra: a failure leaves the rest of the page working */ }
+    };
+    void pull();
+    const t = window.setInterval(pull, FEED_REFRESH_MS);
+    return () => window.clearInterval(t);
+  }, [who, ready, me]);
+  const feedNow = feedState && feedState.for === who ? feedState : null;
 
   const weeks: WeekWork[] = useMemo(
-    () => PROGRAMME.map((week) => ({ week, start: parseDay(entries[startKey(week.n)]), states: weekStates(week, entries, proofs, now) })),
-    [entries, proofs, now],
+    () => PROGRAMME.map((week) => ({ week, start: batchStart ?? parseDay(entries[startKey(week.n)]), states: weekStates(week, entries, proofs, now, batchStart) })),
+    [entries, proofs, now, batchStart?.getTime()], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   // The backlog log is only written when the proof status is known, so a slow server never marks a day "caught up" by mistake.
@@ -118,8 +153,17 @@ export function WorkProvider({ children }: { children: ReactNode }) {
       },
       proofTracked, handedIn: items.filter((i) => i.state.proof === "submitted" || i.state.proof === "approved").length,
       counts: current?.counts ?? null, weeksWithoutStart: weeks.filter((w) => !w.start).map((w) => w.week.n),
+      batch: me?.batch && batchStart ? { id: me.batch.id, name: me.batch.name, startsOn: batchStart } : null,
+      newInFeed: newSince(feedNow?.items ?? [], feedNow?.mine ?? new Set(), entries[feedSeenKey]),
+      sharesWaiting: feedNow?.waiting ?? null,
     };
-  }, [weeks, now, me, reviewer, current, error, proofs, load]);
+  }, [weeks, now, me, reviewer, current, error, proofs, load, feedNow, entries, batchStart]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
+
+/** Feed items approved after the person last opened the feed, not shared by them. First visit: only the last 7 days count as new. */
+function newSince(items: FeedItem[], mine: Set<string>, seen: unknown): FeedItem[] {
+  const since = typeof seen === "string" && !Number.isNaN(Date.parse(seen)) ? Date.parse(seen) : Date.now() - 7 * 86400000;
+  return items.filter((i) => !mine.has(i.id) && i.approved_at && Date.parse(i.approved_at) > since);
 }
