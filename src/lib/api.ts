@@ -56,7 +56,7 @@ async function failure(res: Response): Promise<ApiError> {
     typeof body?.kind === "string" ? body.kind : undefined, typeof body?.retryable === "boolean" ? body.retryable : undefined, after);
 }
 
-export async function apiJson<T>(method: "GET" | "POST" | "PUT" | "DELETE", path: string, payload?: unknown, extra?: Record<string, string>, opts?: CallOptions): Promise<T> {
+export async function apiJson<T>(method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", path: string, payload?: unknown, extra?: Record<string, string>, opts?: CallOptions): Promise<T> {
   const res = await send(method, path, payload === undefined ? undefined : JSON.stringify(payload), payload !== undefined, extra, opts);
   if (!res.ok) throw await failure(res);
   if (res.status === 204 || res.headers.get("Content-Length") === "0") return undefined as T; // e.g. DELETE answers with no body
