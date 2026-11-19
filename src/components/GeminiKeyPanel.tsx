@@ -69,8 +69,8 @@ export function GeminiKeyPanel({ serverModel, serverConfigured, onChange }: { se
       <form onSubmit={test} autoComplete="off">
         <label htmlFor={id + "-k"}>Gemini API key</label>
         <input id={id + "-k"} type="password" value={key} onChange={(e) => { setKey(e.target.value); setModels(null); setError(""); }}
-          autoComplete="off" spellCheck={false} placeholder="AIza..." aria-describedby={error ? id + "-e" : undefined} />
-        {key && !shaped && <p className="small muted">A Gemini key starts with AIza and has no spaces.</p>}
+          autoComplete="off" spellCheck={false} placeholder="AIza... or AQ...." aria-describedby={error ? id + "-e" : undefined} />
+        {key && !shaped && <p className="small muted">A Gemini key starts with AIza or AQ. and has no spaces.</p>}
         <div className="row"><button type="submit" className="btn" disabled={!shaped || busy}>{busy ? "Checking..." : "Test key"}</button></div>
       </form>
       {error && <p id={id + "-e"} className="banner err" role="alert">{error}</p>}

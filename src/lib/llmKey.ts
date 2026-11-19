@@ -8,8 +8,8 @@ const EVENT = "fde:gemini-changed";
 
 export type OwnKey = { key: string; model: string; remember: boolean };
 
-/** Google API keys start with AIza and use letters, digits, "_" and "-". The server checks the same shape. */
-export const isGeminiKeyShape = (s: string) => /^AIza[0-9A-Za-z_-]{30,60}$/.test(s.trim());
+/** Google API keys come as the classic "AIza..." or the newer "AQ...." (letters, digits, "_", "-", "."). The server checks the same shapes. */
+export const isGeminiKeyShape = (s: string) => /^(AIza[0-9A-Za-z_-]{30,60}|AQ\.[0-9A-Za-z_.-]{20,300})$/.test(s.trim());
 
 function read(store: Storage | undefined): { key: string; model: string } | null {
   try {

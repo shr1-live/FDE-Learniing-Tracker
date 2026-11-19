@@ -3,7 +3,7 @@ import { API_URL, ApiError } from "../lib/api";
 import * as api from "../lib/submissionsApi";
 import { ProofList } from "./ProofList";
 import { NOT_SUBMITTED, StatusTag } from "./StatusTag";
-import { RATING_GUIDE } from "../data/weekExpect";
+import { ASSESSMENT_AREAS, RATING_GUIDE } from "../data/weekExpect";
 import { hintFor } from "../data/programme";
 
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "");
@@ -114,6 +114,11 @@ export function SubmitPanel({ taskKey, exists, listLoaded }: { taskKey: string; 
             <option value="">Choose 1 to 5</option>
             {RATING_GUIDE.map(([n, t]) => <option key={n} value={n}>{n}: {t}</option>)}
           </select>
+          <details className="mini"><summary>How to rate (the readiness guide)</summary>
+            <p className="small">Rate the day against these five areas. Evidence can be in any stack: a demo, code or a PR, a diagram, an API contract, a test or evaluation report, deployment notes or a walkthrough.</p>
+            <dl className="kv small">{ASSESSMENT_AREAS.map(([a, q]) => <div key={a}><dt>{a}</dt><dd>{q}</dd></div>)}</dl>
+            <ol className="plain small">{RATING_GUIDE.map(([n, t]) => <li key={n}><b>{n}</b>: {t}</li>)}</ol>
+          </details>
           <div className="row"><button type="button" className="copy" disabled={busy || !dirty} onClick={() => run(() => api.saveDetails(taskKey, { note, learned, rating: rating === "" ? null : rating }), "Details saved.")}>Save details</button></div>
 
           <details className="addproof" open={!sub || sub.items.length === 0}>
