@@ -2,12 +2,22 @@
 export type Expectation = { means: string; proof: string };
 export type DayExpectation = { goal: string; learnHint: string; items: Expectation[] };
 
+// The rating scale exactly as in the programme sheet ("FDE - Practical Job-Readiness Guide"). Keep the wording identical to the sheet.
 export const RATING_GUIDE = [
-  [1, "I only read about it."],
-  [2, "I understand the idea but could not do it alone."],
-  [3, "I did it, with help."],
-  [4, "I did it alone and can explain it."],
-  [5, "I did it alone, can explain the trade-offs and could teach it."],
+  [1, "Needs significant guidance; cannot yet complete the task independently."],
+  [2, "Understands some concepts but needs frequent help to implement."],
+  [3, "Can implement the task with some guidance and review."],
+  [4, "Can independently implement, test, and troubleshoot the task."],
+  [5, "Can independently deliver and validate a customer-ready solution, explain trade-offs, and handle realistic edge cases."],
+] as const;
+
+/** The five areas the rating is judged on (same sheet). */
+export const ASSESSMENT_AREAS = [
+  ["Problem understanding", "Can you turn the request into a clear technical problem: problem statement, user needs, constraints, assumptions, success criteria?"],
+  ["Technical decisions", "Can you explain why your model, tools and design fit the use case, cost, latency and reliability, with trade-offs?"],
+  ["Implementation", "Is there a working prototype or feature, source code or PR, integrated with the right systems or APIs?"],
+  ["Testing and reliability", "Are there test cases, evaluation results, error handling, edge cases and guardrails?"],
+  ["Delivery and communication", "Is there a demo, setup and run steps, an architecture explanation, known limits and next steps?"],
 ] as const;
 
 export const EXPECT: Record<number, DayExpectation> = {
