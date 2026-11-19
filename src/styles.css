@@ -308,3 +308,18 @@ article.note{padding:14px 16px}article.note h3{margin:0 0 6px;font-size:18px}
 @media print{.vthumb{display:none}}
 .vcard .markbtn,.rescard .markbtn{font-size:14px;min-height:36px;padding:6px 14px;border-radius:4px}
 a.copy{display:inline-flex;align-items:center;text-decoration:none}
+
+/* ---- feed, role badge, dashboard feed preview ---- */
+.rolebadge{margin:0;font-size:13px;line-height:1.4}
+.rolebadge.warn{background:rgba(242,201,76,.16);border:1px solid rgba(242,201,76,.55);border-radius:6px;padding:6px 8px}
+.sharebox{margin:0 0 16px}.sharebox>summary{cursor:pointer;font-family:var(--head);font-weight:700;font-size:17px;display:flex;align-items:center;gap:8px;min-height:32px}
+.sharebox form{margin-top:4px}
+.feedbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px 16px;margin:0 0 16px}.feedbar label{margin-top:0}
+.fcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:0 0 12px;overflow:hidden}
+.fcard .vthumb{border-radius:0}.fcard .vbody{padding:12px 14px 0}
+.fsum{margin:0;color:var(--muted);font-size:14px}
+.seg button small{font-size:12px;color:inherit;opacity:.8}
+.feedmini{display:flex;gap:12px;align-items:center;padding:10px 12px}.feedmini img{width:96px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;flex:none}
+.feedmini a{color:var(--ink);text-decoration:none}.feedmini a:hover{text-decoration:underline}.feedmini .meta{margin:2px 0 0}
+.work-head a{font-weight:600}
+td select{min-width:120px}

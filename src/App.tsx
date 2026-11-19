@@ -3,14 +3,14 @@ import { NavLink, Route, Routes, Navigate } from "react-router-dom";
 import { useStore } from "./lib/store";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
-import { PlanList, DayPage } from "./pages/Plan";
+import Feed from "./pages/Feed";
+import { API_URL } from "./lib/api";
 import Outline from "./pages/Outline";
 import WeekPlan from "./pages/WeekPlan";
 import Assistant from "./pages/Assistant";
 import Week1Report from "./pages/Week1Report";
 import Readiness from "./pages/Readiness";
 import StackGuide from "./pages/StackGuide";
-import Curated from "./pages/Curated";
 import Admin from "./pages/Admin";
 import MyPlan from "./pages/MyPlan";
 import Gate from "./pages/Gate";
@@ -30,15 +30,26 @@ import { DevPersonaBar } from "./components/DevPersonaBar";
 import { useDevPersona } from "./lib/devPersona";
 import { canReview, useMe } from "./lib/useRole";
 
-const ADMIN_ONLY = new Set(["/plan", "/curated"]); // the admin's personal ten-day plan
-const NAV: [string, string][] = [["/", "Dashboard"], ["/plan", "Ten-day plan"], ["/outline", "Six-week programme"], ...PROGRAMME.map((w): [string, string] => [`/week/${w.n}`, `Week ${w.n} tasks`]), ["/backlog", "Backlog"], ["/notes", "Study notes"], ["/assistant", "Assistant"], ["/task-assistant", "Task assistant"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/curated", "Curated: .NET"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
+const ADMIN_ONLY = new Set<string>(); // nothing in the menu is admin-only now; the Admin page is added separately
+const NAV: [string, string][] = [["/", "Dashboard"], ["/myplan", "My plan"], ["/outline", "Six-week programme"], ...PROGRAMME.map((w): [string, string] => [`/week/${w.n}`, `Week ${w.n} tasks`]), ["/backlog", "Backlog"], ["/notes", "Study notes"], ["/feed", "Feed"], ["/assistant", "Assistant"], ["/task-assistant", "Task assistant"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
 
 const NAV_ICON: Record<string, IconName> = {
-  "/": "home", "/backlog": "calendar", "/notes": "book", "/myplan": "user", "/plan": "list", "/outline": "book", "/assistant": "spark", "/task-assistant": "list", "/report": "chart", "/review": "inbox",
-  "/stack": "compass", "/curated": "layers", "/readiness": "target", "/docs": "download", "/admin": "shield",
+  "/": "home", "/feed": "rss", "/backlog": "calendar", "/notes": "book", "/myplan": "user", "/outline": "book", "/assistant": "spark", "/task-assistant": "list", "/report": "chart", "/review": "inbox",
+  "/stack": "compass", "/readiness": "target", "/docs": "download", "/admin": "shield",
 };
 
 /** The number of missed days, shown next to "Backlog" in the menu (words in the label, number as a hint). */
+/** Who the server says you are. When the server cannot confirm the account, say so instead of silently hiding role features. */
+function RoleBadge() {
+  const { me, ready } = useMe();
+  const { batch } = useWork();
+  if (!API_URL) return null;
+  if (!ready) return null;
+  if (!me) return <p className="rolebadge warn" role="status">The server has not confirmed your account, so reviewer and admin features are hidden. Sign out and in again; if it stays, tell the admin.</p>;
+  const label = me.role === "admin" ? "Admin" : me.role === "reviewer" ? "Reviewer" : "Learner";
+  return <p className="rolebadge">Role: <b>{label}</b>{me.access !== "approved" ? " (waiting for approval)" : ""}{batch ? <><br />Batch: <b>{batch.name}</b></> : null}</p>;
+}
+
 function BacklogCount() {
   const { missed, learner } = useWork();
   if (!learner || missed.length === 0) return null;
@@ -54,12 +65,10 @@ export default function App() {
   if (!ready) return <main className="center"><p className="muted">Loading</p></main>;
   if (!user) return <Landing />;
   if (access !== "approved") return <Gate />;
-  const nav: [string, string][] = isAdmin
-    ? [...NAV, ["/admin", "Admin"]]
-    : [["/", "Dashboard"], ["/myplan", "My plan"], ...NAV.filter(([to]) => to !== "/" && !ADMIN_ONLY.has(to))];
+  const adminHere = isAdmin || me?.role === "admin";
+  const nav: [string, string][] = adminHere ? [...NAV, ["/admin", "Admin"]] : NAV.filter(([to]) => !ADMIN_ONLY.has(to));
   // Reviewers and admins (as the API says) get the review page. The API enforces this too; the link is only a convenience.
   if (canReview(me)) nav.splice(nav.findIndex(([to]) => to === "/report") + 1, 0, ["/review", "Review submissions"]);
-  const mine = (el: JSX.Element) => (isAdmin ? el : <Navigate to="/" replace />);
   return (
     <WorkProvider>
     <div className={"shell" + (collapsed ? " collapsed" : "")}>
@@ -71,7 +80,7 @@ export default function App() {
           </button>
         </div>
         <nav aria-label="Main">{nav.map(([to, label]) => (<NavLink key={to} to={to} end={to === "/"}><Icon name={NAV_ICON[to] ?? (to.startsWith("/week/") ? "tasks" : "list")} />{label}{to === "/backlog" && <BacklogCount />}</NavLink>))}</nav>
-        <div className="who"><DevPersonaBar /><ThemeSwitch /><Progress value={pct} label="Overall progress" small /><small>{user.email}</small><button className="linkbtn" onClick={signOut}>Sign out</button></div>
+        <div className="who"><DevPersonaBar /><RoleBadge /><ThemeSwitch /><Progress value={pct} label="Overall progress" small /><small>{user.email}</small><button className="linkbtn" onClick={signOut}>Sign out</button></div>
       </aside>
       <main className="main">
         <div className="topbar">
@@ -84,9 +93,9 @@ export default function App() {
         {saveError && <p className="banner err" role="alert">Could not save to the database: {saveError}</p>}
         <Routes key={persona}>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/plan" element={mine(<PlanList />)} />
-          <Route path="/plan/:n" element={mine(<DayPage />)} />
-          <Route path="/myplan" element={isAdmin ? <Navigate to="/plan" replace /> : <MyPlan />} />
+          <Route path="/plan/*" element={<Navigate to="/" replace />} />
+          <Route path="/myplan" element={<MyPlan />} />
+          <Route path="/feed" element={<Feed />} />
           <Route path="/outline" element={<Outline />} />
           <Route path="/week" element={<Navigate to="/week/1" replace />} />
           <Route path="/week/:n" element={<WeekPlan />} />
@@ -98,7 +107,7 @@ export default function App() {
           <Route path="/report" element={<Week1Report />} />
           <Route path="/review" element={<Review />} />
           <Route path="/stack" element={<StackGuide />} />
-          <Route path="/curated" element={mine(<Curated />)} />
+          <Route path="/curated" element={<Navigate to="/" replace />} />
           <Route path="/readiness" element={<Readiness />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/docs" element={<Docs />} />
