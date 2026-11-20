@@ -13,7 +13,7 @@ export default function Docs() {
   const files = FILES.filter(([f]) => isAdmin || !PRIVATE.has(f));
   return (
     <>
-      <header className="ph"><h1>Downloads</h1></header>
+      
       <ul className="files">{files.map(([f, t, d]) => (
         <li key={f} className="card"><h3>{t}</h3><p className="muted">{d}</p>{PRIVATE.has(f) ? <PrivateDoc name={f} /> : <a className="btn" href={`/docs/${f}`} target="_blank" rel="noopener noreferrer">{f.endsWith(".zip") ? "Download" : "Open PDF"}</a>}</li>))}</ul>
     </>

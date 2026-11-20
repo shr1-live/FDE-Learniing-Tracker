@@ -10,7 +10,7 @@ export function DevPersonaBar() {
   if (names.length === 0) return null;
   return (
     <div className="devbar" role="group" aria-label="Test accounts (development only)">
-      <small>Test account (dev only)</small>
+      <small><span className="devtag">Dev</span> Test account</small>
       <div className="themesw">
         {names.map((n) => <button key={n} type="button" aria-pressed={active === n} onClick={() => setActive(n)}>{n}</button>)}
       </div>

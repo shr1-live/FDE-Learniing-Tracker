@@ -50,8 +50,7 @@ function Media({ item, playing, onPlay, big = false }: { item: api.FeedItem; pla
   const domain = site(item.url);
   const h = hue(item.topic || domain);
   return (
-    <a className={"vthumb fposter" + (big ? " big" : "")} href={item.url ?? undefined} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true"
-      style={{ background: `linear-gradient(135deg, hsl(${h} 55% 32%), hsl(${(h + 40) % 360} 60% 22%))` }}>
+    <a className={`vthumb fposter p${h % 3}` + (big ? " big" : "")} href={item.url ?? undefined} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true">
       <span className="fp-letter">{(domain[0] ?? "?").toUpperCase()}</span>
       <span className="fp-site">{domain || "link"}</span>
     </a>
@@ -66,7 +65,7 @@ function FeedCard({ item, playing, onPlay, reviewer, onRecommend, big = false }:
       <Media item={item} playing={playing} onPlay={onPlay} big={big} />
       <div className="fbody">
         <div className="fmeta-top">
-          <span className="ftopic" style={{ ["--h" as string]: String(hue(item.topic)) }}>{item.topic_title}</span>
+          <span className="ftopic">{item.topic_title}</span>
           <span className="fkind">{isVideo ? "Video" : item.kind === "note" ? "Note" : "Article"}</span>
           {item.recommended && <span className="frec"><Icon name="check" size={14} /> Recommended</span>}
         </div>
@@ -75,7 +74,7 @@ function FeedCard({ item, playing, onPlay, reviewer, onRecommend, big = false }:
           : <span className="ftitle">{item.title}</span>}
         {item.summary && <p className="fsum">{item.summary}</p>}
         <div className="fby">
-          <span className="favatar" aria-hidden="true" style={{ ["--h" as string]: String(hue(item.author)) }}>{initials(item.author)}</span>
+          <span className={`favatar av${hue(item.author) % 4}`} aria-hidden="true">{initials(item.author)}</span>
           <span><b>{item.author || "Someone"}</b><span className="muted"> &middot; {ago(item.approved_at)}{!isVideo && item.url ? ` · ${site(item.url)}` : ""}</span></span>
         </div>
         <div className="factions">

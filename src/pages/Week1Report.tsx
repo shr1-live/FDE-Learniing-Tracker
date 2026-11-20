@@ -74,7 +74,7 @@ export default function Week1Report() {
 
   return (
     <>
-      <header className="ph"><h1>Week 1 report</h1>
+      <header className="ph">
         <p className="muted">What was built, what is proven, and what is still to do, against each acceptance criterion, plus a model comparison you can filter. "Done" means built and checked on its branch; delivery to the live site is listed separately.</p></header>
 
       <p className="printonly muted">Generated {new Date().toLocaleString()}{user?.email ? ` for ${user.email}` : ""}.</p>

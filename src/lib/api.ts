@@ -48,7 +48,11 @@ async function send(method: string, path: string, body?: BodyInit, json = false,
   }
 }
 
+/** Tells the app shell that the sign-in is no longer valid, so it can ask the person to sign in again. */
+function expired() { if (typeof window !== "undefined") window.dispatchEvent(new Event("fde:session-expired")); }
+
 async function failure(res: Response): Promise<ApiError> {
+  if (res.status === 401) expired();
   const body = await res.json().catch(() => null);
   const header = Number(res.headers.get("Retry-After"));
   const after = typeof body?.retry_after_seconds === "number" ? body.retry_after_seconds : Number.isFinite(header) && header > 0 ? header : undefined;
