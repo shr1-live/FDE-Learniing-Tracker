@@ -9,7 +9,9 @@ import { Ring } from "../components/Ring";
 import { WorkToday } from "../components/WorkToday";
 import { CatchUp } from "../components/CatchUp";
 import { MySteps } from "../components/MySteps";
+import { Streaks } from "../components/Streaks";
 import { LearningHeatmap } from "../components/LearningHeatmap";
+import { downloadJson } from "../lib/csv";
 import { fmtDate } from "../lib/backlog";
 import { youTubeId } from "../components/Bits";
 import { notesPath } from "../data/studyNotes";
@@ -26,7 +28,7 @@ function greeting(h: number) { return h < 5 ? "Good evening" : h < 12 ? "Good mo
 
 /** Home: what to do now, the numbers that matter, the days to catch up on, your own steps and what is new in the feed. */
 export default function Home() {
-  const { profile, setProfile, pct } = useStore();
+  const { profile, setProfile, pct, entries } = useStore();
   const w = useWork();
   const { reviewerView: reviewer } = useView();
   const first = profile.display_name ? profile.display_name.split(" ")[0] : "";
@@ -68,6 +70,8 @@ export default function Home() {
           <WorkToday />
 
           {w.learner && <LearningHeatmap />}
+
+          {w.learner && <Streaks />}
 
           {w.learner && (
             <section id="catch-up" aria-labelledby="cu-h">
@@ -115,13 +119,13 @@ export default function Home() {
               <label htmlFor="dn">Display name</label>
               <input id="dn" value={profile.display_name} onChange={(e) => setProfile({ display_name: e.target.value })} />
             </div>
+            <button type="button" className="btn ghost" onClick={() => downloadJson(`my-fde-data-${new Date().toISOString().slice(0, 10)}.json`, { exported_at: new Date().toISOString(), profile, progress: entries })}><Icon name="download" size={16} />Download my data</button>
           </section>
           <section className="card" aria-labelledby="prog-h">
             <h3 id="prog-h">Programme</h3>
             <p className="meta" style={{ marginTop: 4 }}>Weeks of five working days: topic, theory, practical task, proof and a rating.</p>
             <div className="row" style={{ marginTop: "var(--s-3)" }}>
-              <Link className="btn secondary" to="/week/1">Week 1 tasks</Link>
-              <Link className="btn secondary" to="/week/2">Week 2 tasks</Link>
+              {[1, 2, 3, 4, 5, 6].map((n) => <Link key={n} className="btn secondary" to={`/week/${n}`}>Week {n}</Link>)}
               <Link className="btn ghost" to="/week/1#overview">All six weeks</Link>
             </div>
           </section>

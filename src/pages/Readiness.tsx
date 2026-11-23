@@ -4,6 +4,7 @@ import { useStore } from "../lib/store";
 import { useView } from "../lib/viewAs";
 import { API_URL, ApiError } from "../lib/api";
 import * as rep from "../lib/reportsApi";
+import { SkillRadar } from "../components/SkillRadar";
 import { Kpi } from "../components/Kpi";
 import { Tabs, TabPanel, useTab } from "../components/Tabs";
 import { EmptyState, ErrorState, Loading, TableSkeleton } from "../components/States";
@@ -105,6 +106,7 @@ function Mine() {
   return (
     <>
       <header className="ph"><p className="muted">Rate yourself from 1 to 5 against the outline's skills table. Do it on Day 1 and again on Day 10.</p></header>
+      <SkillRadar />
       <div className="tablewrap"><table>
         <thead><tr><th>Skill</th><th>Target proficiency</th><th>Practised</th><th>Day 1</th><th>Day 10</th></tr></thead>
         <tbody>{READINESS.map((r, i) => (

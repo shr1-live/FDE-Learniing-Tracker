@@ -6,6 +6,59 @@ import { API_URL, ApiError } from "../lib/api";
 import * as admin from "../lib/adminApi";
 import { useMe } from "../lib/useRole";
 import { Chip } from "../components/Chip";
+import * as dl from "../lib/dailyLogApi";
+import * as com from "../lib/communityApi";
+
+/** Invite people by email. People who already have an account are approved at once; the rest are approved when they first sign in. */
+function Invites({ batches }: { batches: admin.Batch[] }) {
+  const [text, setText] = useState(""); const [batch, setBatch] = useState("");
+  const [rows, setRows] = useState<com.InviteRow[]>([]);
+  const [res, setRes] = useState<{ added: number; existing: number; rejected: string[] } | null>(null);
+  const [err, setErr] = useState(""); const [busy, setBusy] = useState(false);
+  const load = useCallback(() => { com.invites().then(setRows).catch(() => setRows([])); }, []);
+  useEffect(load, [load]);
+  const emails = text.split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean);
+  async function go(e: FormEvent) {
+    e.preventDefault(); setBusy(true); setErr(""); setRes(null);
+    try { setRes(await com.invite(emails, batch || null)); setText(""); load(); } catch (x) { setErr(msg(x)); } finally { setBusy(false); }
+  }
+  return (
+    <>
+      <h2>Invite by email</h2>
+      <p className="muted small">Paste office email addresses, separated by spaces, commas or new lines. Optionally choose the batch they join.</p>
+      <form className="card gap" onSubmit={go}>
+        <label htmlFor="inv-t">Email addresses ({emails.length})</label>
+        <textarea id="inv-t" rows={4} value={text} onChange={(e) => setText(e.target.value)} placeholder="asha@fiftyfivetech.io, karan@fiftyfivetech.io" />
+        <label htmlFor="inv-b">Batch (optional)</label>
+        <select id="inv-b" value={batch} onChange={(e) => setBatch(e.target.value)}><option value="">No batch</option>{batches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select>
+        {err && <p className="banner err" role="alert">{err}</p>}
+        {res && <p role="status">Invited {res.added}, approved {res.existing} existing{res.rejected.length ? `, skipped ${res.rejected.length} (not an office address): ${res.rejected.join(", ")}` : ""}.</p>}
+        <div className="row"><button className="btn" disabled={busy || emails.length === 0}>Send invites</button></div>
+      </form>
+      {rows.length > 0 && <p className="muted small">{rows.filter((r) => !r.used).length} waiting to sign in, {rows.filter((r) => r.used).length} joined.</p>}
+    </>
+  );
+}
+
+/** The audit trail: who changed what, newest first. Details are shown as the server recorded them. */
+function AuditLog() {
+  const [rows, setRows] = useState<dl.AuditRow[] | null>(null);
+  const [err, setErr] = useState("");
+  useEffect(() => { dl.audit(100).then(setRows).catch((e) => { setErr(e instanceof ApiError ? e.message : "Could not load the audit log."); setRows([]); }); }, []);
+  return (
+    <>
+      <h2>Audit log</h2>
+      <p className="muted small">The latest 100 changes to roles, access, batches, reviews and weekly logs.</p>
+      {err && <p className="banner err" role="alert">{err}</p>}
+      {rows === null ? <p className="muted">Loading...</p> : rows.length === 0 ? <p className="muted">Nothing recorded yet.</p> : (
+        <div className="tablewrap" tabIndex={0} role="region" aria-label="Audit log">
+          <table><thead><tr><th scope="col">When</th><th scope="col">Who</th><th scope="col">What</th><th scope="col">Target</th></tr></thead>
+            <tbody>{rows.map((r) => <tr key={r.id}><td className="tnum">{new Date(r.created_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</td><td>{r.actor}</td><td>{r.action}</td><td><small className="muted">{r.detail ?? r.target}</small></td></tr>)}</tbody></table>
+        </div>
+      )}
+    </>
+  );
+}
 
 type Req = { email: string; status: "pending" | "approved" | "rejected"; requested_at: string };
 const msg = (e: unknown) => (e instanceof ApiError ? e.message : "Something went wrong. Try again.");
@@ -34,6 +87,9 @@ function PeopleAndRoles() {
       <h2>People and roles</h2>
       <p className="muted small">{ROLE_NOTE} Approve people here so they can use the programme features (proof, feed, assistants).</p>
       {err && <p className="banner err" role="alert">{err}</p>}
+      {(people ?? []).some((p) => p.access_status === "pending") && (
+        <div className="row"><button type="button" className="btn secondary" onClick={() => run(async () => { for (const p of (people ?? []).filter((x) => x.access_status === "pending")) await admin.setAccess(p.id, "approved"); })}>Approve all {(people ?? []).filter((p) => p.access_status === "pending").length} waiting</button></div>
+      )}
       {people === null ? <p className="muted">Loading...</p> : (
         <div className="tablewrap" tabIndex={0} role="region" aria-label="People and roles">
           <table>
@@ -69,6 +125,8 @@ function PeopleAndRoles() {
           </table>
         </div>
       )}
+
+      <Invites batches={batches} />
 
       <h2>Batches</h2>
       <p className="muted small">A batch is a group that starts the programme together. Its start date sets everyone's due dates: day 1 on the start date, then one day per working day.</p>
@@ -111,7 +169,7 @@ export default function Admin() {
   return (
     <>
       <header className="ph"><h1>Admin</h1><p className="muted">Only the admin sees this page: who can sign in, who reviews, and which batch each person is in.</p></header>
-      {API_URL && serverAdmin ? <PeopleAndRoles /> : API_URL && <p className="banner" role="status">People and roles appear once the server confirms you are the admin. If this stays, sign out and in again.</p>}
+      {API_URL && serverAdmin ? <><PeopleAndRoles /><AuditLog /></> : API_URL && <p className="banner" role="status">People and roles appear once the server confirms you are the admin. If this stays, sign out and in again.</p>}
 
       {supabase && isAdmin && (
         <>

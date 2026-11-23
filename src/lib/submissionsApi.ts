@@ -2,7 +2,7 @@ import { ApiError, apiBlob, apiForm, apiJson } from "./api";
 
 export type Status = "draft" | "submitted" | "changes_requested" | "approved";
 export type Item = { id: string; kind: "link" | "file"; label: string; url: string | null; file_name: string | null; content_type: string | null; size_bytes: number | null; previewable: boolean };
-export type ReviewNote = { decision: "approve" | "request_changes"; comment: string | null; reviewer: string; created_at: string };
+export type ReviewNote = { decision: "approve" | "request_changes"; comment: string | null; reviewer: string; created_at: string; met?: number | null; total?: number | null };
 export type Submission = {
   id: string; task_key: string; status: Status; note: string | null; learned: string | null; rating: number | null; author: string;
   submitted_at: string | null; reviewed_at: string | null; editable: boolean; items: Item[]; reviews: ReviewNote[];
@@ -40,8 +40,8 @@ export const fileBlob = (itemId: string) => apiBlob(`/api/submissions/items/${it
 export const reviewList = (status: string) => apiJson<Row[]>("GET", `/api/review/submissions?status=${encodeURIComponent(status)}`);
 export const reviewCounts = () => apiJson<Counts>("GET", "/api/review/submissions/counts");
 export const reviewDetail = (id: string) => apiJson<Submission>("GET", `/api/review/submissions/${id}`);
-export const decide = (id: string, decision: "approve" | "request_changes", comment: string) =>
-  apiJson<Submission>("POST", `/api/review/submissions/${id}`, { decision, comment: comment.trim() || undefined });
+export const decide = (id: string, decision: "approve" | "request_changes", comment: string, score?: { met: number; total: number }) =>
+  apiJson<Submission>("POST", `/api/review/submissions/${id}`, { decision, comment: comment.trim() || undefined, met: score?.met, total: score?.total });
 
 /** Saves a file the person asked for. The browser's download name comes from the server's cleaned name. */
 export async function download(item: Item) {

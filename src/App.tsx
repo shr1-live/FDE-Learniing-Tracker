@@ -15,6 +15,7 @@ import { Logo } from "./components/Logo";
 import { PageSkeleton } from "./components/States";
 import { useConfirm } from "./components/Confirm";
 import { NotificationBell } from "./components/NotificationBell";
+import { GlobalSearch } from "./components/GlobalSearch";
 import { AccountMenu } from "./components/shell/AccountMenu";
 
 // Every page is its own chunk, so the first load only carries the shell.
@@ -27,6 +28,12 @@ const LabHub = lazy(() => import("./pages/LabHub"));
 const Resources = lazy(() => import("./pages/Resources"));
 const Review = lazy(() => import("./pages/Review"));
 const Admin = lazy(() => import("./pages/Admin"));
+const DailyLog = lazy(() => import("./pages/DailyLog"));
+const Community = lazy(() => import("./pages/Community"));
+const Quiz = lazy(() => import("./pages/Quiz"));
+const Journal = lazy(() => import("./pages/Journal"));
+const Calendar = lazy(() => import("./pages/Calendar"));
+const Notifications = lazy(() => import("./pages/Notifications"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const RAIL = "fde:sidebar"; // "rail" or "full"; unset means "decide by screen width"
@@ -54,6 +61,12 @@ function crumbs(path: string): string[] {
   if (path.startsWith("/feed")) return ["Feed"];
   if (path.startsWith("/lab")) return ["Practice lab"];
   if (path.startsWith("/resources")) return ["Resources"];
+  if (path.startsWith("/community")) return ["Community"];
+  if (path.startsWith("/quiz")) return ["Quizzes"];
+  if (path.startsWith("/daily-log")) return ["Daily log"];
+  if (path.startsWith("/journal")) return ["Journal"];
+  if (path.startsWith("/calendar")) return ["Calendar"];
+  if (path.startsWith("/notifications")) return ["Notifications"];
   if (path.startsWith("/review")) return ["Review"];
   if (path.startsWith("/admin")) return ["Admin"];
   return ["Page not found"];
@@ -176,7 +189,7 @@ function Shell() {
   const roleLabel = !API_URL ? "Learner" : me ? (me.role === "admin" ? "Admin" : me.role === "reviewer" ? "Reviewer" : "Learner") : meReady ? "Not confirmed" : "Checking";
   const inDrawer = phone && open; // links in the open drawer replace its history entry instead of stacking on it
   const onWeek = loc.pathname.startsWith("/week");
-  const moreActive = open || /^\/(lab|resources|review|admin)/.test(loc.pathname);
+  const moreActive = open || /^\/(lab|resources|review|admin|calendar|journal|notifications|daily-log|quiz|community)/.test(loc.pathname);
   const missed = w.learner ? w.missed.length : 0;
 
   return (
@@ -196,6 +209,11 @@ function Shell() {
           </div>
           <div className="nav-group" role="group" aria-labelledby="nav-more">
             <p className="nav-section" id="nav-more"><span className="sr">More: </span>Tools</p>
+            <Item to="/calendar" icon="calendar" label="Calendar" replace={inDrawer} />
+            <Item to="/daily-log" icon="tasks" label="Daily log" replace={inDrawer} />
+            <Item to="/journal" icon="edit" label="Journal" replace={inDrawer} />
+            <Item to="/community" icon="users" label="Community" replace={inDrawer} />
+            <Item to="/quiz" icon="grad" label="Quizzes" replace={inDrawer} />
             <Item to="/lab" icon="lab" label="Practice lab" replace={inDrawer} />
             <Item to="/resources" icon="library" label="Resources" replace={inDrawer} />
             {reviewerView && <Item to="/review" icon="inbox" label="Review" count={w.counts?.submitted ?? 0} countLabel="waiting for review" replace={inDrawer} />}
@@ -218,7 +236,7 @@ function Shell() {
           <nav aria-label="Breadcrumb" className="crumbs">
             <ol>{trail.map((c, i) => <li key={i} aria-current={i === trail.length - 1 ? "page" : undefined}>{c}</li>)}</ol>
           </nav>
-          <div className="topright">{!phone && <ViewSwitch />}<NotificationBell /></div>
+          <div className="topright">{!phone && <ViewSwitch />}<GlobalSearch /><NotificationBell /></div>
         </header>
         <main ref={mainRef} id="main" className="main" tabIndex={-1}>
           <div className="content">
@@ -233,6 +251,12 @@ function Shell() {
                   <Route path="/progress" element={<ProgressPage />} />
                   <Route path="/progress/:id" element={<ProgressPage />} />
                   <Route path="/feed" element={<Feed />} />
+                  <Route path="/community" element={<Community />} />
+                  <Route path="/quiz" element={<Quiz />} />
+                  <Route path="/daily-log" element={<DailyLog />} />
+                  <Route path="/journal" element={<Journal />} />
+                  <Route path="/calendar" element={<Calendar />} />
+                  <Route path="/notifications" element={<Notifications />} />
                   <Route path="/lab" element={<LabHub />} />
                   <Route path="/resources" element={<Resources />} />
                   <Route path="/review" element={<Review />} />

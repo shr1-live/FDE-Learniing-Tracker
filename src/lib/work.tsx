@@ -7,7 +7,7 @@ import { canReview, useMe, type Me } from "./useRole";
 import { useView } from "./viewAs";
 import * as sub from "./submissionsApi";
 import { PROGRAMME, ProgrammeWeek } from "../data/programme";
-import { DayState, logChanges, parseDay, sameDay, startKey, weekStates } from "./backlog";
+import { DayState, dueDate, logChanges, parseDay, sameDay, startKey, weekStates } from "./backlog";
 import * as feedApi from "./feedApi";
 import type { FeedItem } from "./feedApi";
 
@@ -127,7 +127,11 @@ export function WorkProvider({ children }: { children: ReactNode }) {
   const feedNow = feedState && feedState.for === who ? feedState : null;
 
   const weeks: WeekWork[] = useMemo(
-    () => PROGRAMME.map((week) => ({ week, start: batchStart ?? parseDay(entries[startKey(week.n)]), states: weekStates(week, entries, proofs, now, batchStart) })),
+    () => PROGRAMME.map((week) => {
+      // in a batch, each week starts five working days after the one before it
+      const ws = batchStart ? dueDate(batchStart, (week.n - 1) * 5 + 1) : null;
+      return { week, start: ws ?? parseDay(entries[startKey(week.n)]), states: weekStates(week, entries, proofs, now, ws) };
+    }),
     [entries, proofs, now, batchStart?.getTime()], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
