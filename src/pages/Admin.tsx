@@ -6,6 +6,27 @@ import { API_URL, ApiError } from "../lib/api";
 import * as admin from "../lib/adminApi";
 import { useMe } from "../lib/useRole";
 import { Chip } from "../components/Chip";
+import * as dl from "../lib/dailyLogApi";
+
+/** The audit trail: who changed what, newest first. Details are shown as the server recorded them. */
+function AuditLog() {
+  const [rows, setRows] = useState<dl.AuditRow[] | null>(null);
+  const [err, setErr] = useState("");
+  useEffect(() => { dl.audit(100).then(setRows).catch((e) => { setErr(e instanceof ApiError ? e.message : "Could not load the audit log."); setRows([]); }); }, []);
+  return (
+    <>
+      <h2>Audit log</h2>
+      <p className="muted small">The latest 100 changes to roles, access, batches, reviews and weekly logs.</p>
+      {err && <p className="banner err" role="alert">{err}</p>}
+      {rows === null ? <p className="muted">Loading...</p> : rows.length === 0 ? <p className="muted">Nothing recorded yet.</p> : (
+        <div className="tablewrap" tabIndex={0} role="region" aria-label="Audit log">
+          <table><thead><tr><th scope="col">When</th><th scope="col">Who</th><th scope="col">What</th><th scope="col">Target</th></tr></thead>
+            <tbody>{rows.map((r) => <tr key={r.id}><td className="tnum">{new Date(r.created_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</td><td>{r.actor}</td><td>{r.action}</td><td><small className="muted">{r.detail ?? r.target}</small></td></tr>)}</tbody></table>
+        </div>
+      )}
+    </>
+  );
+}
 
 type Req = { email: string; status: "pending" | "approved" | "rejected"; requested_at: string };
 const msg = (e: unknown) => (e instanceof ApiError ? e.message : "Something went wrong. Try again.");
@@ -111,7 +132,7 @@ export default function Admin() {
   return (
     <>
       <header className="ph"><h1>Admin</h1><p className="muted">Only the admin sees this page: who can sign in, who reviews, and which batch each person is in.</p></header>
-      {API_URL && serverAdmin ? <PeopleAndRoles /> : API_URL && <p className="banner" role="status">People and roles appear once the server confirms you are the admin. If this stays, sign out and in again.</p>}
+      {API_URL && serverAdmin ? <><PeopleAndRoles /><AuditLog /></> : API_URL && <p className="banner" role="status">People and roles appear once the server confirms you are the admin. If this stays, sign out and in again.</p>}
 
       {supabase && isAdmin && (
         <>

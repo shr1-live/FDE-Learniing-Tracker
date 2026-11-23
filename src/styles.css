@@ -1178,3 +1178,15 @@ a.heat-cell:hover, a.heat-cell:focus-visible { transform: scale(1.12); box-shado
 .radar-key { display: inline-block; width: 14px; height: 4px; border-radius: 2px; margin-right: 4px; }
 .radar-key.base { background: var(--text-2); } .radar-key.fin { background: var(--accent); }
 .sla { color: var(--danger); font-weight: 600; }
+
+/* ---- Wave 2: daily log, audit, review helpers */
+.dl-table { min-width: 760px; }
+.dl-table th[scope="row"] input { width: 100%; min-width: 150px; }
+.dl-day { text-align: center; white-space: nowrap; }
+.dl-day small { display: block; color: var(--text-2); font-weight: 400; }
+.dl-cell { vertical-align: top; min-width: 84px; }
+.dl-cell > input { width: 64px; text-align: center; }
+.dl-note summary { font-size: var(--fs-xs); color: var(--accent); cursor: pointer; }
+.dl-note input { width: 100%; font-size: var(--fs-xs); }
+.dl-day.bad { color: var(--danger); font-weight: 700; }
+.tpl-row { display: flex; flex-wrap: wrap; gap: var(--s-2); margin: var(--s-2) 0; }

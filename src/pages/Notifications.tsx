@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useWork } from "../lib/work";
 import { useStore } from "../lib/store";
 import { buildReminders, eodHour, eodKey, EOD_HOURS, groupOf, mutedKey } from "../lib/reminders";
+import { useDailyLogReminder } from "../lib/dailyLogApi";
 import { PageHeader } from "../components/PageHeader";
 import { Chip } from "../components/Chip";
 import { EmptyState } from "../components/States";
@@ -13,6 +14,7 @@ const GROUPS: [string, string, string][] = [
   ["due", "Due today", "A day is due today."],
   ["proof", "Proof reminders", "A proof is saved but not submitted, or a reviewer asked for changes."],
   ["start", "Start date", "Reminder to set your start date."],
+  ["log", "Daily log", "After 10:00, if you have not logged any hours today."],
   ["eod", "End-of-day wrap-up", "A summary after your chosen hour."],
   ["feed", "Feed and review queue", "New feed posts, shared links and submissions waiting for review."],
 ];
@@ -23,7 +25,8 @@ export default function Notifications() {
   const { entries, setEntry } = useStore();
   const hour = eodHour(entries);
   const muted = new Set(Array.isArray(entries[mutedKey]) ? (entries[mutedKey] as string[]) : []);
-  const all = useMemo(() => buildReminders(w, hour), [w, hour]);
+  const logRem = useDailyLogReminder(w.now, w.learner);
+  const all = useMemo(() => [...logRem, ...buildReminders(w, hour)], [w, hour, logRem]);
   const list = all.filter((r) => !muted.has(groupOf(r.id)));
   const toggle = (g: string) => { const n = new Set(muted); if (n.has(g)) n.delete(g); else n.add(g); setEntry(mutedKey, [...n]); };
   return (

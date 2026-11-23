@@ -6,6 +6,7 @@ import { buildReminders, eodHour, eodKey, EOD_HOURS, seenKey, seenToday, groupOf
 import { isoDay } from "../lib/backlog";
 import { Icon } from "./Icon";
 import { Chip } from "./Chip";
+import { useDailyLogReminder } from "../lib/dailyLogApi";
 
 const KIND: Record<string, string> = { bad: "Missed", warn: "Today", info: "Note", ok: "Done", none: "Note" };
 
@@ -18,7 +19,8 @@ export function NotificationBell() {
   const box = useRef<HTMLDivElement>(null);
   const hour = eodHour(entries);
   const muted = Array.isArray(entries[mutedKey]) ? (entries[mutedKey] as string[]) : [];
-  const list = useMemo(() => buildReminders(w, hour).filter((r) => !muted.includes(groupOf(r.id))), [w, hour, muted.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
+  const logRem = useDailyLogReminder(w.now, w.learner);
+  const list = useMemo(() => [...logRem, ...buildReminders(w, hour)].filter((r) => !muted.includes(groupOf(r.id))), [w, hour, logRem, muted.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
   const seen = seenToday(entries, w.now);
   const unread = list.filter((r) => !seen.has(r.id)).length;
 

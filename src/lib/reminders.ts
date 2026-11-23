@@ -99,4 +99,4 @@ export function seenToday(entries: Record<string, unknown>, now: Date): Set<stri
 
 /** Which kinds of reminder the person wants to see (kept with their other progress). */
 export const mutedKey = "pref:muted";
-export const groupOf = (id: string) => (id.startsWith("missed") ? "missed" : id.startsWith("due") ? "due" : id.startsWith("fix") || id.startsWith("draft") ? "proof" : id.startsWith("start") ? "start" : id.startsWith("eod") ? "eod" : "feed");
+export const groupOf = (id: string) => (id.startsWith("missed") ? "missed" : id.startsWith("due") ? "due" : id.startsWith("fix") || id.startsWith("draft") ? "proof" : id.startsWith("start") ? "start" : id.startsWith("eod") ? "eod" : id.startsWith("log") ? "log" : "feed");
