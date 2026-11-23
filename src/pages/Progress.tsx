@@ -11,6 +11,7 @@ import { Chip } from "../components/Chip";
 import { Icon } from "../components/Icon";
 import { Kpi } from "../components/Kpi";
 import { PageHeader } from "../components/PageHeader";
+import { CohortDashboard } from "../components/CohortDashboard";
 import { Tabs, TabPanel, useTab } from "../components/Tabs";
 import { Avatar } from "../components/Avatar";
 import { ErrorState, Loading, PageSkeleton, Skeleton, TableSkeleton, EmptyState } from "../components/States";
@@ -182,7 +183,7 @@ export default function Progress() {
   const { id } = useParams();
   const { me, ready } = useMe();
   const { reviewerView, canSwitch } = useView();
-  const tabs = [{ id: "report", label: reviewerView ? "Reports" : "My report" }, { id: "week1", label: "Week 1 results" }];
+  const tabs = [{ id: "report", label: reviewerView ? "Reports" : "My report" }, ...(reviewerView ? [{ id: "cohort", label: "Cohort dashboard" }] : []), { id: "week1", label: "Week 1 results" }];
   const tab = useTab(tabs);
   if (id) {
     if (!canSwitch) return ready ? <Navigate to="/progress" replace /> : <PageSkeleton />;
@@ -193,8 +194,9 @@ export default function Progress() {
     <>
       <PageHeader overline="Progress" title={reviewerView ? "Reports" : "My progress"} sub={tab === "week1" ? "What was built in Week 1, what is proven, and what is still to do." : reviewerView ? "How everyone is doing." : "What you handed in, and what reviewers decided."} />
       <Tabs tabs={tabs} current={tab} label="Progress views" />
-      <TabPanel label={tab === "week1" ? "Week 1 results" : tabs[0]!.label}>
-        {tab === "week1"
+      <TabPanel label={tab === "week1" ? "Week 1 results" : tab === "cohort" ? "Cohort dashboard" : tabs[0]!.label}>
+        {tab === "cohort" ? (needs ? <div className="card" role="status"><p className="muted">{needs}</p></div> : <CohortDashboard />)
+          : tab === "week1"
           ? <Suspense fallback={<PageSkeleton />}><Week1Report /></Suspense>
           : needs ? <div className="card" role="status"><p className="muted">{needs}</p></div>
           : reviewerView ? <PeopleList /> : <OneReport id={null} />}

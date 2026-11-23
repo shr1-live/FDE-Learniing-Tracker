@@ -9,6 +9,7 @@ import { Ring } from "../components/Ring";
 import { WorkToday } from "../components/WorkToday";
 import { CatchUp } from "../components/CatchUp";
 import { MySteps } from "../components/MySteps";
+import { Streaks } from "../components/Streaks";
 import { LearningHeatmap } from "../components/LearningHeatmap";
 import { fmtDate } from "../lib/backlog";
 import { youTubeId } from "../components/Bits";
@@ -68,6 +69,8 @@ export default function Home() {
           <WorkToday />
 
           {w.learner && <LearningHeatmap />}
+
+          {w.learner && <Streaks />}
 
           {w.learner && (
             <section id="catch-up" aria-labelledby="cu-h">

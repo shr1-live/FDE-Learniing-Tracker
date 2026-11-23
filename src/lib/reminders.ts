@@ -96,3 +96,7 @@ export function seenToday(entries: Record<string, unknown>, now: Date): Set<stri
   const v = entries[seenKey] as Seen | undefined;
   return new Set(v && v.d === isoDay(now) && Array.isArray(v.ids) ? v.ids.filter((x) => typeof x === "string") : []);
 }
+
+/** Which kinds of reminder the person wants to see (kept with their other progress). */
+export const mutedKey = "pref:muted";
+export const groupOf = (id: string) => (id.startsWith("missed") ? "missed" : id.startsWith("due") ? "due" : id.startsWith("fix") || id.startsWith("draft") ? "proof" : id.startsWith("start") ? "start" : id.startsWith("eod") ? "eod" : "feed");

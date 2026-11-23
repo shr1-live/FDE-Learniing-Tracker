@@ -2,7 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useWork } from "../lib/work";
 import { useStore } from "../lib/store";
-import { buildReminders, eodHour, eodKey, EOD_HOURS, seenKey, seenToday } from "../lib/reminders";
+import { buildReminders, eodHour, eodKey, EOD_HOURS, seenKey, seenToday, groupOf, mutedKey } from "../lib/reminders";
 import { isoDay } from "../lib/backlog";
 import { Icon } from "./Icon";
 import { Chip } from "./Chip";
@@ -17,7 +17,8 @@ export function NotificationBell() {
   const panel = useId();
   const box = useRef<HTMLDivElement>(null);
   const hour = eodHour(entries);
-  const list = useMemo(() => buildReminders(w, hour), [w, hour]);
+  const muted = Array.isArray(entries[mutedKey]) ? (entries[mutedKey] as string[]) : [];
+  const list = useMemo(() => buildReminders(w, hour).filter((r) => !muted.includes(groupOf(r.id))), [w, hour, muted.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
   const seen = seenToday(entries, w.now);
   const unread = list.filter((r) => !seen.has(r.id)).length;
 
@@ -45,6 +46,7 @@ export function NotificationBell() {
       {open && (
         <div className="bellpanel" id={panel} role="region" aria-label="Reminders">
           <h2>Reminders</h2>
+          <Link to="/notifications" onClick={() => setOpen(false)} className="small">See all and choose what to show</Link>
           {list.length === 0 && <p className="muted">Nothing needs you right now.</p>}
           <ul className="notifs">
             {list.map((r) => (

@@ -11,6 +11,8 @@ import { parseTask, taskTitle } from "../data/programme";
 
 const FILTERS: [string, string][] = [["submitted", "Waiting for review"], ["changes_requested", "Changes requested"], ["approved", "Approved"], ["all", "All"]];
 
+/** Whole days since a proof was handed in; 2 or more is "overdue" for a reviewer. */
+const waitDays = (iso: string | null) => (iso ? Math.floor((Date.now() - new Date(iso).getTime()) / 86400000) : 0);
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-");
 
 export default function Review() {
@@ -96,9 +98,9 @@ export default function Review() {
           <thead><tr><th>Person</th><th>Task</th><th>Status</th><th>Proofs</th><th>Sent</th><th><span className="sr">Action</span></th></tr></thead>
           <tbody>
             {rows.length === 0 && <tr><td colSpan={6} className="muted">Nothing here.</td></tr>}
-            {rows.map((r) => (
+            {[...rows].sort((a, b) => (status === "submitted" ? (a.submitted_at ?? "").localeCompare(b.submitted_at ?? "") : 0)).map((r) => (
               <tr key={r.id}>
-                <td>{r.author}</td><td>{taskTitle(r.task_key)}</td><td><StatusTag status={r.status} /></td><td>{r.item_count}</td><td>{when(r.submitted_at)}</td>
+                <td>{r.author}</td><td>{taskTitle(r.task_key)}</td><td><StatusTag status={r.status} /></td><td>{r.item_count}</td><td>{when(r.submitted_at)}{r.status === "submitted" && waitDays(r.submitted_at) >= 2 && <span className="sla" title="Waiting more than 2 days"> · waiting {waitDays(r.submitted_at)} days</span>}</td>
                 <td><button type="button" className="copy" onClick={() => openRow(r.id)} aria-label={`Open ${r.author}'s ${taskTitle(r.task_key)}`}>Open</button></td>
               </tr>
             ))}
