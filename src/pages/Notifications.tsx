@@ -4,6 +4,7 @@ import { useWork } from "../lib/work";
 import { useStore } from "../lib/store";
 import { buildReminders, eodHour, eodKey, EOD_HOURS, groupOf, mutedKey } from "../lib/reminders";
 import { useDailyLogReminder } from "../lib/dailyLogApi";
+import { useServerNotifications } from "../lib/notificationsApi";
 import { PageHeader } from "../components/PageHeader";
 import { Chip } from "../components/Chip";
 import { EmptyState } from "../components/States";
@@ -15,6 +16,7 @@ const GROUPS: [string, string, string][] = [
   ["proof", "Proof reminders", "A proof is saved but not submitted, or a reviewer asked for changes."],
   ["start", "Start date", "Reminder to set your start date."],
   ["log", "Daily log", "After 10:00, if you have not logged any hours today."],
+  ["week", "Week submitted", "A learner submitted their daily log (reviewers and admin)."],
   ["eod", "End-of-day wrap-up", "A summary after your chosen hour."],
   ["feed", "Feed and review queue", "New feed posts, shared links and submissions waiting for review."],
 ];
@@ -26,7 +28,8 @@ export default function Notifications() {
   const hour = eodHour(entries);
   const muted = new Set(Array.isArray(entries[mutedKey]) ? (entries[mutedKey] as string[]) : []);
   const logRem = useDailyLogReminder(w.now, w.learner);
-  const all = useMemo(() => [...logRem, ...buildReminders(w, hour)], [w, hour, logRem]);
+  const srv = useServerNotifications();
+  const all = useMemo(() => [...srv.items, ...logRem, ...buildReminders(w, hour)], [w, hour, logRem, srv.items]);
   const list = all.filter((r) => !muted.has(groupOf(r.id)));
   const toggle = (g: string) => { const n = new Set(muted); if (n.has(g)) n.delete(g); else n.add(g); setEntry(mutedKey, [...n]); };
   return (
@@ -58,7 +61,7 @@ export default function Notifications() {
                 <div className="select-wrap"><select id="np-eod" value={hour} onChange={(e) => setEntry(eodKey, Number(e.target.value))}>{EOD_HOURS.map((h) => <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>)}</select></div>
               </div>
             )}
-            <p className="meta">Email and chat reminders are not set up for this tracker yet.</p>
+            <p className="meta">Email and Slack or Teams alerts are sent only when the server has them set up.</p>
           </section>
         </aside>
       </div>

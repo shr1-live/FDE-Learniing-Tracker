@@ -1190,3 +1190,4 @@ a.heat-cell:hover, a.heat-cell:focus-visible { transform: scale(1.12); box-shado
 .dl-note input { width: 100%; font-size: var(--fs-xs); }
 .dl-day.bad { color: var(--danger); font-weight: 700; }
 .tpl-row { display: flex; flex-wrap: wrap; gap: var(--s-2); margin: var(--s-2) 0; }
+.rubric { border: 1px solid var(--border); border-radius: 10px; padding: var(--s-3) var(--s-4); margin: var(--s-3) 0; }

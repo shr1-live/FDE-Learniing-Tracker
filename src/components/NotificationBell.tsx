@@ -7,6 +7,7 @@ import { isoDay } from "../lib/backlog";
 import { Icon } from "./Icon";
 import { Chip } from "./Chip";
 import { useDailyLogReminder } from "../lib/dailyLogApi";
+import { useServerNotifications } from "../lib/notificationsApi";
 
 const KIND: Record<string, string> = { bad: "Missed", warn: "Today", info: "Note", ok: "Done", none: "Note" };
 
@@ -20,14 +21,15 @@ export function NotificationBell() {
   const hour = eodHour(entries);
   const muted = Array.isArray(entries[mutedKey]) ? (entries[mutedKey] as string[]) : [];
   const logRem = useDailyLogReminder(w.now, w.learner);
-  const list = useMemo(() => [...logRem, ...buildReminders(w, hour)].filter((r) => !muted.includes(groupOf(r.id))), [w, hour, logRem, muted.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
+  const srv = useServerNotifications();
+  const list = useMemo(() => [...srv.items, ...logRem, ...buildReminders(w, hour)].filter((r) => !muted.includes(groupOf(r.id))), [w, hour, logRem, srv.items, muted.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
   const seen = seenToday(entries, w.now);
-  const unread = list.filter((r) => !seen.has(r.id)).length;
+  const unread = list.filter((r) => !r.id.includes(":srv:") && !seen.has(r.id)).length + srv.unread;
 
   const show = () => {
     setOpen(true);
     // opening the panel counts as reading it
-    if (unread > 0) setEntry(seenKey, { d: isoDay(w.now), ids: list.map((r) => r.id) });
+    if (unread > 0) { setEntry(seenKey, { d: isoDay(w.now), ids: list.map((r) => r.id) }); if (srv.unread > 0) srv.markAllRead(); }
   };
   useEffect(() => {
     if (!open) return;

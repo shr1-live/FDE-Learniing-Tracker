@@ -7,6 +7,7 @@ import { ProofList } from "../components/ProofList";
 import { StatusTag } from "../components/StatusTag";
 import { useDevPersona } from "../lib/devPersona";
 import { ExpectedList } from "../components/ExpectedList";
+import { Rubric } from "../components/Rubric";
 import { parseTask, taskTitle } from "../data/programme";
 
 /** Reply templates: one click puts a common comment in the box, to edit before sending. */
@@ -142,6 +143,7 @@ export default function Review() {
           <h3>Proof</h3>
           <ProofList items={open.items} />
           {parsed && <ExpectedList week={parsed.week} day={parsed.day} open />}
+          {parsed && open.status === "submitted" && <Rubric week={parsed.week} day={parsed.day} resetKey={open.id} onUnmet={(lines) => setComment((c) => (c ? c + "\n" : "") + lines.join("\n"))} />}
 
           {open.reviews.length > 0 && (
             <>
