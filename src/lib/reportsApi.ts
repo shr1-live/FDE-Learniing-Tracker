@@ -18,3 +18,7 @@ export type PersonRow = {
 export const myReport = () => apiJson<PersonReport>("GET", "/api/reports/me");
 export const people = (batch?: string) => apiJson<PersonRow[]>("GET", `/api/reports/people${batch ? `?batch=${encodeURIComponent(batch)}` : ""}`);
 export const personReport = (id: string) => apiJson<PersonReport>("GET", `/api/reports/people/${encodeURIComponent(id)}`);
+
+/** One person's readiness self-ratings (reviewers and the admin only): skill index to a 1-5 rating, on Day 1 and on Day 10. */
+export type ReadinessPerson = { user_id: string; name: string; batch_name: string | null; base: Record<string, number>; final: Record<string, number>; updated_at: string | null };
+export const readinessEveryone = (batch?: string) => apiJson<ReadinessPerson[]>("GET", `/api/readiness${batch ? `?batch=${encodeURIComponent(batch)}` : ""}`);
