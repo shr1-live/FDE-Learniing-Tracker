@@ -10,6 +10,7 @@ import { Icon } from "../components/Icon";
 import { PageHeader } from "../components/PageHeader";
 import { Progress } from "../components/Progress";
 import { EmptyState } from "../components/States";
+import { TrackTabs } from "../components/TrackTabs";
 import { DEVOPS_NOTES, DEVOPS_WEEKS, devopsDayKey, devopsTaskKey, getDevopsWeek } from "../data/devops";
 
 const flags = (v: unknown, len: number): boolean[] => Array.from({ length: len }, (_, i) => Array.isArray(v) && v[i] === true);
@@ -58,7 +59,8 @@ export default function Devops() {
 
   return (
     <>
-      <PageHeader overline="DevOps program" title={`DevOps, Week ${week.n}`} sub={week.title} />
+      <PageHeader overline="Programme" title={`DevOps, Week ${week.n}`} sub={week.title} />
+      <TrackTabs current="devops" />
       <nav className="weeksw" aria-label="DevOps weeks">{DEVOPS_WEEKS.map((w) => <Link key={w.n} to={`/devops/week/${w.n}`} aria-current={w.n === week.n ? "page" : undefined}>{w.n === 5 ? "Capstone" : `Week ${w.n}`}</Link>)}</nav>
       <p className="callout ok weekbar-note" role="note">A separate study track next to the FDE programme: its progress is counted on its own and does not change your FDE numbers. The day-by-day split is a first version made from the DevOps plan document.</p>
 

@@ -58,7 +58,7 @@ function Centered({ children }: { children: ReactNode }) {
 function crumbs(path: string): string[] {
   if (path === "/") return ["Home"];
   if (path.startsWith("/week")) return ["Programme", `Week ${path.split("/")[2] ?? FIRST_WEEK}`];
-  if (path.startsWith("/devops")) return ["DevOps", `Week ${path.split("/")[3] ?? 1}`];
+  if (path.startsWith("/devops")) return ["Programme", "DevOps", `Week ${path.split("/")[3] ?? 1}`];
   if (path.startsWith("/progress")) return ["Progress"];
   if (path.startsWith("/feed")) return ["Feed"];
   if (path.startsWith("/lab")) return ["Practice lab"];
@@ -190,7 +190,7 @@ function Shell() {
   const name = (user?.email ?? "").split("@")[0]!.split(/[._-]/).map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ") || "You";
   const roleLabel = !API_URL ? "Learner" : me ? (me.role === "admin" ? "Admin" : me.role === "reviewer" ? "Reviewer" : "Learner") : meReady ? "Not confirmed" : "Checking";
   const inDrawer = phone && open; // links in the open drawer replace its history entry instead of stacking on it
-  const onWeek = loc.pathname.startsWith("/week");
+  const onWeek = loc.pathname.startsWith("/week") || loc.pathname.startsWith("/devops");
   const moreActive = open || /^\/(lab|resources|review|admin|calendar|journal|notifications|daily-log|quiz|community)/.test(loc.pathname);
   const missed = w.learner ? w.missed.length : 0;
 
@@ -206,7 +206,6 @@ function Shell() {
           <div className="nav-group">
             <Item to="/" end icon="home" label="Home" count={missed} countLabel="missed days" replace={inDrawer} />
             <Item to={`/week/${FIRST_WEEK}`} icon="book" label="Programme" active={onWeek} replace={inDrawer} />
-            <Item to="/devops/week/1" icon="layers" label="DevOps" active={loc.pathname.startsWith("/devops")} replace={inDrawer} />
             <Item to="/progress" icon="chart" label="Progress" replace={inDrawer} />
             <Item to="/feed" icon="rss" label="Feed" count={w.newInFeed.length} countLabel="new in the feed" replace={inDrawer} />
           </div>
