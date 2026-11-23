@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { API_URL, apiJson } from "./api";
 import type { Reminder } from "./reminders";
 
-export type ServerNote = { id: string; kind: "daily_log_missed" | "week_submitted"; on_date: string; title: string; body: string; link: string | null; created_at: string; read: boolean };
+export type ServerNote = { id: string; kind: "daily_log_missed" | "week_submitted" | "weekly_digest"; on_date: string; title: string; body: string; link: string | null; created_at: string; read: boolean };
 type List = { items: ServerNote[]; unread: number };
 
 const list = () => apiJson<List>("GET", "/api/notifications");
@@ -22,7 +22,7 @@ export function useServerNotifications(enabled = true): { items: Reminder[]; unr
   }, [enabled]);
   const markAllRead = useCallback(() => { setData((d) => ({ ...d, unread: 0, items: d.items.map((i) => ({ ...i, read: true })) })); markAll().catch(() => {}); }, []);
   const items: Reminder[] = data.items.map((n) => ({
-    id: `${n.kind === "week_submitted" ? "week" : "log"}:srv:${n.id}`, tone: n.kind === "week_submitted" ? "info" : "warn", title: n.title, body: n.body, to: n.link ?? "/daily-log", toLabel: n.kind === "week_submitted" ? "Open the team week" : "Fill the daily log",
+    id: `${n.kind === "daily_log_missed" ? "log" : "week"}:srv:${n.id}`, tone: n.kind === "daily_log_missed" ? "warn" : "info", title: n.title, body: n.body, to: n.link ?? "/daily-log", toLabel: n.kind === "week_submitted" ? "Open the team week" : n.kind === "weekly_digest" ? "Open the cohort dashboard" : "Fill the daily log",
   }));
   return { items, unread: data.unread, markAllRead };
 }

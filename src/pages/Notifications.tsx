@@ -16,7 +16,7 @@ const GROUPS: [string, string, string][] = [
   ["proof", "Proof reminders", "A proof is saved but not submitted, or a reviewer asked for changes."],
   ["start", "Start date", "Reminder to set your start date."],
   ["log", "Daily log", "After 10:00, if you have not logged any hours today."],
-  ["week", "Week submitted", "A learner submitted their daily log (reviewers and admin)."],
+  ["week", "Week submitted and weekly digest", "A learner submitted their daily log, and the Monday summary (reviewers and admin)."],
   ["eod", "End-of-day wrap-up", "A summary after your chosen hour."],
   ["feed", "Feed and review queue", "New feed posts, shared links and submissions waiting for review."],
 ];

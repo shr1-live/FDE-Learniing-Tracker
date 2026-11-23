@@ -55,6 +55,9 @@ function PeopleAndRoles() {
       <h2>People and roles</h2>
       <p className="muted small">{ROLE_NOTE} Approve people here so they can use the programme features (proof, feed, assistants).</p>
       {err && <p className="banner err" role="alert">{err}</p>}
+      {(people ?? []).some((p) => p.access_status === "pending") && (
+        <div className="row"><button type="button" className="btn secondary" onClick={() => run(async () => { for (const p of (people ?? []).filter((x) => x.access_status === "pending")) await admin.setAccess(p.id, "approved"); })}>Approve all {(people ?? []).filter((p) => p.access_status === "pending").length} waiting</button></div>
+      )}
       {people === null ? <p className="muted">Loading...</p> : (
         <div className="tablewrap" tabIndex={0} role="region" aria-label="People and roles">
           <table>
