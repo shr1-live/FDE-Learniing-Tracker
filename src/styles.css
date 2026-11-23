@@ -1089,3 +1089,24 @@ form.card > label { margin-top: var(--s-4); }
 form.card > h3 + label, form.card > h3 + p + label { margin-top: var(--s-3); }
 form.card > .btn, form.card > .row { margin-top: var(--s-4); }
 form.card > h3 { margin-bottom: 2px; }
+
+/* ---- Learning heatmap (Home) */
+.heat-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); flex-wrap: wrap; margin-bottom: var(--s-4); }
+.heat-head h2 { margin: 0; }
+.heat-head .meta { margin: 0; }
+.heat-grid { display: flex; flex-direction: column; gap: 6px; max-width: 420px; }
+.heat-row { display: grid; grid-template-columns: 64px repeat(5, minmax(0, 1fr)); gap: 6px; align-items: center; }
+.heat-lab { font-size: var(--fs-sm); color: var(--text-2); font-weight: 600; }
+.heat-dow { font-size: var(--fs-xs); color: var(--text-3); text-align: center; text-transform: uppercase; letter-spacing: .08em; }
+.heat-cell { display: block; aspect-ratio: 1; min-height: 28px; border-radius: 0; border: 1px solid var(--border); background: var(--surface-2); text-decoration: none; transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease); }
+a.heat-cell:hover, a.heat-cell:focus-visible { transform: scale(1.12); box-shadow: 0 0 0 2px var(--accent); outline: none; position: relative; z-index: 1; }
+.heat-cell.l1 { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); border-color: transparent; }
+.heat-cell.l2 { background: color-mix(in srgb, var(--accent) 45%, var(--surface)); border-color: transparent; }
+.heat-cell.l3 { background: color-mix(in srgb, var(--accent) 70%, var(--surface)); border-color: transparent; }
+.heat-cell.l4 { background: var(--accent); border-color: transparent; }
+.heat-cell.missed { box-shadow: inset 0 0 0 3px var(--warning); }
+.heat-cell.today { outline: 2px solid var(--text); outline-offset: 1px; }
+.heat-cell.soon { background: transparent; border-style: dashed; opacity: .55; }
+.heat-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: var(--s-4); font-size: var(--fs-xs); color: var(--text-3); }
+.heat-legend .heat-cell { width: 14px; min-height: 14px; aspect-ratio: auto; height: 14px; }
+.heat-legend .heat-cell + span { margin-right: var(--s-2); }

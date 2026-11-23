@@ -2,12 +2,14 @@
 // the Week page, the review page, the dashboard and the expected-proof guide all read from this registry.
 import { WEEK_DAYS, WEEK_TITLE, WeekDay } from "./weekPlan";
 import { EXPECT, DayExpectation } from "./weekExpect";
+import { WEEK2_DAYS, WEEK2_EXPECT, WEEK2_TITLE } from "./week2";
 
 export type ProgrammeWeek = { n: number; title: string; days: WeekDay[]; expect: Record<number, DayExpectation> };
 
 export const PROGRAMME: ProgrammeWeek[] = [
   { n: 1, title: WEEK_TITLE, days: WEEK_DAYS, expect: EXPECT },
-  // Week 2 and later: add { n: 2, title, days, expect } here when their sheets are ready.
+  { n: 2, title: WEEK2_TITLE, days: WEEK2_DAYS, expect: WEEK2_EXPECT },
+  // Week 3 and later: add { n, title, days, expect } here when their sheets are ready.
 ];
 
 export const getWeek = (n: number): ProgrammeWeek | undefined => PROGRAMME.find((w) => w.n === n);

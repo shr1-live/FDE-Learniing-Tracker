@@ -9,6 +9,7 @@ import { Ring } from "../components/Ring";
 import { WorkToday } from "../components/WorkToday";
 import { CatchUp } from "../components/CatchUp";
 import { MySteps } from "../components/MySteps";
+import { LearningHeatmap } from "../components/LearningHeatmap";
 import { fmtDate } from "../lib/backlog";
 import { youTubeId } from "../components/Bits";
 import { notesPath } from "../data/studyNotes";
@@ -66,6 +67,8 @@ export default function Home() {
         <div className="home-main">
           <WorkToday />
 
+          {w.learner && <LearningHeatmap />}
+
           {w.learner && (
             <section id="catch-up" aria-labelledby="cu-h">
               <div className="sec-head"><h2 id="cu-h">Catch up {w.missed.length > 0 && <small>{w.missed.length} missed</small>}</h2></div>
@@ -118,6 +121,7 @@ export default function Home() {
             <p className="meta" style={{ marginTop: 4 }}>Weeks of five working days: topic, theory, practical task, proof and a rating.</p>
             <div className="row" style={{ marginTop: "var(--s-3)" }}>
               <Link className="btn secondary" to="/week/1">Week 1 tasks</Link>
+              <Link className="btn secondary" to="/week/2">Week 2 tasks</Link>
               <Link className="btn ghost" to="/week/1#overview">All six weeks</Link>
             </div>
           </section>
