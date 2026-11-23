@@ -4,6 +4,7 @@ import { WEEK_DAYS, WEEK_TITLE, WeekDay } from "./weekPlan";
 import { EXPECT, DayExpectation } from "./weekExpect";
 import { WEEK2_DAYS, WEEK2_EXPECT, WEEK2_TITLE } from "./week2";
 import { WEEK3, WEEK4, WEEK5, WEEK6 } from "./weeks3to6";
+import { devopsTitle } from "./devops";
 
 export type ProgrammeWeek = { n: number; title: string; days: WeekDay[]; expect: Record<number, DayExpectation> };
 
@@ -29,6 +30,8 @@ export function parseTask(key: string): { week: number; day: number } | null {
 
 /** "week1-day2" becomes "Week 1, Day 2: Advanced Prompt Engineering". Unknown tasks show their key. */
 export function taskTitle(key: string): string {
+  const dv = devopsTitle(key);
+  if (dv) return dv;
   const t = parseTask(key);
   const day = t && getWeek(t.week)?.days.find((d) => d.n === t.day);
   return t && day ? `Week ${t.week}, Day ${t.day}: ${day.title}` : key;

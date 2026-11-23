@@ -5,8 +5,8 @@ import { getWeek } from "../data/programme";
  * A reviewer's checklist for one day: each acceptance point is Met or Not met. The score ("4 of 6 met") is shown, and
  * "Add unmet points to the comment" writes the unmet ones into the comment box, ready to edit and send back.
  */
-export function Rubric({ week, day, resetKey, onUnmet, onScore }: { week: number; day: number; resetKey: string; onUnmet: (lines: string[]) => void; onScore?: (s: { met: number; total: number } | null) => void }) {
-  const points = getWeek(week)?.days.find((d) => d.n === day)?.done ?? [];
+export function Rubric({ week, day, resetKey, onUnmet, onScore, points: given }: { points?: string[]; week: number; day: number; resetKey: string; onUnmet: (lines: string[]) => void; onScore?: (s: { met: number; total: number } | null) => void }) {
+  const points = given ?? getWeek(week)?.days.find((d) => d.n === day)?.done ?? [];
   const [met, setMet] = useState<Record<number, boolean>>({});
   useEffect(() => setMet({}), [resetKey]);
   const n = points.filter((_, i) => met[i]).length;

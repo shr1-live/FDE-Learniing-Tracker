@@ -20,6 +20,7 @@ import { PageHeader } from "../components/PageHeader";
 import { Progress } from "../components/Progress";
 import { useToast } from "../components/Toast";
 import { EmptyState } from "../components/States";
+import { TrackTabs } from "../components/TrackTabs";
 
 const flags = (v: unknown, len: number): boolean[] => Array.from({ length: len }, (_, i) => Array.isArray(v) && v[i] === true);
 const ST: Record<string, [string, "ok" | "warn" | "bad" | "info" | "none"]> = { submitted: ["Waiting for review", "info"], changes_requested: ["Changes asked", "bad"], approved: ["Approved", "ok"], draft: ["Saved, not submitted", "warn"] };
@@ -138,6 +139,7 @@ export default function Programme() {
   return (
     <>
       <PageHeader overline="Programme" title={`Week ${week.n}`} sub={week.title} />
+      <TrackTabs current="fde" />
       {PROGRAMME.length > 1 && (
         <nav className="weeksw" aria-label="Weeks">{PROGRAMME.map((w) => <Link key={w.n} to={`/week/${w.n}`} aria-current={w.n === week.n ? "page" : undefined}>Week {w.n}</Link>)}</nav>
       )}

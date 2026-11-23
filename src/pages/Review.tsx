@@ -9,6 +9,7 @@ import { useDevPersona } from "../lib/devPersona";
 import { ExpectedList } from "../components/ExpectedList";
 import { Rubric } from "../components/Rubric";
 import { parseTask, taskTitle } from "../data/programme";
+import { getDevopsWeek, parseDevopsTask } from "../data/devops";
 
 /** Reply templates: one click puts a common comment in the box, to edit before sending. */
 const TEMPLATES: [string, string][] = [
@@ -41,6 +42,8 @@ export default function Review() {
   const listReq = useRef(0);
   const openReq = useRef(0);
   const parsed = open ? parseTask(open.task_key) : null;
+  const dv = open ? parseDevopsTask(open.task_key) : null;
+  const dvPoints = dv ? getDevopsWeek(dv.week)?.days.find((d) => d.n === dv.day)?.done : undefined;
   const refresh = useCallback(async () => {
     const mine = ++listReq.current;
     try {
@@ -145,6 +148,8 @@ export default function Review() {
           <ProofList items={open.items} />
           {parsed && <ExpectedList week={parsed.week} day={parsed.day} open />}
           {parsed && open.status === "submitted" && <Rubric week={parsed.week} day={parsed.day} resetKey={open.id} onScore={setScore} onUnmet={(lines) => setComment((c) => (c ? c + "\n" : "") + lines.join("\n"))} />}
+
+          {dvPoints && open.status === "submitted" && <Rubric week={0} day={0} points={dvPoints} resetKey={open.id} onScore={setScore} onUnmet={(lines) => setComment((c) => (c ? c + "\n" : "") + lines.join("\n"))} />}
 
           {open.reviews.length > 0 && (
             <>

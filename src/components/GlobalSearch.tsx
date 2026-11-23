@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PROGRAMME } from "../data/programme";
+import { DEVOPS_WEEKS } from "../data/devops";
 import { DAYS } from "../data/types";
 import { useStore } from "../lib/store";
 import { noteKey } from "../lib/journalKeys";
@@ -33,6 +34,7 @@ export function GlobalSearch() {
       const note = entries[noteKey(wk.n, d.n)];
       if (typeof note === "string" && note.trim()) out.push({ id: `n${wk.n}-${d.n}`, title: `My note: Week ${wk.n}, Day ${d.n}`, sub: note.slice(0, 80), to: "/journal?tab=notes", text: note });
     }
+    for (const wk of DEVOPS_WEEKS) for (const d of wk.days) out.push({ id: `dv${wk.n}-${d.n}`, title: `DevOps Week ${wk.n}, Day ${d.n}: ${d.title}`, sub: "DevOps day", to: `/devops/week/${wk.n}#wd${d.n}`, text: [d.title, d.task, ...d.topics].join(" ") });
     for (const d of DAYS) for (const r of [...d.watch, ...d.read]) out.push({ id: `r${d.n}${r.url}`, title: r.title, sub: `Resource, Day ${d.n}${r.channel ? ` · ${r.channel}` : ""}`, to: "/resources", text: `${r.title} ${r.note} ${r.channel ?? ""}` });
     return out;
   }, [entries]);
