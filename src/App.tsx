@@ -29,6 +29,7 @@ const Resources = lazy(() => import("./pages/Resources"));
 const Review = lazy(() => import("./pages/Review"));
 const Admin = lazy(() => import("./pages/Admin"));
 const DailyLog = lazy(() => import("./pages/DailyLog"));
+const Devops = lazy(() => import("./pages/Devops"));
 const Community = lazy(() => import("./pages/Community"));
 const Quiz = lazy(() => import("./pages/Quiz"));
 const Journal = lazy(() => import("./pages/Journal"));
@@ -57,6 +58,7 @@ function Centered({ children }: { children: ReactNode }) {
 function crumbs(path: string): string[] {
   if (path === "/") return ["Home"];
   if (path.startsWith("/week")) return ["Programme", `Week ${path.split("/")[2] ?? FIRST_WEEK}`];
+  if (path.startsWith("/devops")) return ["DevOps", `Week ${path.split("/")[3] ?? 1}`];
   if (path.startsWith("/progress")) return ["Progress"];
   if (path.startsWith("/feed")) return ["Feed"];
   if (path.startsWith("/lab")) return ["Practice lab"];
@@ -204,6 +206,7 @@ function Shell() {
           <div className="nav-group">
             <Item to="/" end icon="home" label="Home" count={missed} countLabel="missed days" replace={inDrawer} />
             <Item to={`/week/${FIRST_WEEK}`} icon="book" label="Programme" active={onWeek} replace={inDrawer} />
+            <Item to="/devops/week/1" icon="layers" label="DevOps" active={loc.pathname.startsWith("/devops")} replace={inDrawer} />
             <Item to="/progress" icon="chart" label="Progress" replace={inDrawer} />
             <Item to="/feed" icon="rss" label="Feed" count={w.newInFeed.length} countLabel="new in the feed" replace={inDrawer} />
           </div>
@@ -248,6 +251,8 @@ function Shell() {
                   <Route path="/" element={<Home />} />
                   <Route path="/week" element={<Navigate to={`/week/${FIRST_WEEK}`} replace />} />
                   <Route path="/week/:n" element={<Programme />} />
+                  <Route path="/devops" element={<Navigate to="/devops/week/1" replace />} />
+                  <Route path="/devops/week/:n" element={<Devops />} />
                   <Route path="/progress" element={<ProgressPage />} />
                   <Route path="/progress/:id" element={<ProgressPage />} />
                   <Route path="/feed" element={<Feed />} />
