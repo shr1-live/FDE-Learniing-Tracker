@@ -10,7 +10,6 @@ import * as lab from "../lib/labApi";
 import type { Day1Case, Day1Result, Day2Result, Day2Version, Day3Result, Day3Step, LabResult, ModelChoice, SavedRun } from "../lib/labApi";
 import { RECORDED } from "../data/labSamples";
 import { WEEK_DAYS } from "../data/weekPlan";
-import { GeminiKeyPanel } from "../components/GeminiKeyPanel";
 import { ResultView, Day3Table } from "../components/LabResults";
 import { Progress } from "../components/Progress";
 import { Chip } from "../components/Chip";
@@ -620,7 +619,7 @@ export default function Lab() {
 
   return (
     <>
-      <header className="ph"><h1>Practice lab</h1>
+      <header className="ph">
         <p className="muted">Run the Week 1 Day 1, 2 and 3 practicals from here, on the server's model or on your own free Gemini key, and compare them on the same fixed tests. A recorded run is shown for every day before you start.</p></header>
 
       <section className="card" aria-labelledby="lab-why">
@@ -638,7 +637,6 @@ export default function Lab() {
       {usageError && <p className="banner err" role="alert">Could not check the server's model: {usageError}</p>}
       {connected && !signedOut && (
         <>
-          <GeminiKeyPanel serverModel={usage?.model} serverConfigured={usage ? usage.configured : undefined} />
           {usage && <p className="muted small">Server model: {usage.configured ? usage.model ?? "set up" : "not set up on this server"}. {own?.model ? `Your Gemini key is set (model ${own.model}).` : "Your Gemini key is not set."}</p>}
         </>
       )}

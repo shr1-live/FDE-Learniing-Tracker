@@ -150,6 +150,7 @@ const WEEK1: DayNotes[] = [
 export const STUDY_NOTES: Record<number, DayNotes[]> = { 1: WEEK1 };
 
 /** Where a day's notes are in the app. The week is part of the address, so a new week never opens week 1's notes. */
-export const notesPath = (week: number, day: number) => `/notes/${day}?w=${week}`;
+/** The notes of a day live inside the day itself on the Programme page. */
+export const notesPath = (week: number, day: number) => `/week/${week}#wd${day}`;
 
 export const notesFor = (week: number, day: number): DayNotes | undefined => STUDY_NOTES[week]?.find((d) => d.day === day);

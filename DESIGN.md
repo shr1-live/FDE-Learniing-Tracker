@@ -1,153 +1,102 @@
----
-name: FDE Learning Tracker
-description: A calm, documentation-grade learning portal for engineers. Paper-warm canvas, ink text, one blue action colour, one yellow marker for progress.
-version: 2.0
-colors:
-  canvas: "#F7F6F2"
-  surface: "#FFFFFF"
-  surface-sunken: "#EFEDE7"
-  ink: "#15191F"
-  ink-muted: "#5B6470"
-  line: "#DAD7CE"
-  action: "#2457C5"
-  action-ink: "#FFFFFF"
-  action-soft: "#E6EDFB"
-  marker: "#F2C94C"
-  success: "#2E7D57"
-  warning: "#9A5B00"
-  danger: "#B3261E"
-  night-canvas: "#0E1217"
-  night-surface: "#171D25"
-  night-ink: "#E8ECF1"
-  night-muted: "#9AA6B4"
-  night-line: "#2A3441"
-  night-action: "#8DB0F5"
-typography:
-  display: { family: "Bricolage Grotesque", weight: 700, size: "clamp(32px, 4.5vw, 52px)", lineHeight: 1.1, tracking: "-0.015em" }
-  h1: { family: "Bricolage Grotesque", weight: 700, size: "clamp(28px, 3.4vw, 38px)", lineHeight: 1.15 }
-  h2: { family: "Bricolage Grotesque", weight: 600, size: "24px", lineHeight: 1.25 }
-  h3: { family: "Bricolage Grotesque", weight: 600, size: "18px", lineHeight: 1.3 }
-  body: { family: "Hanken Grotesk", weight: 400, size: "16px", lineHeight: 1.65 }
-  small: { family: "Hanken Grotesk", weight: 400, size: "14px", lineHeight: 1.5 }
-  label: { family: "Hanken Grotesk", weight: 600, size: "13px", lineHeight: 1.2, tracking: "0.04em", transform: "uppercase" }
-  mono: { family: "ui-monospace, SFMono-Regular, Menlo, monospace", weight: 400, size: "13px" }
-spacing: { unit: 4, scale: [4, 8, 12, 16, 24, 32, 48, 72, 112] }
-radii: { sm: 6, md: 10, lg: 16, pill: 999 }
-elevation:
-  rest: "0 1px 2px rgba(21,25,31,.06)"
-  raised: "0 2px 4px rgba(21,25,31,.06), 0 10px 24px rgba(21,25,31,.08)"
-layout: { contentMax: 1120, readingMax: 68ch, sidebar: 264, gutter: 24 }
----
+# FDE Training design system
 
-# Design system: FDE Learning Tracker
+The source of truth for how the training app looks and behaves. It is built on the **FiftyFive Design System** (navy, square, hairline, Plus Jakarta Sans). Tokens live once, at the top of `src/styles.css`; components and pages use only those tokens. Change the token, not the page.
 
-## Overview
+The app shell and components follow the same patterns as the company's V3 programs app (cards, Lucide icons, toasts, confirm dialogs, skeletons, drawer), so the two products feel related, but they look different: this one is the FiftyFive brand, with the product name "FDE Training" under the logo.
 
-This is a place people come to *learn on purpose*. It should feel like good documentation crossed with a quiet notebook: warm paper, dark ink, generous space, one clear action colour. The interface never competes with the material. Anything that moves or glows must carry meaning (progress, a state change), never decoration.
+## 1. Personality
 
-Reference mood: Stripe Docs and Linear for restraint and clarity; a printed workbook for warmth. Not a dashboard of gradients. Not a SaaS landing-page template.
+Calm, precise, square. A FiftyFive product, not a generic dashboard.
 
-Three ideas hold everything together:
+- **Navy is the only saturated colour.** Headings, links, eyebrows, the primary button and the current place are navy; everything else is white, snow (`#F8F9FE`) and black. Pastel tints appear only in avatars, status chips and selected states.
+- **Square and flat.** Radius 0 everywhere (buttons, inputs, cards, chips, tabs, dialogs, menus). Only avatars are round. Borders are 1 px hairlines; there are no soft drop shadows (only the brand's tiny float shadow `0 1px 4px rgba(0,0,0,.2)` on things that float: menus, toasts, dialogs). The active card carries a 5 px navy rule on its left edge.
+- **One primary action per screen**, plain words, sentence case in text, spaced caps only for eyebrows, tags and chips.
+- **Always say what is going on.** Loading shows skeletons in the shape of the content; empty states say what to do next; errors say what failed and offer "Try again".
 
-1. **Layers.** The product is about building skills layer by layer. The yellow *marker* stripe (the logo mark) is the only recurring decoration. It appears as the progress fill, the active-item tick and the highlight under key words.
-2. **Reading first.** Long text sits in a 68-character column. Cards separate *kinds* of thing (a resource, a task, a review), not just chunks of space.
-3. **Honest states.** Pending, approved, changes requested, completed and locked each look different, always with text as well as colour.
+## 2. Tokens
 
-## Colors
+### Brand values (from the design system, transcribed once as `--ff-*`)
 
-| Token | Use |
+| Token | Value | Use |
+|---|---|---|
+| `--ff-navy` | `#000090` | Headings, links, eyebrows, active states |
+| `--ff-navy-button` | `#000099` | Primary button fill (hover `--ff-navy`) |
+| `--ff-snow` | `#F8F9FE` | Panels, inputs, text on dark |
+| `--ff-black` / `-70` / `-50` / `-20` / `-10` | black at alpha | Text, muted text, hairlines |
+| `--ff-blue-08` / `-10` / `-20` | `#2356F6` at alpha | Hairlines on snow panels |
+| `--ff-green` | `#34C759` | Live dot only |
+| `--ff-mint` `#8BDBC9`, `--ff-lavender` `#ACA6FF`, `--ff-avatar-periwinkle` `#D4DBFF`, `--ff-avatar-butter` `#FFEDA9`, `--ff-avatar-mint` `#E3FFF0` | | Avatars, chips, selected tints |
+
+### App roles (what components use)
+
+`--bg --surface --surface-2 --surface-3 --border --border-strong --text --text-2 --text-3 --text-display --accent --accent-bg --accent-bg-hover --on-accent --accent-soft --accent-soft-text --ring --success --warning --danger --info` (each with a `-soft` tint where it makes sense). Light uses the brand directly; dark is derived (section 5).
+
+### What was changed from the brand, and why (WCAG 2.2 AA)
+
+| Brand value | Problem | Used instead |
+|---|---|---|
+| Placeholder / meta text at 50% black | 4.0:1 on white | 62% black (`--text-3`), about 6:1 |
+| Input border `rgba(35,86,246,.20)` | Under 3:1 for the edge of a control | `--border-strong #7F89AE` (3.5:1); the hairline look is kept, the field also has the snow fill |
+| Status green `#34C759` as text | 2.2:1 on white | `#1B7A3A` for words; `#34C759` stays for the live dot |
+| Navy on butter or mint chips | passes, kept | butter chip text darkened to `#6B4A00` |
+| Brand type scale (76px display, 35px body line) | marketing sizes | App scale below |
+
+### Type
+
+Plus Jakarta Sans for text (headings 500, body 400, tracking `+0.01em`); Manrope for UI chrome (buttons 600, labels 600, tabs 600, tags and chips 700). Both load from Google Fonts in `index.html` (the CSP allows only `fonts.googleapis.com` and `fonts.gstatic.com`, so nothing is self-hosted).
+
+App scale, keeping the brand's ratios, weights and tracking: `--fs-xs 12`, `--fs-sm 13`, `--fs-md 14` (controls, dense table text), `--fs-base 16` (body, line height 1.6), `--fs-lg 18` (card titles), `--fs-xl 22` (section titles), `--fs-2xl 30` (page titles), `--fs-3xl 46` (sign-in hero only). Eyebrows, tags and chips are Manrope 700 uppercase with 0.09 to 0.12em tracking, 11 to 12 px. `h1` and `h2` are navy (`--text-display`); card titles are black.
+
+### Motion
+
+Ease `cubic-bezier(.2,.7,.2,1)`; 150 ms fast (hover, press), 240 ms base (menus, drawer, day cards, page fade). Only opacity and transform animate. Under `prefers-reduced-motion: reduce` everything is cut to near zero and skeletons stop shimmering.
+
+### Icons and logo
+
+Lucide (`lucide-react`, pinned, ISC licence), only through `components/Icon.tsx`; decorative, the meaning is always in words. The FiftyFive logo is used unchanged (`public/assets/fiftyfive-logo-color.svg` on light, `-white.svg` on dark, swapped by CSS with `--logo-light` / `--logo-dark`), `alt="FiftyFive Technologies"`, with "FDE Training" under it in the side panel and next to it on the sign-in page. In the icon rail the same file is cropped to its mark.
+
+## 3. Shell
+
+- **Side panel** (256 px, hairline right edge): logo + "FDE Training", then **Home, Programme, Progress, Feed**, a "Tools" group (**Practice lab, Resources**, and for reviewers **Review**, for the admin **Admin**), then the **account button** (name, role) opening a popover with email, role, batch, theme (System / Light / Dark) and Sign out. Counts: missed days on Home, new items on Feed, submissions waiting on Review. Active item: soft fill, navy text, 4 px navy bar on the panel edge, `aria-current="page"`.
+- **Icon rail** (72 px): the top-bar button folds the panel; the choice is remembered (`fde:sidebar`); labels become tooltips on hover and keyboard focus. Below 1200 px the panel starts as a rail.
+- **Top bar** (56 px + safe area): fold or menu button, breadcrumb, the "View as" switch (reviewers and admin), the reminders bell.
+- **Phones (< 768 px)**: bottom tab bar (Home, Programme, Progress, Feed, More) above the home indicator; "More" opens the drawer (focus moves in, page behind is inert, Esc / scrim / X / a link / Android Back closes it and focus returns). `lib/layers.ts` gives drawers, dialogs and popovers a history entry so Back closes the top layer first.
+- **Devices**: `viewport-fit=cover` and `env(safe-area-inset-*)`, `100dvh`, 16 px inputs on touch (no iOS zoom), 44 px targets on touch, hover effects only under `(hover: hover)`. Checked at 360, 390, 412, 768, 1024, 1366 and 1920 px with no sideways scroll.
+- **Routes** are lazy chunks. Route changes move focus to `<main>`; there is a skip link; a 401 shows "Your session has expired".
+
+## 4. Pages and where the old pages went
+
+| Page | Holds | Old addresses that redirect here |
+|---|---|---|
+| Home `/` | Greeting and progress ring, today's work (tick points in place), **Catch up** (`#catch-up`), **My steps** (`#steps`), new in the feed, profile | `/backlog`, `/myplan` |
+| Programme `/week/:n` | Week switcher, six-week overview (`#overview`), day cards (Theory, Practical, study notes inline, Submit panel or cohort summary) | `/outline`, `/notes/:day` |
+| Progress `/progress` | Tabs: My report or Reports, Week 1 results; `/progress/:id` for one person; status filter and print | `/report` |
+| Feed `/feed` | Shared links, topics, sort, search | |
+| Practice lab `/lab` | Tabs: Lab, Recruitment assistant, Task assistant; one shared Gemini key panel | `/assistant`, `/task-assistant` |
+| Resources `/resources` | Tabs: Study notes, Stack guide, Readiness, Downloads | `/notes`, `/stack`, `/readiness`, `/docs` |
+| Review `/review` | Reviewers only | |
+| Admin `/admin` | Admin only | |
+
+Tabs live in the address (`?tab=`), so they can be linked and reached with Back.
+
+## 5. Dark theme (derived; the brand defines light only)
+
+Dark follows the system unless the person picks Light or Dark (stored as `data-theme`, set before first paint by `public/theme-init.js`). Derived from the brand's ink and snow:
+
+- Page `#0C0D14` (the brand ink), panels `#12141D` / `#181B27`, hairlines snow at 14%, text `#F8F9FE` (muted 74%, meta 62%).
+- Navy cannot carry text or a button on near-black, so the accent becomes periwinkle `#8FA2FF` for buttons (dark text on it, 8:1) and lavender `#ACA6FF` for links and focus; headings use `#C9D0FF`. Control edges `#6F78A0` (3.7:1).
+- Chips use translucent tints of the same hues with light text; the white FiftyFive logo is shown.
+
+## 6. Components
+
+| Component | Rules |
 |---|---|
-| `canvas` | Page background. Warm off-white so long reading is easy on the eyes. |
-| `surface` | Cards, inputs, tables. |
-| `surface-sunken` | Wells, code blocks, inactive tabs. |
-| `ink` / `ink-muted` | Text. Muted is for secondary text only; never below 4.5:1 contrast. |
-| `line` | 1px borders and dividers. |
-| `action` / `action-soft` | Links, primary buttons, focus ring, selected states. The only saturated colour in the UI. |
-| `marker` | Progress fills and the active tick. Never used for text. |
-| `success` `warning` `danger` | Review and form states. Always paired with an icon or word. |
-
-Dark mode uses the `night-*` set. It is a first-class theme, not an inversion: keep the same hierarchy, lower the surface contrast, lift the action colour.
-
-Rules: one action colour per screen; `marker` is never used on a button; no gradients except the subtle progress fill; status colour alone never carries meaning.
-
-## Typography
-
-Headings use **Bricolage Grotesque** (distinct, humane); everything else uses **Hanken Grotesk**. Both are free (Google Fonts). Use the scale above and nothing in between.
-
-- Body 16px minimum; reading columns max `68ch`.
-- Headings use `text-wrap: balance`. Never centre body text.
-- `label` style is for eyebrows and table headers only.
-- Numbers in tables and progress use tabular figures.
-
-## Layout
-
-- App shell: 264px sidebar, content max 1120px, 24px gutters. Sidebar collapses via the hamburger; on phones it is a drawer.
-- 4px spacing unit; sections separated by 48px, cards padded 24px, form rows 16px apart.
-- Primary reading pages use a single 68ch column with an optional right rail (progress, table of contents).
-- Breakpoints: 640 (single column), 900 (drawer sidebar), 1200 (two-column feeds).
-
-## Elevation and shape
-
-Mostly flat. Cards use `rest` shadow plus a 1px `line`; `raised` is for menus and dialogs only. Radii: `sm` inputs and chips, `md` cards and buttons, `lg` hero panels, `pill` tags.
-
-## Components
-
-- **Button.** Primary: `action` fill, white text, `md` radius, 44px tall. Secondary: `surface` with `line` border. Destructive: `danger` text on secondary. Focus: 2px `action` ring with 2px offset. Disabled: 50% opacity plus `not-allowed`.
-- **Card.** `surface`, 1px `line`, `md` radius, 24px padding. Interactive cards lift 2px on hover and show the action border.
-- **Resource row.** Kind tag, title link, source line, then a *Mark done* toggle. Done rows get a check, a muted title and a strike-through only on the title.
-- **Progress.** A 8px pill track in `line` with a `marker` fill. Always shows the number beside it ("3 of 7").
-- **Tabs.** Underline style on desktop (2px `action` underline for the active tab); horizontal scroll on phones.
-- **Status tag.** Pill with icon + word: Draft, In review, Approved, Changes requested, Rejected.
-- **Feed item.** Topic label, title, 2-line summary, author, date, stack chip. Approved items only.
-- **Review panel.** Content preview left, decision form right (Approve, Request changes, Reject, comment required for the last two).
-- **Empty state.** One sentence saying what belongs here and one button to add it. No illustrations needed.
-- **Toast.** Bottom centre, 4s, `role="status"`. Never the only confirmation of a destructive action.
-
-## Motion
-
-150–250ms ease-out for hover, focus and expanding panels. Progress fills animate once on load. Everything respects `prefers-reduced-motion` (no animation at all).
-
-## Accessibility
-
-WCAG 2.2 AA minimum. Visible focus on everything; 44px touch targets; one `h1` per page; landmarks (`header`, `nav`, `main`); forms have labels and inline error text; tab and dialog patterns follow WAI-ARIA; colour is never the only signal.
-
-## Do and don't
-
-**Do** keep one action colour per view; show counts next to bars; write short, plain labels; give every list an empty state; keep the sidebar to 8 items or fewer.
-
-**Don't** add animated backgrounds, parallax, confetti or glow effects; use more than two font families; hide actions behind icons without labels; mix card radii; use the marker colour for text.
-
-## Page patterns
-
-- **Landing.** Left: display heading, one sentence, one primary button. Right: a static "layers" diagram. Below: three short feature rows and the sign-in form. No carousels.
-- **Home (signed in).** Greeting, current program progress, "continue where you left off", latest approved feed items for your stack.
-- **Feed.** Topic filter chips on top, stack toggle (General | your stack), cards in a single column of 68ch (two columns above 1200px).
-- **Program.** Ordered steps with progress per step; tabs for Learn, Build, Practice, Notes only when the step has that content.
-- **Review queue.** Table of submissions with status, author, topic, age; open one to review.
-- **Admin.** People, roles, access requests, programs.
-
-## Reference and product KPIs (added 2026-11-16)
-
-**Reference site: Khan Academy.** This is a free, internal learning tool whose core job is mastery and visible progress, not selling or lead generation. Khan Academy is the closest match: free and non-commercial, progress and mastery shown everywhere, a calm and trustworthy look, and one clear "continue" action. Subscription and conversion references (Duolingo streak pressure, Udemy urgency badges, Coursera certificates and pricing) fit a public marketplace and are not used. We borrow structure and UX patterns only, never text, logos or assets.
-
-**Principles taken from the EdTech brief, adapted to this tool**
-- Value in five seconds: the dashboard opens with progress and the next step, with one primary action.
-- Progress is always visible: progress bars on every programme, week and day; "next up" is one click away.
-- One primary action per screen; proof near the action (what is done, what is left).
-- WCAG 2.2 AA, keyboard navigation, good contrast, mobile first, dark mode; tokens defined once and reused.
-- Honest status only: never imply something is live, merged or finished when it is not.
-- Icons are inline SVG and decorative: the meaning is always in words next to them.
-
-**KPIs this tool should show (the dashboard and report are built around them)**
-| KPI | Where it shows |
-|---|---|
-| Programme completion | Dashboard progress bar; Week 1 report "Criteria met" |
-| Activation (first task done) | Dashboard "next up" |
-| Week and day completion | Plan, Week 1 tasks, Week 1 report |
-| Assistant usage and model quality (pass rate, speed, tokens, failures) | Assistant page, Week 1 report |
-| Return visits (streak or last seen) | Optional, later |
-
-**Not applicable to this internal free tool:** pricing and payments, SEO and public marketing pages, referral and coupon programmes, certificates.
-
-**Phased redesign plan:** UI1 tokens, fonts, icon set and app shell; UI2 dashboard as a KPI view; UI3 remaining pages; UI4 accessibility, performance and dark-mode pass.
-
+| Button | `.btn` primary (navy fill, snow text, hairline ring), `.secondary` (white, strong border), `.ghost`, `.danger`; icon left; 40 px high (44 touch); full-width variant `.block` with an icon for form cards |
+| Form card | The pattern the owner likes: bold title, muted one-line subtitle, labelled fields with "(optional)" hints, a full-width primary button with an icon, in the square hairline style |
+| Card | White, 1 px hairline, no shadow; the active or focused one gets the 5 px navy left rule (`.wcard.focus`, `.daycard.open`) |
+| Chip, tag | Square, Manrope 700 uppercase, a dot before the word; words carry the meaning, colour backs it up |
+| Tabs | Underlined links with `aria-current="page"`; segmented controls (`.seg`) for local switches |
+| Toast, Dialog, Menu, Popover | As in the V3 app: toasts for results (errors stay 7 s, `role="alert"`), `useConfirm()` on `<dialog>` instead of `window.confirm`, arrow-key menus, Esc and Android Back close and return focus |
+| Skeleton, Empty, Error | Skeletons sized like the content inside an `aria-busy` region; empty states give a next step; errors say what failed and offer "Try again" |
+| Unsaved changes | `useUnsaved()` marks a form dirty; leaving through a link asks first, closing the tab asks too |
+| Avatar | Initials on a brand tint (periwinkle, butter, mint, lavender), round, decorative |

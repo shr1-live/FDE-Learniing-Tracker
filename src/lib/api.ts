@@ -48,7 +48,26 @@ async function send(method: string, path: string, body?: BodyInit, json = false,
   }
 }
 
+/** Tells the app shell that the sign-in is no longer valid, so it can ask the person to sign in again. */
+function expired() { if (typeof window !== "undefined") window.dispatchEvent(new Event("fde:session-expired")); }
+
+/** True while the Supabase sign-in is still within its lifetime (a 401 right then is usually a token refresh in flight). */
+async function signInStillValid(): Promise<boolean> {
+  try {
+    if (devToken() || !supabase) return false;
+    const { data } = await supabase.auth.getSession();
+    const exp = data.session?.expires_at;
+    return !!exp && exp * 1000 > Date.now() + 10_000;
+  } catch { return false; }
+}
+let softUnauthorizedAt = 0;
+
 async function failure(res: Response): Promise<ApiError> {
+  if (res.status === 401) {
+    // One 401 while the sign-in looks valid is ignored (it must not wipe what the person is typing); a second one within 30 s, or a sign-in that has run out, ends the session.
+    if (!(await signInStillValid()) || Date.now() - softUnauthorizedAt < 30_000) expired();
+    else softUnauthorizedAt = Date.now();
+  }
   const body = await res.json().catch(() => null);
   const header = Number(res.headers.get("Retry-After"));
   const after = typeof body?.retry_after_seconds === "number" ? body.retry_after_seconds : Number.isFinite(header) && header > 0 ? header : undefined;

@@ -10,7 +10,7 @@ export default function Readiness() {
   );
   return (
     <>
-      <header className="ph"><h1>Readiness</h1><p className="muted">Rate yourself from 1 to 5 against the outline's skills table. Do it on Day 1 and again on Day 10.</p></header>
+      <header className="ph"><p className="muted">Rate yourself from 1 to 5 against the outline's skills table. Do it on Day 1 and again on Day 10.</p></header>
       <div className="tablewrap"><table>
         <thead><tr><th>Skill</th><th>Target proficiency</th><th>Practised</th><th>Day 1</th><th>Day 10</th></tr></thead>
         <tbody>{READINESS.map((r, i) => (
