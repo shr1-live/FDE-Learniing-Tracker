@@ -1,56 +1,73 @@
-import { useState } from "react";
-import { NavLink, Route, Routes, Navigate } from "react-router-dom";
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
+import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useStore } from "./lib/store";
-import Landing from "./pages/Landing";
-import Dashboard from "./pages/Dashboard";
-import Feed from "./pages/Feed";
-import ProgressPage from "./pages/Progress";
-import { setView, useView } from "./lib/viewAs";
 import { API_URL } from "./lib/api";
-import Outline from "./pages/Outline";
-import WeekPlan from "./pages/WeekPlan";
-import Assistant from "./pages/Assistant";
-import Week1Report from "./pages/Week1Report";
-import Readiness from "./pages/Readiness";
-import StackGuide from "./pages/StackGuide";
-import Admin from "./pages/Admin";
-import MyPlan from "./pages/MyPlan";
-import Gate from "./pages/Gate";
-import Docs from "./pages/Docs";
-import BackButton from "./components/BackButton";
-import ThemeSwitch from "./components/ThemeSwitch";
-import { Icon, IconName } from "./components/Icon";
-import { Progress } from "./components/Progress";
-import Review from "./pages/Review";
-import TaskAssistant from "./pages/TaskAssistant";
-import Lab from "./pages/Lab";
-import Backlog from "./pages/Backlog";
-import StudyNotes from "./pages/StudyNotes";
-import { WorkProvider, useWork } from "./lib/work";
-import { NotificationBell } from "./components/NotificationBell";
-import { PROGRAMME } from "./data/programme";
-import { DevPersonaBar } from "./components/DevPersonaBar";
+import { useMe } from "./lib/useRole";
+import { setView, useView } from "./lib/viewAs";
+import { clearUnsaved, hasUnsaved } from "./lib/unsaved";
+import { closeLayer, openLayer } from "./lib/layers";
 import { useDevPersona } from "./lib/devPersona";
-import { canReview, useMe } from "./lib/useRole";
+import { WorkProvider, useWork } from "./lib/work";
+import { PROGRAMME } from "./data/programme";
+import Gate from "./pages/Gate";
+import { Icon, type IconName } from "./components/Icon";
+import { Logo } from "./components/Logo";
+import { PageSkeleton } from "./components/States";
+import { useConfirm } from "./components/Confirm";
+import { NotificationBell } from "./components/NotificationBell";
+import { AccountMenu } from "./components/shell/AccountMenu";
 
-const ADMIN_ONLY = new Set<string>(); // nothing in the menu is admin-only now; the Admin page is added separately
-const NAV: [string, string][] = [["/", "Dashboard"], ["/myplan", "My plan"], ["/outline", "Six-week programme"], ...PROGRAMME.map((w): [string, string] => [`/week/${w.n}`, `Week ${w.n} tasks`]), ["/backlog", "Backlog"], ["/notes", "Study notes"], ["/feed", "Feed"], ["/assistant", "Assistant"], ["/task-assistant", "Task assistant"], ["/lab", "Practice lab"], ["/report", "Week 1 report"], ["/stack", "Stack guide"], ["/readiness", "Readiness"], ["/docs", "Downloads"]];
+// Every page is its own chunk, so the first load only carries the shell.
+const Landing = lazy(() => import("./pages/Landing"));
+const Home = lazy(() => import("./pages/Home"));
+const Programme = lazy(() => import("./pages/Programme"));
+const ProgressPage = lazy(() => import("./pages/Progress"));
+const Feed = lazy(() => import("./pages/Feed"));
+const LabHub = lazy(() => import("./pages/LabHub"));
+const Resources = lazy(() => import("./pages/Resources"));
+const Review = lazy(() => import("./pages/Review"));
+const Admin = lazy(() => import("./pages/Admin"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
-const NAV_ICON: Record<string, IconName> = {
-  "/": "home", "/feed": "rss", "/progress": "chart", "/backlog": "calendar", "/notes": "book", "/myplan": "user", "/outline": "book", "/assistant": "spark", "/task-assistant": "list", "/lab": "chip", "/report": "chart", "/review": "inbox",
-  "/stack": "compass", "/readiness": "target", "/docs": "download", "/admin": "shield",
-};
+const RAIL = "fde:sidebar"; // "rail" or "full"; unset means "decide by screen width"
+const FIRST_WEEK = PROGRAMME[0]?.n ?? 1;
 
-/** The number of missed days, shown next to "Backlog" in the menu (words in the label, number as a hint). */
-/** Who the server says you are. When the server cannot confirm the account, say so instead of silently hiding role features. */
-function RoleBadge() {
-  const { me, ready } = useMe();
-  const { batch } = useWork();
-  if (!API_URL) return null;
-  if (!ready) return null;
-  if (!me) return <p className="rolebadge warn" role="status">The server has not confirmed your account, so reviewer and admin features are hidden. Sign out and in again; if it stays, tell the admin.</p>;
-  const label = me.role === "admin" ? "Admin" : me.role === "reviewer" ? "Reviewer" : "Learner";
-  return <p className="rolebadge">Role: <b>{label}</b>{me.access !== "approved" ? " (waiting for approval)" : ""}{batch ? <><br />Batch: <b>{batch.name}</b></> : null}</p>;
+function useMedia(q: string) {
+  const [on, setOn] = useState(() => window.matchMedia(q).matches);
+  useEffect(() => {
+    const m = window.matchMedia(q);
+    const ch = () => setOn(m.matches);
+    m.addEventListener("change", ch);
+    return () => m.removeEventListener("change", ch);
+  }, [q]);
+  return on;
+}
+
+function Centered({ children }: { children: ReactNode }) {
+  return <main className="center-page" id="main"><div className="center-card card">{children}</div></main>;
+}
+
+function crumbs(path: string): string[] {
+  if (path === "/") return ["Home"];
+  if (path.startsWith("/week")) return ["Programme", `Week ${path.split("/")[2] ?? FIRST_WEEK}`];
+  if (path.startsWith("/progress")) return ["Progress"];
+  if (path.startsWith("/feed")) return ["Feed"];
+  if (path.startsWith("/lab")) return ["Practice lab"];
+  if (path.startsWith("/resources")) return ["Resources"];
+  if (path.startsWith("/review")) return ["Review"];
+  if (path.startsWith("/admin")) return ["Admin"];
+  return ["Page not found"];
+}
+
+/** A side-panel link: icon, label (a tooltip when the panel is a rail) and an optional count. */
+function Item({ to, icon, label, end, count, countLabel, replace, active }: { to: string; icon: IconName; label: string; end?: boolean; count?: number; countLabel?: string; replace?: boolean; active?: boolean }) {
+  return (
+    <NavLink to={to} end={end} replace={replace} className={({ isActive }) => "nav-item" + (isActive || active ? " active" : "")} aria-current={active ? "page" : undefined}>
+      <Icon name={icon} strokeWidth={1.9} />
+      <span className="nav-label">{label}</span>
+      {!!count && <span className="nav-count">{count > 9 ? "9+" : count}<span className="sr"> {countLabel}</span></span>}
+    </NavLink>
+  );
 }
 
 /** Reviewers and the admin: switch between what a learner sees and what a reviewer sees. */
@@ -68,76 +85,224 @@ function ViewSwitch() {
   );
 }
 
-function BacklogCount() {
-  const { missed, learner } = useWork();
-  if (!learner || missed.length === 0) return null;
-  return <span className="navcount" aria-label={`${missed.length} missed`}>{missed.length}</span>;
+function Shell() {
+  const { user, signOut, saveError, isAdmin } = useStore();
+  const persona = useDevPersona();
+  const { me, ready: meReady } = useMe();
+  const { reviewerView, canSwitch } = useView();
+  const w = useWork();
+  const loc = useLocation();
+  const navigate = useNavigate();
+  const confirm = useConfirm();
+  const phone = useMedia("(max-width: 767px)");
+  const wide = useMedia("(min-width: 1200px)");
+  const [open, setOpen] = useState(false);
+  const [railPref, setRailPref] = useState<string | null>(() => { try { return localStorage.getItem(RAIL); } catch { return null; } });
+  const rail = !phone && (railPref ? railPref === "rail" : !wide);
+  const mainRef = useRef<HTMLElement>(null);
+  const opener = useRef<HTMLElement | null>(null);
+  const side = useRef<HTMLElement>(null);
+  const drawerLayer = useRef<number | null>(null);
+  const lastPath = useRef(loc.pathname);
+  const adminHere = isAdmin || me?.role === "admin";
+
+  const toggleRail = () => {
+    const next = rail ? "full" : "rail";
+    setRailPref(next);
+    try { localStorage.setItem(RAIL, next); } catch { /* ignore */ }
+  };
+
+  // The phone drawer. Opening it adds a history entry, so Android Back closes it.
+  const openDrawer = (e: { currentTarget: HTMLElement }) => {
+    opener.current = e.currentTarget;
+    setOpen(true);
+    drawerLayer.current = openLayer(() => { drawerLayer.current = null; setOpen(false); opener.current?.focus(); });
+  };
+  const closeDrawer = (focus = true) => {
+    setOpen(false);
+    const l = drawerLayer.current; drawerLayer.current = null;
+    void closeLayer(l);
+    if (focus) opener.current?.focus();
+  };
+
+  // A new page: close the drawer, go to the top and move focus to the page so screen readers announce it.
+  useEffect(() => {
+    if (drawerLayer.current) closeDrawer(false);
+    if (lastPath.current === loc.pathname) return;
+    lastPath.current = loc.pathname;
+    if (!loc.hash) window.scrollTo(0, 0);
+    mainRef.current?.focus({ preventScroll: true });
+  }, [loc.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A link such as /#catch-up or /week/1#wd3 scrolls to that part once the page is drawn (and once more after it has laid out).
+  useEffect(() => {
+    if (!loc.hash) return;
+    const go = () => document.getElementById(decodeURIComponent(loc.hash.slice(1)))?.scrollIntoView({ block: "start" });
+    const t1 = window.setTimeout(go, 60), t2 = window.setTimeout(go, 350);
+    return () => { window.clearTimeout(t1); window.clearTimeout(t2); };
+  }, [loc.pathname, loc.hash]);
+
+  useEffect(() => { if (!phone && drawerLayer.current) closeDrawer(false); }, [phone]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (side.current) side.current.inert = phone && !open; }, [phone, open]);
+  // The drawer on phones: focus goes in, Esc closes, the page behind is inert and does not scroll.
+  useEffect(() => {
+    const col = mainRef.current?.parentElement;
+    if (col) col.inert = phone && open;
+    document.documentElement.classList.toggle("scroll-lock", phone && open);
+    if (!phone || !open) return;
+    side.current?.querySelector<HTMLElement>("nav a")?.focus();
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") closeDrawer(); };
+    document.addEventListener("keydown", esc);
+    return () => document.removeEventListener("keydown", esc);
+  }, [open, phone]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Unsaved changes: ask before following a link inside the app.
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (!hasUnsaved() || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!a || a.target || a.origin !== window.location.origin || a.pathname === window.location.pathname) return;
+      e.preventDefault(); e.stopPropagation();
+      const to = a.pathname + a.search + a.hash;
+      void confirm({ title: "Leave without saving?", body: "You have changes on this page that are not saved yet. If you leave now, they are lost.", confirm: "Leave page", cancel: "Stay on this page", danger: true })
+        .then((ok) => { if (ok) { clearUnsaved(); navigate(to); } });
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, [confirm, navigate]);
+
+  const trail = crumbs(loc.pathname);
+  const name = (user?.email ?? "").split("@")[0]!.split(/[._-]/).map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ") || "You";
+  const roleLabel = !API_URL ? "Learner" : me ? (me.role === "admin" ? "Admin" : me.role === "reviewer" ? "Reviewer" : "Learner") : meReady ? "Not confirmed" : "Checking";
+  const inDrawer = phone && open; // links in the open drawer replace its history entry instead of stacking on it
+  const onWeek = loc.pathname.startsWith("/week");
+  const moreActive = open || /^\/(lab|resources|review|admin)/.test(loc.pathname);
+  const missed = w.learner ? w.missed.length : 0;
+
+  return (
+    <div className={"app" + (open ? " drawer-open" : "") + (rail ? " rail" : "")}>
+      <a href="#main" className="skip" onClick={(e) => { e.preventDefault(); mainRef.current?.focus(); }}>Skip to content</a>
+      <aside ref={side} className="sidebar" aria-label="Sidebar">
+        <div className="side-top">
+          <Link to="/" className="brand" replace={inDrawer} data-tip="FDE Training" aria-label="FDE Training, home"><Logo /><span className="brand-name">FDE Training</span></Link>
+          {phone && <button type="button" className="iconbtn" aria-label="Close the menu" onClick={() => closeDrawer()}><Icon name="x" /></button>}
+        </div>
+        <nav aria-label="Main" className="nav">
+          <div className="nav-group">
+            <Item to="/" end icon="home" label="Home" count={missed} countLabel="missed days" replace={inDrawer} />
+            <Item to={`/week/${FIRST_WEEK}`} icon="book" label="Programme" active={onWeek} replace={inDrawer} />
+            <Item to="/progress" icon="chart" label="Progress" replace={inDrawer} />
+            <Item to="/feed" icon="rss" label="Feed" count={w.newInFeed.length} countLabel="new in the feed" replace={inDrawer} />
+          </div>
+          <div className="nav-group" role="group" aria-labelledby="nav-more">
+            <p className="nav-section" id="nav-more"><span className="sr">More: </span>Tools</p>
+            <Item to="/lab" icon="lab" label="Practice lab" replace={inDrawer} />
+            <Item to="/resources" icon="library" label="Resources" replace={inDrawer} />
+            {reviewerView && <Item to="/review" icon="inbox" label="Review" count={w.counts?.submitted ?? 0} countLabel="waiting for review" replace={inDrawer} />}
+            {adminHere && <Item to="/admin" icon="shield" label="Admin" replace={inDrawer} />}
+          </div>
+        </nav>
+        <div className="side-foot">
+          <AccountMenu name={name} email={user?.email ?? ""} role={roleLabel} batch={w.batch?.name} onSignOut={() => void signOut()}>
+            {phone && canSwitch ? <ViewSwitch /> : null}
+          </AccountMenu>
+        </div>
+      </aside>
+      {phone && open && <div className="scrim" onClick={() => closeDrawer()} aria-hidden="true" />}
+      <div className="main-col">
+        <header className="topbar">
+          {phone
+            ? <button type="button" className="iconbtn" aria-label="Open the menu" aria-expanded={open} onClick={openDrawer}><Icon name="menu" /></button>
+            : <button type="button" className="iconbtn" aria-label={rail ? "Expand the side panel" : "Collapse the side panel"} title={rail ? "Expand the side panel" : "Collapse the side panel"} onClick={toggleRail}><Icon name={rail ? "panelOpen" : "panelClose"} /></button>}
+          <span className="topbar-sep" aria-hidden="true" />
+          <nav aria-label="Breadcrumb" className="crumbs">
+            <ol>{trail.map((c, i) => <li key={i} aria-current={i === trail.length - 1 ? "page" : undefined}>{c}</li>)}</ol>
+          </nav>
+          <div className="topright">{!phone && <ViewSwitch />}<NotificationBell /></div>
+        </header>
+        <main ref={mainRef} id="main" className="main" tabIndex={-1}>
+          <div className="content">
+            {saveError && <p className="banner err" role="alert">Could not save to the database: {saveError}</p>}
+            {API_URL && meReady && !me && <p className="banner" role="status">The server has not confirmed your account, so reviewer and admin features are hidden. Sign out and in again; if it stays, tell the admin.</p>}
+            <Suspense fallback={<PageSkeleton />}>
+              <div className="page" key={loc.pathname}>
+                <Routes key={persona}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/week" element={<Navigate to={`/week/${FIRST_WEEK}`} replace />} />
+                  <Route path="/week/:n" element={<Programme />} />
+                  <Route path="/progress" element={<ProgressPage />} />
+                  <Route path="/progress/:id" element={<ProgressPage />} />
+                  <Route path="/feed" element={<Feed />} />
+                  <Route path="/lab" element={<LabHub />} />
+                  <Route path="/resources" element={<Resources />} />
+                  <Route path="/review" element={<Review />} />
+                  <Route path="/admin" element={<Admin />} />
+                  {/* Old addresses keep working: bookmarks and links in the sheet open the merged page. */}
+                  <Route path="/myplan" element={<Navigate to="/#steps" replace />} />
+                  <Route path="/backlog" element={<Navigate to="/#catch-up" replace />} />
+                  <Route path="/outline" element={<Navigate to={`/week/${FIRST_WEEK}#overview`} replace />} />
+                  <Route path="/notes" element={<Navigate to="/resources?tab=notes" replace />} />
+                  <Route path="/notes/:day" element={<NotesRedirect />} />
+                  <Route path="/report" element={<Navigate to="/progress?tab=week1" replace />} />
+                  <Route path="/stack" element={<Navigate to="/resources?tab=stack" replace />} />
+                  <Route path="/readiness" element={<Navigate to="/resources?tab=readiness" replace />} />
+                  <Route path="/docs" element={<Navigate to="/resources?tab=downloads" replace />} />
+                  <Route path="/assistant" element={<Navigate to="/lab?tab=recruit" replace />} />
+                  <Route path="/task-assistant" element={<Navigate to="/lab?tab=tasks" replace />} />
+                  <Route path="/plan/*" element={<Navigate to="/" replace />} />
+                  <Route path="/curated" element={<Navigate to="/" replace />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+            </Suspense>
+          </div>
+        </main>
+        {phone && (
+          <nav className="tabbar" aria-label="Shortcuts">
+            <NavLink to="/" end className="tab"><span className="tab-icon"><Icon name="home" />{!!missed && <span className="tab-dot" />}</span><span>Home{!!missed && <span className="sr">, {missed} missed days</span>}</span></NavLink>
+            <NavLink to={`/week/${FIRST_WEEK}`} className={"tab" + (onWeek ? " active" : "")}><span className="tab-icon"><Icon name="book" /></span><span>Programme</span></NavLink>
+            <NavLink to="/progress" className="tab"><span className="tab-icon"><Icon name="chart" /></span><span>Progress</span></NavLink>
+            <NavLink to="/feed" className="tab"><span className="tab-icon"><Icon name="rss" />{w.newInFeed.length > 0 && <span className="tab-dot" />}</span><span>Feed{w.newInFeed.length > 0 && <span className="sr">, {w.newInFeed.length} new</span>}</span></NavLink>
+            <button type="button" className={"tab" + (moreActive ? " active" : "")} aria-expanded={open} onClick={openDrawer}>
+              <span className="tab-icon"><Icon name="menu" /></span><span>More<span className="sr"> pages and your account</span></span>
+            </button>
+          </nav>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** /notes/:day?w=1 (old study-notes link) opens that day, where the notes now sit inside the day card. */
+function NotesRedirect() {
+  const { day } = useParams();
+  const [params] = useSearchParams();
+  const wk = Number(params.get("w")) || FIRST_WEEK;
+  return <Navigate to={`/week/${wk}#wd${Number(day) || 1}`} replace />;
 }
 
 export default function App() {
-  const { ready, user, signOut, saveError, pct, access, isAdmin } = useStore();
-  const [collapsed, setCollapsed] = useState(() => { try { const v = localStorage.getItem("fde:nav"); return v === null ? window.innerWidth < 900 : v === "1"; } catch { return false; } });
-  const persona = useDevPersona(); // empty on the live site
-  const { me } = useMe();
-  const { reviewerView } = useView();
-  const toggle = () => setCollapsed((c) => { try { localStorage.setItem("fde:nav", c ? "0" : "1"); } catch { /* ignore */ } return !c; });
-  if (!ready) return <main className="center"><p className="muted">Loading</p></main>;
-  if (!user) return <Landing />;
+  const { ready, user, signOut, access } = useStore();
+  const [expired, setExpired] = useState(false);
+  useEffect(() => {
+    const on = () => setExpired(true);
+    window.addEventListener("fde:session-expired", on);
+    return () => window.removeEventListener("fde:session-expired", on);
+  }, []);
+  useEffect(() => { setExpired(false); }, [user?.email]);
+  const loading = (t: string) => <Centered><p className="muted" role="status">{t}</p></Centered>;
+  if (!ready) return loading("Loading");
+  if (!user) return <Suspense fallback={loading("Loading")}><Landing /></Suspense>;
+  if (expired) {
+    return (
+      <Centered>
+        <span className="center-icon warn" aria-hidden="true"><Icon name="clock" size={22} /></span>
+        <h1>Your session has expired</h1>
+        <p className="muted">You were signed out after a while, to keep your account safe. Sign in again to carry on; everything you saved is kept.</p>
+        <div className="row center"><button type="button" className="btn" onClick={() => { setExpired(false); void signOut(); }}>Sign in again</button></div>
+      </Centered>
+    );
+  }
   if (access !== "approved") return <Gate />;
-  const adminHere = isAdmin || me?.role === "admin";
-  const nav: [string, string][] = adminHere ? [...NAV, ["/admin", "Admin"]] : NAV.filter(([to]) => !ADMIN_ONLY.has(to));
-  // Reviewers and admins (as the API says) get the review page. The API enforces this too; the link is only a convenience.
-  nav.splice(nav.findIndex(([to]) => to === "/report") + 1, 0, ["/progress", reviewerView ? "Reports" : "My report"]);
-  if (reviewerView) nav.splice(nav.findIndex(([to]) => to === "/progress"), 0, ["/review", "Review submissions"]);
-  return (
-    <WorkProvider>
-    <div className={"shell" + (collapsed ? " collapsed" : "")}>
-      <aside className="side">
-        <div className="side-head">
-          <div className="brand"><span className="mark" aria-hidden="true"><i /><i /><i /></span>FDE Tracker</div>
-          <button type="button" className="burger" onClick={toggle} aria-expanded={!collapsed} aria-label="Show or hide the side menu">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
-          </button>
-        </div>
-        <nav aria-label="Main">{nav.map(([to, label]) => (<NavLink key={to} to={to} end={to === "/"}><Icon name={NAV_ICON[to] ?? (to.startsWith("/week/") ? "tasks" : "list")} />{label}{to === "/backlog" && <BacklogCount />}</NavLink>))}</nav>
-        <div className="who"><DevPersonaBar /><RoleBadge /><ViewSwitch /><ThemeSwitch /><Progress value={pct} label="Overall progress" small /><small>{user.email}</small><button className="linkbtn" onClick={signOut}>Sign out</button></div>
-      </aside>
-      <main className="main">
-        <div className="topbar">
-          <button type="button" className="burger" onClick={toggle} aria-expanded={!collapsed} aria-label="Show or hide the side menu">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
-          </button>
-          <BackButton />
-          <div className="topright"><NotificationBell /></div>
-        </div>
-        {saveError && <p className="banner err" role="alert">Could not save to the database: {saveError}</p>}
-        <Routes key={persona}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/plan/*" element={<Navigate to="/" replace />} />
-          <Route path="/myplan" element={<MyPlan />} />
-          <Route path="/feed" element={<Feed />} />
-          <Route path="/progress" element={<ProgressPage />} />
-          <Route path="/progress/:id" element={<ProgressPage />} />
-          <Route path="/outline" element={<Outline />} />
-          <Route path="/week" element={<Navigate to="/week/1" replace />} />
-          <Route path="/week/:n" element={<WeekPlan />} />
-          <Route path="/backlog" element={<Backlog />} />
-          <Route path="/notes" element={<StudyNotes />} />
-          <Route path="/notes/:day" element={<StudyNotes />} />
-          <Route path="/task-assistant" element={<TaskAssistant />} />
-          <Route path="/assistant" element={<Assistant />} />
-          <Route path="/lab" element={<Lab />} />
-          <Route path="/report" element={<Week1Report />} />
-          <Route path="/review" element={<Review />} />
-          <Route path="/stack" element={<StackGuide />} />
-          <Route path="/curated" element={<Navigate to="/" replace />} />
-          <Route path="/readiness" element={<Readiness />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/docs" element={<Docs />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
-    </div>
-    </WorkProvider>
-  );
+  return <WorkProvider><Shell /></WorkProvider>;
 }

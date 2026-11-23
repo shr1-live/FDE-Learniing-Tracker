@@ -5,11 +5,13 @@ import { ProofList } from "./ProofList";
 import { NOT_SUBMITTED, StatusTag } from "./StatusTag";
 import { ASSESSMENT_AREAS, RATING_GUIDE } from "../data/weekExpect";
 import { hintFor } from "../data/programme";
+import { useToast } from "./Toast";
 
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "");
 
 /** "Submit your proof" for one task: a note, links and files, then send it to the reviewers. */
 export function SubmitPanel({ taskKey, exists, listLoaded }: { taskKey: string; exists?: boolean; listLoaded: boolean }) {
+  const toast = useToast();
   const [sub, setSub] = useState<api.Submission | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [signedOut, setSignedOut] = useState(false);
@@ -41,8 +43,8 @@ export function SubmitPanel({ taskKey, exists, listLoaded }: { taskKey: string; 
   /** Runs one change. Returns true when it worked, so a form is only cleared after success. */
   async function run(work: () => Promise<api.Submission>, done: string): Promise<boolean> {
     setBusy(true); setError(""); setMessage("");
-    try { apply(await work()); setMessage(done); return true; }
-    catch (e) { setError(e instanceof ApiError ? e.message : "Something went wrong. Try again."); return false; }
+    try { apply(await work()); setMessage(done); toast.success(done); return true; }
+    catch (e) { const m = e instanceof ApiError ? e.message : "Something went wrong. Try again."; setError(m); toast.error(m); return false; }
     finally { setBusy(false); }
   }
 

@@ -71,7 +71,7 @@ export function buildReminders(w: Work, hour: number): Reminder[] {
   for (const i of w.missed) {
     out.push({
       id: `missed:${rid(i)}`, tone: "bad", title: `${label(i)} is missed: ${i.state.why}`,
-      body: missingWork(i.state)[0] ?? "Open it to see what is left.", to: "/backlog", toLabel: "Catch up in the backlog", catchUp: catchUpOf(i),
+      body: missingWork(i.state)[0] ?? "Open it to see what is left.", to: "/#catch-up", toLabel: "Catch up", catchUp: catchUpOf(i),
     });
   }
   for (const i of w.dueToday) {
@@ -85,7 +85,7 @@ export function buildReminders(w: Work, hour: number): Reminder[] {
       : { id: `draft:${rid(i)}`, tone: "warn", title: `Your proof for ${label(i)} is saved but not submitted`, body: "Press Submit for review so a reviewer can see it.", to: dayTo(i), toLabel: "Submit it" });
   }
   if (w.weeksWithoutStart.length > 0 && !w.allDone) {
-    out.push({ id: "start:set", tone: "info", title: "Set your start date", body: "With a start date every day gets a due date, and missed days are found for you.", to: "/backlog", toLabel: "Set the date" });
+    out.push({ id: "start:set", tone: "info", title: "Set your start date", body: "With a start date every day gets a due date, and missed days are found for you.", to: "/#catch-up", toLabel: "Set the date" });
   }
   return out;
 }

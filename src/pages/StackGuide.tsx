@@ -6,7 +6,7 @@ export default function StackGuide() {
   const st = stackById(profile.stack);
   return (
     <>
-      <header className="ph"><h1>Stack guide</h1><p className="muted">The programme is about 70% common and 30% stack-specific. These are the stack-specific pieces for each layer.</p></header>
+      <header className="ph"><p className="muted">The programme is about 70% common and 30% stack-specific. These are the stack-specific pieces for each layer.</p></header>
       <div className="seg" role="tablist" aria-label="Stack">
         {STACKS.map((s) => (<button key={s.id} role="tab" aria-selected={s.id === st.id} className={s.id === st.id ? "on" : ""} onClick={() => setProfile({ stack: s.id })}>{s.label}</button>))}
       </div>

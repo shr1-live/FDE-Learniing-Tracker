@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { API_URL, ApiError } from "../lib/api";
 import * as rep from "../lib/reportsApi";
@@ -9,6 +9,14 @@ import { RATING_GUIDE } from "../data/weekExpect";
 import { dueDate, fmtDate, parseDay, type Tone } from "../lib/backlog";
 import { Chip } from "../components/Chip";
 import { Icon } from "../components/Icon";
+import { Kpi } from "../components/Kpi";
+import { PageHeader } from "../components/PageHeader";
+import { Tabs, TabPanel, useTab } from "../components/Tabs";
+import { Avatar } from "../components/Avatar";
+import { ErrorState, Loading, PageSkeleton, Skeleton, TableSkeleton, EmptyState } from "../components/States";
+
+const Week1Report = lazy(() => import("./Week1Report"));
+const FILTERS: [string, string][] = [["all", "All days"], ["approved", "Approved"], ["submitted", "Waiting for review"], ["changes_requested", "Changes asked"], ["open", "Not handed in"]];
 
 const msg = (e: unknown) => (e instanceof ApiError ? e.message : "Could not load the report. Try again.");
 const day = (iso: string | null) => (iso ? fmtDate(new Date(iso)) : "");
@@ -30,13 +38,29 @@ export function ReportView({ report, own }: { report: rep.PersonReport; own: boo
   const start = report.person.batch ? parseDay(report.person.batch.starts_on) : null;
   const today = new Date();
   const byKey = useMemo(() => new Map(report.days.map((d) => [d.task_key, d])), [report]);
+  const [filter, setFilter] = useState("all");
+  /** Closed sections would print empty, so open them for the print dialog and close them again afterwards. */
+  const print = () => {
+    const closed = [...document.querySelectorAll<HTMLDetailsElement>("main details:not([open])")];
+    closed.forEach((d) => { d.open = true; });
+    const restore = () => { closed.forEach((d) => { d.open = false; }); window.removeEventListener("afterprint", restore); };
+    window.addEventListener("afterprint", restore);
+    window.print();
+  };
   return (
     <>
       <div className="kpis" aria-label="Totals">
-        <div className="kpi"><div className="kh"><Icon name="check" />Approved</div><div className="kv tnum">{report.totals.approved}</div><div className="ks">days accepted by a reviewer</div></div>
-        <div className="kpi"><div className="kh"><Icon name="inbox" />Waiting</div><div className="kv tnum">{report.totals.submitted}</div><div className="ks">handed in, not reviewed yet</div></div>
-        <div className="kpi"><div className="kh"><Icon name="alert" />Changes asked</div><div className="kv tnum">{report.totals.changes_requested}</div><div className="ks">sent back by a reviewer</div></div>
-        <div className="kpi"><div className="kh"><Icon name="target" />Average self-rating</div><div className="kv tnum">{report.totals.avg_rating ?? "-"}</div><div className="ks">out of 5, over handed-in days</div></div>
+        <Kpi icon="check" label="Approved" value={String(report.totals.approved)} sub="days accepted by a reviewer" tone="ok" />
+        <Kpi icon="inbox" label="Waiting" value={String(report.totals.submitted)} sub="handed in, not reviewed yet" />
+        <Kpi icon="alert" label="Changes asked" value={String(report.totals.changes_requested)} sub="sent back by a reviewer" tone={report.totals.changes_requested ? "bad" : undefined} />
+        <Kpi icon="target" label="Average self-rating" value={String(report.totals.avg_rating ?? "-")} sub="out of 5, over handed-in days" />
+      </div>
+      <div className="toolbar noprint">
+        <div className="fchips" role="group" aria-label="Show days">
+          {FILTERS.map(([v, l]) => <button key={v} type="button" className="fchip" aria-pressed={filter === v} onClick={() => setFilter(v)}>{l}</button>)}
+        </div>
+        <div className="grow" />
+        <button type="button" className="btn secondary" onClick={print}><Icon name="print" size={16} />Print or save as PDF</button>
       </div>
       {PROGRAMME.map((w) => {
         const rows = w.days.map((d) => {
@@ -47,6 +71,7 @@ export function ReportView({ report, own }: { report: rep.PersonReport; own: boo
           const overdue = !!due && !handed && due < new Date(today.getFullYear(), today.getMonth(), today.getDate());
           return { d, r, due, handed, late, overdue };
         });
+        const shown = rows.filter((x) => filter === "all" || (filter === "open" ? !x.handed : x.r?.status === filter));
         const approved = rows.filter((x) => x.r?.status === "approved").length;
         const handedIn = rows.filter((x) => x.handed).length;
         const onTime = rows.filter((x) => x.late === 0).length;
@@ -64,7 +89,8 @@ export function ReportView({ report, own }: { report: rep.PersonReport; own: boo
               <table>
                 <thead><tr><th scope="col">Day</th><th scope="col">Status</th><th scope="col">Handed in</th><th scope="col">Self-rating</th><th scope="col">Reviewer</th></tr></thead>
                 <tbody>
-                  {rows.map(({ d, r, due, handed, late, overdue }) => {
+                  {shown.length === 0 && <tr><td colSpan={5} className="muted">No days match this filter.</td></tr>}
+                  {shown.map(({ d, r, due, handed, late, overdue }) => {
                     const [label, tone]: [string, Tone] = r ? STATUS[r.status] ?? [r.status, "none"] : overdue ? ["Missed", "bad"] : ["Not handed in", "none"];
                     return (
                       <tr key={d.n}>
@@ -87,7 +113,6 @@ export function ReportView({ report, own }: { report: rep.PersonReport; own: boo
           </section>
         );
       })}
-      <div className="row noprint"><button type="button" className="btn ghost" onClick={() => window.print()}>Print or save as PDF</button></div>
     </>
   );
 }
@@ -96,29 +121,40 @@ function PeopleList() {
   const [rows, setRows] = useState<rep.PersonRow[] | null>(null);
   const [err, setErr] = useState("");
   const [batch, setBatch] = useState("");
-  useEffect(() => { rep.people().then(setRows).catch((e) => { setErr(msg(e)); setRows([]); }); }, []);
+  const [q, setQ] = useState("");
+  const load = () => { setErr(""); setRows(null); rep.people().then(setRows).catch((e) => { setErr(msg(e)); setRows([]); }); };
+  useEffect(load, []);
   const batches = [...new Set((rows ?? []).map((r) => r.batch_name).filter(Boolean))] as string[];
-  const shown = (rows ?? []).filter((r) => !batch || r.batch_name === batch);
+  const shown = (rows ?? []).filter((r) => (!batch || r.batch_name === batch) && (!q.trim() || r.name.toLowerCase().includes(q.trim().toLowerCase())));
   return (
     <>
-      <header className="ph"><h1>Reports</h1><p className="muted">Everyone's progress, day by day and week by week, from what they handed in and what reviewers decided. Open a person for their full report.</p></header>
-      {err && <p className="banner err" role="alert">{err}</p>}
-      {batches.length > 0 && (
-        <div className="card feedbar"><div><label htmlFor="rp-batch">Batch</label><select id="rp-batch" value={batch} onChange={(e) => setBatch(e.target.value)}><option value="">All batches</option>{batches.map((b) => <option key={b}>{b}</option>)}</select></div></div>
-      )}
-      {rows === null ? <p className="muted">Loading...</p> : (
-        <div className="tablewrap" tabIndex={0} role="region" aria-label="People and their progress">
-          <table>
-            <thead><tr><th scope="col">Person</th><th scope="col">Batch</th><th scope="col">Approved</th><th scope="col">Waiting</th><th scope="col">Changes asked</th><th scope="col">Avg rating</th><th scope="col">Last activity</th></tr></thead>
-            <tbody>{shown.map((r) => (
-              <tr key={r.id}>
-                <td><Link to={`/progress/${r.id}`}><b>{r.name}</b></Link></td>
-                <td>{r.batch_name ?? <span className="muted">-</span>}</td>
-                <td className="tnum">{r.approved}</td><td className="tnum">{r.submitted}</td><td className="tnum">{r.changes_requested}</td>
-                <td className="tnum">{r.avg_rating ?? "-"}</td><td className="tnum">{r.last_activity ? day(r.last_activity) : "-"}</td>
-              </tr>))}</tbody>
-          </table>
-        </div>
+      <header className="ph"><p className="muted">Progress day by day and week by week, from what people handed in and what reviewers decided. Open a person for their full report.</p></header>
+      {err && <ErrorState title="Could not load the reports" message={err} onRetry={load} />}
+      {!err && (
+        <>
+          <div className="toolbar">
+            <div className="search grow"><Icon name="search" size={16} /><label htmlFor="rp-q" className="sr">Search people</label><input id="rp-q" type="search" placeholder="Search by name" value={q} onChange={(e) => setQ(e.target.value)} /></div>
+            {batches.length > 0 && (
+              <div className="select-wrap"><label htmlFor="rp-batch" className="sr">Batch</label><select id="rp-batch" value={batch} onChange={(e) => setBatch(e.target.value)}><option value="">All batches</option>{batches.map((b) => <option key={b}>{b}</option>)}</select></div>
+            )}
+          </div>
+          {rows === null ? <TableSkeleton cols={6} /> : shown.length === 0 ? (
+            <EmptyState icon="users" title={q || batch ? "No one matches" : "No reports yet"}>{q || batch ? "Try a shorter name or another batch." : "Reports appear here once people are in a batch and hand in work."}</EmptyState>
+          ) : (
+            <div className="tablewrap" tabIndex={0} role="region" aria-label="People and their progress, scrolls sideways on small screens">
+              <table>
+                <thead><tr><th scope="col">Person</th><th scope="col">Batch</th><th scope="col">Approved</th><th scope="col">Waiting</th><th scope="col">Changes asked</th><th scope="col">Avg rating</th><th scope="col">Last activity</th></tr></thead>
+                <tbody>{shown.map((r) => (
+                  <tr key={r.id}>
+                    <td><Link to={`/progress/${r.id}`} className="people-name"><Avatar name={r.name} size="sm" />{r.name}</Link></td>
+                    <td>{r.batch_name ?? <span className="muted">-</span>}</td>
+                    <td className="tnum">{r.approved}</td><td className="tnum">{r.submitted}</td><td className="tnum">{r.changes_requested}</td>
+                    <td className="tnum">{r.avg_rating ?? "-"}</td><td className="tnum">{r.last_activity ? day(r.last_activity) : "-"}</td>
+                  </tr>))}</tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
     </>
   );
@@ -127,28 +163,42 @@ function PeopleList() {
 function OneReport({ id }: { id: string | null }) {
   const [report, setReport] = useState<rep.PersonReport | null>(null);
   const [err, setErr] = useState("");
-  useEffect(() => { setReport(null); (id ? rep.personReport(id) : rep.myReport()).then(setReport).catch((e) => setErr(msg(e))); }, [id]);
+  const load = () => { setReport(null); setErr(""); (id ? rep.personReport(id) : rep.myReport()).then(setReport).catch((e) => setErr(msg(e))); };
+  useEffect(load, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const intro = <>{report?.person.batch ? `${report.person.batch.name}, started ${fmtDate(parseDay(report.person.batch.starts_on) ?? new Date())}. ` : ""}End of each day: what was handed in, when, the self-rating and the reviewer's decision. End of each week: the summary at the top of each week.</>;
   return (
     <>
-      <header className="ph">
-        {id && <p className="crumb noprint"><Link to="/progress">All reports</Link></p>}
-        <h1>{id ? (report ? `${report.person.name}: report` : "Report") : "My report"}</h1>
-        <p className="muted">{report?.person.batch ? `${report.person.batch.name}, started ${fmtDate(parseDay(report.person.batch.starts_on) ?? new Date())}. ` : ""}End of each day: what was handed in, when, the self-rating and the reviewer's decision. End of each week: the summary at the top of each week.</p>
-      </header>
-      {err && <p className="banner err" role="alert">{err}</p>}
-      {!report && !err && <p className="muted">Loading...</p>}
+      {!id && <header className="ph"><p className="muted">{intro}</p></header>}
+      {id && <PageHeader overline={<Link to="/progress" className="noprint">All reports</Link>} title={report ? `${report.person.name}: report` : "Report"} sub={intro} />}
+      {err && <ErrorState title="Could not load the report" message={err} onRetry={load} />}
+      {!report && !err && <Loading label="Loading the report"><div className="kpis"><Skeleton h={76} r={10} /><Skeleton h={76} r={10} /><Skeleton h={76} r={10} /><Skeleton h={76} r={10} /></div><Skeleton h={220} r={10} /></Loading>}
       {report && <ReportView report={report} own={!id} />}
     </>
   );
 }
 
-/** /progress: my report (learner view) or everyone's (reviewer view); /progress/:id: one person (reviewers and the admin). */
+/** /progress: my report (learner view) or everyone's (reviewer view), plus the Week 1 results; /progress/:id: one person (reviewers and the admin). */
 export default function Progress() {
   const { id } = useParams();
   const { me, ready } = useMe();
   const { reviewerView, canSwitch } = useView();
-  if (!API_URL) return <><header className="ph"><h1>Reports</h1></header><div className="card"><p className="muted">Reports need the backend, which is not connected for this site.</p></div></>;
-  if (ready && !me) return <><header className="ph"><h1>Reports</h1></header><div className="card" role="status"><p>Sign in with your office account to see reports.</p></div></>;
-  if (id) return canSwitch ? <OneReport id={id} /> : ready ? <Navigate to="/progress" replace /> : <p className="muted">Loading...</p>;
-  return reviewerView ? <PeopleList /> : <OneReport id={null} />;
+  const tabs = [{ id: "report", label: reviewerView ? "Reports" : "My report" }, { id: "week1", label: "Week 1 results" }];
+  const tab = useTab(tabs);
+  if (id) {
+    if (!canSwitch) return ready ? <Navigate to="/progress" replace /> : <PageSkeleton />;
+    return <OneReport id={id} />;
+  }
+  const needs = !API_URL ? "Reports need the backend, which is not connected for this site." : ready && !me ? "Sign in with your office account to see reports." : "";
+  return (
+    <>
+      <PageHeader overline="Progress" title={reviewerView ? "Reports" : "My progress"} sub={tab === "week1" ? "What was built in Week 1, what is proven, and what is still to do." : reviewerView ? "How everyone is doing." : "What you handed in, and what reviewers decided."} />
+      <Tabs tabs={tabs} current={tab} label="Progress views" />
+      <TabPanel label={tab === "week1" ? "Week 1 results" : tabs[0]!.label}>
+        {tab === "week1"
+          ? <Suspense fallback={<PageSkeleton />}><Week1Report /></Suspense>
+          : needs ? <div className="card" role="status"><p className="muted">{needs}</p></div>
+          : reviewerView ? <PeopleList /> : <OneReport id={null} />}
+      </TabPanel>
+    </>
+  );
 }

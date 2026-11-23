@@ -1,6 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
 import { API_URL, ApiError, Analysis, Candidate, Usage, analyze, getUsage } from "../lib/assistantApi";
-import { GeminiKeyPanel } from "../components/GeminiKeyPanel";
 
 const FIT_LABEL: Record<string, string> = { strong: "Strong fit", partial: "Partial fit", weak: "Weak fit", insufficient_information: "Not enough information" };
 const MAX_CANDIDATES = 5;
@@ -25,7 +24,7 @@ export default function Assistant() {
   if (!API_URL) {
     return (
       <>
-        <header className="ph"><h1>Recruitment assistant</h1></header>
+        
         <div className="card"><p className="muted">The assistant is not connected yet. The backend address is not set for this site.</p></div>
       </>
     );
@@ -34,7 +33,7 @@ export default function Assistant() {
   if (signedOut) {
     return (
       <>
-        <header className="ph"><h1>Recruitment assistant</h1></header>
+        
         <div className="card" role="status"><p>Sign in with your office account to use the assistant.</p><p className="muted small">If you are in guest or local mode, sign out and sign in with your office account: the assistant needs your account to enforce the daily limit.</p></div>
       </>
     );
@@ -56,9 +55,8 @@ export default function Assistant() {
 
   return (
     <>
-      <header className="ph"><h1>Recruitment assistant</h1>
+      <header className="ph">
         <p className="muted">Paste a job description and up to {MAX_CANDIDATES} candidate profiles. The assistant lists matched skills with a quote from the profile, gaps, and what the profile does not say. Use made-up or anonymised profiles only.</p></header>
-      <GeminiKeyPanel serverModel={usage && !usage.using_own_key ? usage.model : null} serverConfigured={usage ? usage.configured || !!usage.using_own_key : undefined} onChange={refreshUsage} />
       {usage && <p className="muted small">{usage.used_today} of {usage.daily_cap} analyses used in the last 24 hours{usage.model ? ` · model: ${usage.model}` : ""}{usage.using_own_key ? " · your own Gemini key" : ""}.</p>}
       {usage && !usage.configured && !usage.using_own_key && <p className="banner" role="status">No shared model is set up on the server. Paste your own Gemini key above to use the assistant.</p>}
       {error && <p className="banner err" role="alert">{error}</p>}
