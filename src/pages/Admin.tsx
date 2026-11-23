@@ -7,6 +7,38 @@ import * as admin from "../lib/adminApi";
 import { useMe } from "../lib/useRole";
 import { Chip } from "../components/Chip";
 import * as dl from "../lib/dailyLogApi";
+import * as com from "../lib/communityApi";
+
+/** Invite people by email. People who already have an account are approved at once; the rest are approved when they first sign in. */
+function Invites({ batches }: { batches: admin.Batch[] }) {
+  const [text, setText] = useState(""); const [batch, setBatch] = useState("");
+  const [rows, setRows] = useState<com.InviteRow[]>([]);
+  const [res, setRes] = useState<{ added: number; existing: number; rejected: string[] } | null>(null);
+  const [err, setErr] = useState(""); const [busy, setBusy] = useState(false);
+  const load = useCallback(() => { com.invites().then(setRows).catch(() => setRows([])); }, []);
+  useEffect(load, [load]);
+  const emails = text.split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean);
+  async function go(e: FormEvent) {
+    e.preventDefault(); setBusy(true); setErr(""); setRes(null);
+    try { setRes(await com.invite(emails, batch || null)); setText(""); load(); } catch (x) { setErr(msg(x)); } finally { setBusy(false); }
+  }
+  return (
+    <>
+      <h2>Invite by email</h2>
+      <p className="muted small">Paste office email addresses, separated by spaces, commas or new lines. Optionally choose the batch they join.</p>
+      <form className="card gap" onSubmit={go}>
+        <label htmlFor="inv-t">Email addresses ({emails.length})</label>
+        <textarea id="inv-t" rows={4} value={text} onChange={(e) => setText(e.target.value)} placeholder="asha@fiftyfivetech.io, karan@fiftyfivetech.io" />
+        <label htmlFor="inv-b">Batch (optional)</label>
+        <select id="inv-b" value={batch} onChange={(e) => setBatch(e.target.value)}><option value="">No batch</option>{batches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select>
+        {err && <p className="banner err" role="alert">{err}</p>}
+        {res && <p role="status">Invited {res.added}, approved {res.existing} existing{res.rejected.length ? `, skipped ${res.rejected.length} (not an office address): ${res.rejected.join(", ")}` : ""}.</p>}
+        <div className="row"><button className="btn" disabled={busy || emails.length === 0}>Send invites</button></div>
+      </form>
+      {rows.length > 0 && <p className="muted small">{rows.filter((r) => !r.used).length} waiting to sign in, {rows.filter((r) => r.used).length} joined.</p>}
+    </>
+  );
+}
 
 /** The audit trail: who changed what, newest first. Details are shown as the server recorded them. */
 function AuditLog() {
@@ -93,6 +125,8 @@ function PeopleAndRoles() {
           </table>
         </div>
       )}
+
+      <Invites batches={batches} />
 
       <h2>Batches</h2>
       <p className="muted small">A batch is a group that starts the programme together. Its start date sets everyone's due dates: day 1 on the start date, then one day per working day.</p>

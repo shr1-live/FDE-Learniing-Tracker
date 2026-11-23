@@ -67,6 +67,7 @@ function FeedCard({ item, playing, onPlay, reviewer, onRecommend, big = false }:
         <div className="fmeta-top">
           <span className="ftopic">{item.topic_title}</span>
           <span className="fkind">{isVideo ? "Video" : item.kind === "note" ? "Note" : "Article"}</span>
+          {item.batch_only && <Chip tone="info">My batch only</Chip>}
           {item.recommended && <span className="frec"><Icon name="check" size={14} /> Recommended</span>}
         </div>
         {item.url
@@ -95,13 +96,13 @@ function Skeleton() {
 
 function ShareForm({ topics, onShared, open, onToggle }: { topics: api.Topic[]; onShared: (status: string) => void; open?: boolean; onToggle?: (open: boolean) => void }) {
   const [url, setUrl] = useState(""); const [title, setTitle] = useState(""); const [topic, setTopic] = useState(""); const [why, setWhy] = useState("");
-  const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false); const [err, setErr] = useState(""); const [batchOnly, setBatchOnly] = useState(false);
   const okUrl = /^https:\/\/\S+\.\S+/.test(url.trim());
   const ready = okUrl && title.trim().length >= 3 && topic && !busy;
   async function go(e: FormEvent) {
     e.preventDefault(); setBusy(true); setErr("");
     try {
-      const r = await api.share({ topic, kind: api.kindFor(url), title: title.trim(), url: url.trim(), summary: why });
+      const r = await api.share({ topic, kind: api.kindFor(url), title: title.trim(), url: url.trim(), summary: why, batch_only: batchOnly || undefined });
       setUrl(""); setTitle(""); setWhy(""); onShared(r.status);
     } catch (e2) { setErr(msg(e2)); } finally { setBusy(false); }
   }
@@ -122,6 +123,7 @@ function ShareForm({ topics, onShared, open, onToggle }: { topics: api.Topic[]; 
         </select>
         <label htmlFor="sh-why">Why it is worth it (optional)</label>
         <textarea id="sh-why" rows={2} maxLength={400} value={why} onChange={(e) => setWhy(e.target.value)} placeholder="One or two lines for the others" />
+        <label className="check-row"><input type="checkbox" checked={batchOnly} onChange={(e) => setBatchOnly(e.target.checked)} /><span>Share with my batch only <small className="meta">(you need to be in a batch)</small></span></label>
         {err && <p className="banner err" role="alert">{err}</p>}
         <div className="row"><button className="btn" disabled={!ready}>{busy ? "Sharing..." : "Share"}</button></div>
       </form>

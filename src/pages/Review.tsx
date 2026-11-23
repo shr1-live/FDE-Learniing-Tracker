@@ -35,6 +35,7 @@ export default function Review() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [score, setScore] = useState<{ met: number; total: number } | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
 
   const listReq = useRef(0);
@@ -64,7 +65,7 @@ export default function Review() {
     if (decision === "request_changes" && !comment.trim()) { setError("Say what needs to change."); return; }
     setBusy(true); setError(""); setMessage("");
     try {
-      setOpen(await api.decide(open.id, decision, comment));
+      setOpen(await api.decide(open.id, decision, comment, score ?? undefined));
       setComment(""); setMessage(decision === "approve" ? "Approved." : "Sent back with your comment.");
       await refresh();
     } catch (err) { setError(err instanceof ApiError ? err.message : "Could not save your decision."); }
@@ -143,14 +144,14 @@ export default function Review() {
           <h3>Proof</h3>
           <ProofList items={open.items} />
           {parsed && <ExpectedList week={parsed.week} day={parsed.day} open />}
-          {parsed && open.status === "submitted" && <Rubric week={parsed.week} day={parsed.day} resetKey={open.id} onUnmet={(lines) => setComment((c) => (c ? c + "\n" : "") + lines.join("\n"))} />}
+          {parsed && open.status === "submitted" && <Rubric week={parsed.week} day={parsed.day} resetKey={open.id} onScore={setScore} onUnmet={(lines) => setComment((c) => (c ? c + "\n" : "") + lines.join("\n"))} />}
 
           {open.reviews.length > 0 && (
             <>
               <h3>History</h3>
               <ul className="plain">
                 {open.reviews.map((r, i) => (
-                  <li key={i}><b>{r.decision === "approve" ? "Approved" : "Changes requested"}</b> by {r.reviewer}, {when(r.created_at)}{r.comment ? `: ${r.comment}` : ""}</li>
+                  <li key={i}><b>{r.decision === "approve" ? "Approved" : "Changes requested"}</b> by {r.reviewer}, {when(r.created_at)}{r.met != null && r.total ? ` · checklist ${r.met} of ${r.total}` : ""}{r.comment ? `: ${r.comment}` : ""}</li>
                 ))}
               </ul>
             </>

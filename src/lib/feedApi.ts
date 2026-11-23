@@ -6,7 +6,7 @@ export type Sort = "newest" | "oldest" | "title" | "recommended";
 export type Topic = { slug: string; title: string; description?: string | null };
 export type FeedItem = {
   id: string; title: string; summary: string | null; kind: Kind; url: string | null; stack_id: string | null;
-  approved_at: string | null; topic: string; topic_title: string; author: string; recommended?: boolean;
+  approved_at: string | null; topic: string; topic_title: string; author: string; recommended?: boolean; batch_only?: boolean;
 };
 export type MyItem = { id: string; title: string; status: "draft" | "in_review" | "changes_requested" | "approved" | "rejected"; kind?: Kind; url?: string | null; created_at?: string; updated_at?: string };
 export type QueueItem = { id: string; title: string; kind: Kind; url?: string | null; summary?: string | null; stack_id: string | null; submitted_at: string | null; topic: string; topic_title?: string; author: string };
@@ -25,7 +25,7 @@ export function feed(opts: { sort?: Sort; topic?: string; limit?: number; before
 export const mine = () => apiJson<MyItem[]>("GET", "/api/content/mine");
 
 /** Shares a link. A reviewer's or the admin's share goes straight to the feed; a member's waits for a reviewer. */
-export const share = (b: { topic: string; kind: Kind; title: string; url: string; summary?: string }) =>
+export const share = (b: { topic: string; kind: Kind; title: string; url: string; summary?: string; batch_only?: boolean }) =>
   apiJson<{ id: string; status: MyItem["status"] }>("POST", "/api/content", { ...b, summary: b.summary?.trim() || undefined, submit: true });
 
 export const recommend = (id: string, recommended: boolean) => apiJson<FeedItem>("POST", `/api/content/${id}/recommend`, { recommended });

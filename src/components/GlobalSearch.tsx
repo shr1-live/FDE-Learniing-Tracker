@@ -11,7 +11,7 @@ const PAGES: Hit[] = [
   { id: "p-home", title: "Home", sub: "Page", to: "/" }, { id: "p-prog", title: "Programme", sub: "Page", to: "/week/1" },
   { id: "p-progress", title: "Progress", sub: "Page", to: "/progress" }, { id: "p-feed", title: "Feed", sub: "Page", to: "/feed" },
   { id: "p-cal", title: "Calendar", sub: "Page", to: "/calendar" }, { id: "p-journal", title: "Journal: goals and notes", sub: "Page", to: "/journal" },
-  { id: "p-quiz", title: "Quizzes", sub: "Page", to: "/quiz" }, { id: "p-log", title: "Daily log", sub: "Page", to: "/daily-log" },
+  { id: "p-comm", title: "Community: peer comments and leaderboard", sub: "Page", to: "/community" }, { id: "p-quiz", title: "Quizzes", sub: "Page", to: "/quiz" }, { id: "p-log", title: "Daily log", sub: "Page", to: "/daily-log" },
   { id: "p-notif", title: "Notifications", sub: "Page", to: "/notifications" }, { id: "p-lab", title: "Practice lab", sub: "Page", to: "/lab" },
   { id: "p-res", title: "Resources", sub: "Page", to: "/resources" }, { id: "p-ready", title: "Readiness ratings", sub: "Page", to: "/resources?tab=readiness" },
 ];

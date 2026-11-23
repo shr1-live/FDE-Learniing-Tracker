@@ -125,8 +125,7 @@ export default function Home() {
             <h3 id="prog-h">Programme</h3>
             <p className="meta" style={{ marginTop: 4 }}>Weeks of five working days: topic, theory, practical task, proof and a rating.</p>
             <div className="row" style={{ marginTop: "var(--s-3)" }}>
-              <Link className="btn secondary" to="/week/1">Week 1 tasks</Link>
-              <Link className="btn secondary" to="/week/2">Week 2 tasks</Link>
+              {[1, 2, 3, 4, 5, 6].map((n) => <Link key={n} className="btn secondary" to={`/week/${n}`}>Week {n}</Link>)}
               <Link className="btn ghost" to="/week/1#overview">All six weeks</Link>
             </div>
           </section>
