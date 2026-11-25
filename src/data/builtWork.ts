@@ -1,0 +1,14 @@
+// The working tools that were built for the practical days, shown on the "My work" page. Each one opens the live tool in this app
+// and links to its evidence page (task, acceptance points, measured results, what is not done). Add a line here when a day is finished.
+const API_DOCS = "https://github.com/shr1-live/fde-learning-tracker-api-personal/blob";
+
+export type Built = { id: string; week: string; days: string; title: string; what: string; open: string; openLabel: string; evidence: string };
+
+export const BUILT: Built[] = [
+  { id: "w1d1", week: "Week 1", days: "Day 1", title: "Model comparison", what: "The same fixed prompts run on more than one model setting, with latency and token counts, and the runs kept as proof.", open: "/lab?tab=lab", openLabel: "Open the lab", evidence: `${API_DOCS}/main/docs/evidence/day1.md` },
+  { id: "w1d2", week: "Week 1", days: "Day 2", title: "Prompt versions", what: "Seven stored prompt versions compared on the same job description and candidate profiles, with repeatable test cases and missing information flagged instead of invented.", open: "/lab?tab=recruit", openLabel: "Open the assistant", evidence: `${API_DOCS}/main/docs/evidence/day2.md` },
+  { id: "w1d3", week: "Week 1", days: "Day 3", title: "Task assistant (structured output and controlled tools)", what: "Plain words become a checked task: the model proposes create, list or update, the server validates it, and deleting needs a confirmation. Every tool call is logged.", open: "/lab?tab=tasks", openLabel: "Open the task assistant", evidence: `${API_DOCS}/main/docs/evidence/day3.md` },
+  { id: "w1d4", week: "Week 1", days: "Day 4", title: "Evaluation and guardrails", what: "A 30-case evaluation set (normal, incomplete, ambiguous, prompt-injection, edge cases) run before and after the guardrails, with failures documented.", open: "/progress?tab=week1", openLabel: "Open the Week 1 report", evidence: `${API_DOCS}/main/docs/evidence/day4.md` },
+  { id: "w1d5", week: "Week 1", days: "Day 5", title: "Recruitment assistant", what: "Candidate profiles analysed against a job description. The answer is structured and every claim needs a real quote from the profile. Two controlled code functions, ExtractSkills and ScoreMatch, make the skill match checkable.", open: "/lab?tab=recruit", openLabel: "Open the assistant", evidence: `${API_DOCS}/main/docs/evidence/day5.md` },
+  { id: "w2d1-2", week: "Week 2", days: "Days 1 and 2", title: "Document assistant (RAG): ingestion, chunking and embeddings", what: "Add approved documents, ask questions, get answers with numbered citations, and a refusal when the documents do not say. Two chunking strategies with configurable size and overlap, stored embeddings, and an 18-question comparison of 18 settings.", open: "/lab?tab=rag", openLabel: "Open the document assistant", evidence: `${API_DOCS}/97a4ff734c77b87821ac2674546824ab2489035f/docs/evidence/week2-day1.md` },
+];
