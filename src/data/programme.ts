@@ -3,7 +3,7 @@
 import { WEEK_DAYS, WEEK_TITLE, WeekDay } from "./weekPlan";
 import { EXPECT, DayExpectation } from "./weekExpect";
 import { WEEK2_DAYS, WEEK2_EXPECT, WEEK2_TITLE } from "./week2";
-import { WEEK3, WEEK4, WEEK5, WEEK6 } from "./weeks3to6";
+import { WEEK3, WEEK4, WEEK5 } from "./weeks3to5";
 import { devopsTitle } from "./devops";
 
 export type ProgrammeWeek = { n: number; title: string; days: WeekDay[]; expect: Record<number, DayExpectation> };
@@ -11,11 +11,9 @@ export type ProgrammeWeek = { n: number; title: string; days: WeekDay[]; expect:
 export const PROGRAMME: ProgrammeWeek[] = [
   { n: 1, title: WEEK_TITLE, days: WEEK_DAYS, expect: EXPECT },
   { n: 2, title: WEEK2_TITLE, days: WEEK2_DAYS, expect: WEEK2_EXPECT },
-  // Weeks 3 to 6 are DRAFTS written from the company outline; replace them when the programme sheets are published.
   { n: 3, title: WEEK3.title, days: WEEK3.days, expect: WEEK3.expect },
   { n: 4, title: WEEK4.title, days: WEEK4.days, expect: WEEK4.expect },
   { n: 5, title: WEEK5.title, days: WEEK5.days, expect: WEEK5.expect },
-  { n: 6, title: WEEK6.title, days: WEEK6.days, expect: WEEK6.expect },
 ];
 
 export const getWeek = (n: number): ProgrammeWeek | undefined => PROGRAMME.find((w) => w.n === n);

@@ -20,6 +20,7 @@ import { PageHeader } from "../components/PageHeader";
 import { Progress } from "../components/Progress";
 import { useToast } from "../components/Toast";
 import { EmptyState } from "../components/States";
+import { builtFor } from "../data/builtWork";
 import { TrackTabs } from "../components/TrackTabs";
 
 const flags = (v: unknown, len: number): boolean[] => Array.from({ length: len }, (_, i) => Array.isArray(v) && v[i] === true);
@@ -230,6 +231,13 @@ export default function Programme() {
                       <label key={t} className="check"><input type="checkbox" checked={f[i]} onChange={() => toggle(d.n, d.done.length, i)} /><span>{t}</span></label>
                     ))}
                     <ExpectedList week={week.n} day={d.n} />
+                    {builtFor(week.n, d.n).map((b) => (
+                      <div key={b.id} className="callout ok" role="note">
+                        <p><b>Working example built for this day:</b> {b.title}</p>
+                        <p className="small">{b.what}</p>
+                        <div className="row"><Link className="btn secondary" to={b.open}>{b.openLabel}</Link><a className="small" href={b.evidence} target="_blank" rel="noopener noreferrer">Evidence page<span className="sr"> (opens in a new tab)</span></a><Link className="small" to="/my-work">All my work</Link></div>
+                      </div>
+                    ))}
                     {reviewer
                       ? <CohortSummary task={task} rows={cohort} />
                       : reviewerRole

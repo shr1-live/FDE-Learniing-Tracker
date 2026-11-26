@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 
 /** The programme has two tracks: the FDE programme and the DevOps study program. This switch sits at the top of both. */
-export function TrackTabs({ current }: { current: "fde" | "devops" }) {
+export function TrackTabs({ current }: { current: "fde" | "devops" | "work" }) {
   return (
     <nav className="weeksw tracktabs" aria-label="Programme track">
       <Link to="/week/1" aria-current={current === "fde" ? "page" : undefined}>FDE</Link>
       <Link to="/devops/week/1" aria-current={current === "devops" ? "page" : undefined}>DevOps</Link>
+      <Link to="/my-work" aria-current={current === "work" ? "page" : undefined}>My work</Link>
     </nav>
   );
 }

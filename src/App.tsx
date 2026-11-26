@@ -29,6 +29,7 @@ const Resources = lazy(() => import("./pages/Resources"));
 const Review = lazy(() => import("./pages/Review"));
 const Admin = lazy(() => import("./pages/Admin"));
 const DailyLog = lazy(() => import("./pages/DailyLog"));
+const MyWork = lazy(() => import("./pages/MyWork"));
 const Devops = lazy(() => import("./pages/Devops"));
 const Community = lazy(() => import("./pages/Community"));
 const Quiz = lazy(() => import("./pages/Quiz"));
@@ -58,6 +59,7 @@ function Centered({ children }: { children: ReactNode }) {
 function crumbs(path: string): string[] {
   if (path === "/") return ["Home"];
   if (path.startsWith("/week")) return ["Programme", `Week ${path.split("/")[2] ?? FIRST_WEEK}`];
+  if (path.startsWith("/my-work")) return ["Programme", "My work"];
   if (path.startsWith("/devops")) return ["Programme", "DevOps", `Week ${path.split("/")[3] ?? 1}`];
   if (path.startsWith("/progress")) return ["Progress"];
   if (path.startsWith("/feed")) return ["Feed"];
@@ -190,7 +192,7 @@ function Shell() {
   const name = (user?.email ?? "").split("@")[0]!.split(/[._-]/).map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ") || "You";
   const roleLabel = !API_URL ? "Learner" : me ? (me.role === "admin" ? "Admin" : me.role === "reviewer" ? "Reviewer" : "Learner") : meReady ? "Not confirmed" : "Checking";
   const inDrawer = phone && open; // links in the open drawer replace its history entry instead of stacking on it
-  const onWeek = loc.pathname.startsWith("/week") || loc.pathname.startsWith("/devops");
+  const onWeek = loc.pathname.startsWith("/week") || loc.pathname.startsWith("/devops") || loc.pathname.startsWith("/my-work");
   const moreActive = open || /^\/(lab|resources|review|admin|calendar|journal|notifications|daily-log|quiz|community)/.test(loc.pathname);
   const missed = w.learner ? w.missed.length : 0;
 
@@ -250,6 +252,7 @@ function Shell() {
                   <Route path="/" element={<Home />} />
                   <Route path="/week" element={<Navigate to={`/week/${FIRST_WEEK}`} replace />} />
                   <Route path="/week/:n" element={<Programme />} />
+                  <Route path="/my-work" element={<MyWork />} />
                   <Route path="/devops" element={<Navigate to="/devops/week/1" replace />} />
                   <Route path="/devops/week/:n" element={<Devops />} />
                   <Route path="/progress" element={<ProgressPage />} />
