@@ -21,6 +21,7 @@ import { Progress } from "../components/Progress";
 import { useToast } from "../components/Toast";
 import { EmptyState } from "../components/States";
 import { builtFor } from "../data/builtWork";
+import { NotebookLinks } from "../components/NotebookLinks";
 import { TrackTabs } from "../components/TrackTabs";
 
 const flags = (v: unknown, len: number): boolean[] => Array.from({ length: len }, (_, i) => Array.isArray(v) && v[i] === true);
@@ -235,7 +236,7 @@ export default function Programme() {
                       <div key={b.id} className="callout ok" role="note">
                         <p><b>Working example built for this day:</b> {b.title}</p>
                         <p className="small">{b.what}</p>
-                        <div className="row"><Link className="btn secondary" to={b.open}>{b.openLabel}</Link><a className="small" href={b.evidence} target="_blank" rel="noopener noreferrer">Evidence page<span className="sr"> (opens in a new tab)</span></a>{b.notebook && <a className="small" href={b.notebook} target="_blank" rel="noopener noreferrer">Step-by-step notebook (Colab)<span className="sr"> (opens in a new tab)</span></a>}<Link className="small" to="/my-work">All my work</Link></div>
+                        <div className="row"><Link className="btn secondary" to={b.open}>{b.openLabel}</Link><a className="small" href={b.evidence} target="_blank" rel="noopener noreferrer">Evidence page<span className="sr"> (opens in a new tab)</span></a><NotebookLinks notebooks={b.notebooks} className="small" /><Link className="small" to="/my-work">All my work</Link></div>
                       </div>
                     ))}
                     {reviewer

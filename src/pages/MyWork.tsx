@@ -13,6 +13,7 @@ import { EmptyState } from "../components/States";
 import { PROGRAMME, parseTask, taskTitle } from "../data/programme";
 import { DEVOPS_TOTAL_DAYS, parseDevopsTask } from "../data/devops";
 import { BUILT } from "../data/builtWork";
+import { NotebookLinks } from "../components/NotebookLinks";
 import { downloadJson } from "../lib/csv";
 
 const TOTAL_DAYS = PROGRAMME.reduce((a, w) => a + w.days.length, 0) + DEVOPS_TOTAL_DAYS;
@@ -109,7 +110,7 @@ export default function MyWork() {
             <div className="row">
               <Link className="btn" to={b.open}>{b.openLabel}</Link>
               <a className="btn secondary" href={b.evidence} target="_blank" rel="noopener noreferrer">Evidence page<span className="sr"> (opens in a new tab)</span></a>
-              {b.notebook && <a className="btn secondary" href={b.notebook} target="_blank" rel="noopener noreferrer">Step-by-step notebook (Colab)<span className="sr"> (opens in a new tab)</span></a>}
+              <NotebookLinks notebooks={b.notebooks} />
             </div>
           </li>
         ))}

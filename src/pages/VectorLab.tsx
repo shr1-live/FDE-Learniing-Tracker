@@ -14,9 +14,6 @@ const DEPARTMENTS = ["", "hr", "finance", "it"];
 const grid = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "var(--s-3)" } as const;
 const errText = (e: unknown) => (e instanceof vec.VectorError ? e.message : "Something went wrong. Try again.");
 
-// Step-by-step notebook of the same ideas (same documents, questions, chunker, filter check and merge rule), opened in Google Colab from the public API repository.
-const COLAB_URL = "https://colab.research.google.com/github/shr1-live/fde-learning-tracker-api-personal/blob/main/docs/notebooks/week2-day3-vector-search.ipynb";
-
 /** Week 2, Day 3 demo: live vector search against the vector service, with the settings the practical compares. */
 export default function VectorLab() {
   const [url, setUrl] = useState(vec.savedUrl());
@@ -49,10 +46,6 @@ export default function VectorLab() {
 
   return (
     <>
-      <aside className="card" aria-label="Step-by-step notebook">
-        <p><b>See the code, step by step.</b> A notebook runs the same ideas in small steps you can change: chunks, embeddings, similarity, filters, Top K, hybrid search and the measurements. It needs no database and no key.</p>
-        <p><a className="btn" href={COLAB_URL} target="_blank" rel="noopener noreferrer">Open the notebook in Google Colab</a></p>
-      </aside>
       <HowItWorks />
       <section aria-labelledby="vl-conn">
         <h2 id="vl-conn">1. The vector service</h2>
