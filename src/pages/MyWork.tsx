@@ -109,6 +109,7 @@ export default function MyWork() {
             <div className="row">
               <Link className="btn" to={b.open}>{b.openLabel}</Link>
               <a className="btn secondary" href={b.evidence} target="_blank" rel="noopener noreferrer">Evidence page<span className="sr"> (opens in a new tab)</span></a>
+              {b.notebook && <a className="btn secondary" href={b.notebook} target="_blank" rel="noopener noreferrer">Step-by-step notebook (Colab)<span className="sr"> (opens in a new tab)</span></a>}
             </div>
           </li>
         ))}

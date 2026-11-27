@@ -40,7 +40,10 @@ async function call<T>(base: string, key: string, method: string, path: string, 
   }
   if (!res.ok) {
     let detail = "";
-    try { const j = await res.json(); detail = typeof j.detail === "string" ? j.detail : Array.isArray(j.detail) ? j.detail.map((d: { msg?: string }) => d.msg).join("; ") : ""; } catch { /* no body */ }
+    try {
+      const j = await res.json();
+      detail = typeof j.error?.message === "string" ? j.error.message : typeof j.detail === "string" ? j.detail : Array.isArray(j.detail) ? j.detail.map((d: { msg?: string }) => d.msg).join("; ") : "";
+    } catch { /* no body */ }
     throw new VectorError(res.status === 401 ? "The service wants an API key (X-Api-Key). Enter it above." : detail || `The service answered ${res.status}.`, res.status);
   }
   return (await res.json()) as T;
@@ -59,4 +62,35 @@ export function buildFilter(region: string, department: string, fromYear: number
   if (department) c.push({ department });
   if (fromYear) c.push({ year: { $gte: fromYear } });
   return c.length === 0 ? null : c.length === 1 ? c[0]! : { $and: c };
+}
+
+// ---- Week 2, Day 5: the document assistant (upload, ask with citations, follow-up questions). The server enforces who may read what.
+export type Me = { owner: string; departments: string[]; admin: boolean };
+export type AsstDoc = { doc_id: string; title: string; chunks: number; department?: string; region?: string; year?: number; visibility?: string; flagged?: boolean };
+export type Source = { n: number; doc_id: string; title: string; text: string; score: number; similarity: number | null; department?: string; region?: string; year?: number };
+export type Answer = {
+  request_id: string; answer: string; refused: boolean; reason: string | null; cited: number | null; standalone_question: string; rewritten: boolean;
+  sources: Source[]; best_similarity: number | null; gate: number; generator: string; timing_ms: { retrieve: number; generate: number; total: number };
+};
+export type Turn = { role: "user" | "assistant"; content: string };
+export type Upload = { doc_id: string; title: string; chunks: number; department: string; visibility: string; flagged: boolean; warning: string | null };
+
+export const asstMe = (base: string, key: string) => call<Me>(base, key, "GET", "/assistant/me");
+export const asstDocs = (base: string, key: string) => call<AsstDoc[]>(base, key, "GET", "/assistant/documents");
+export const asstSample = (base: string, key: string) => call<{ documents: number; chunks: number }>(base, key, "POST", "/assistant/sample");
+export const asstDelete = (base: string, key: string, id: string) => call<{ removed_chunks: number }>(base, key, "DELETE", `/assistant/documents/${encodeURIComponent(id)}`);
+export const asstAsk = (base: string, key: string, body: { question: string; history: Turn[]; k: number; min_score: number }, signal?: AbortSignal) =>
+  call<Answer>(base, key, "POST", "/assistant/ask", { ...body, mode: "hybrid" }, signal);
+export const asstUpload = (base: string, key: string, body: { filename: string; content_base64: string; department: string | null; region: string; year: number }) =>
+  call<Upload>(base, key, "POST", "/assistant/upload", body);
+
+export const MAX_UPLOAD_BYTES = 2_000_000;
+export const ACCEPT = ".txt,.md,.pdf,.docx";
+
+/** A file as base64 (in chunks, so a large file does not overflow the call stack). */
+export async function fileToBase64(file: File): Promise<string> {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
 }
